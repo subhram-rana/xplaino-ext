@@ -1,12 +1,12 @@
+/* ALL properties use !important for style isolation */
 .dropdownIcon {
-  color: currentColor;
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-  display: inline-block;
-  vertical-align: middle;
+  color: currentColor !important;
+  transition: transform 0.2s ease !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
 }
 
 .dropdownIconOpen {
-  transform: rotate(180deg);
+  transform: rotate(180deg) !important;
 }
-

@@ -1,0 +1,64 @@
+/* src/content/styles/onHoverMessage.shadow.css */
+/* Shadow DOM compatible styles for OnHoverMessage component */
+/* ALL properties use !important for style isolation */
+
+.onHoverMessage {
+  position: fixed !important;
+  background: var(--color-primary-very-light) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  color: var(--color-primary-light) !important;
+  font-family: var(--font-family-primary) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 8px 12px !important;
+  white-space: nowrap !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important, 
+              visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important,
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.onHoverMessage.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Position variants - these classes are applied but positioning is handled via inline styles */
+/* Note: Transform is combined with scale for smooth animation */
+.onHoverMessage.top {
+  transform: translateX(-50%) scale(0.95) !important;
+}
+
+.onHoverMessage.top.visible {
+  transform: translateX(-50%) scale(1) !important;
+}
+
+.onHoverMessage.bottom {
+  transform: translateX(-50%) scale(0.95) !important;
+}
+
+.onHoverMessage.bottom.visible {
+  transform: translateX(-50%) scale(1) !important;
+}
+
+.onHoverMessage.left {
+  transform: translateY(-50%) scale(0.95) !important;
+}
+
+.onHoverMessage.left.visible {
+  transform: translateY(-50%) scale(1) !important;
+}
+
+.onHoverMessage.right {
+  transform: translateY(-50%) scale(0.95) !important;
+}
+
+.onHoverMessage.right.visible {
+  transform: translateY(-50%) scale(1) !important;
+}
+

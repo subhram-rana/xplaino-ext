@@ -15,6 +15,7 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  assetsInclude: ['**/*.ico'],
   build: {
     rollupOptions: {
       input: {

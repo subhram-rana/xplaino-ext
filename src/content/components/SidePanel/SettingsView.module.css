@@ -1,184 +1,184 @@
 /* src/content/components/SidePanel/SettingsView.module.css */
+/* ALL properties use !important for style isolation */
 
 .settingsView {
-  padding: 16px;
-  height: 100%;
-  overflow-y: auto;
-  background: #1A202C;
-  color: #FFFFFF;
+  padding: 16px !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  background: #1A202C !important;
+  color: #FFFFFF !important;
 }
 
 .loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #A0AEC0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  color: #A0AEC0 !important;
 }
 
 .section {
-  margin-bottom: 24px;
+  margin-bottom: 24px !important;
 }
 
 .sectionHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
 }
 
 .sectionAccent {
-  width: 4px;
-  height: 20px;
-  background: #ED8936;
-  border-radius: 2px;
-  flex-shrink: 0;
+  width: 4px !important;
+  height: 20px !important;
+  background: #ED8936 !important;
+  border-radius: 2px !important;
+  flex-shrink: 0 !important;
 }
 
 .sectionTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #FFFFFF;
-  margin: 0;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #FFFFFF !important;
+  margin: 0 !important;
 }
 
 .sectionContent {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
 }
 
 .settingItem {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
 }
 
 .settingLabel {
-  font-size: 14px;
-  font-weight: 500;
-  color: #E2E8F0;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #E2E8F0 !important;
 }
 
 .domainName {
-  color: #9527F5;
-  font-style: italic;
+  color: #9527F5 !important;
+  font-style: italic !important;
 }
 
 .tabGroup {
-  display: flex;
-  gap: 8px;
-  background: #2D3748;
-  border-radius: 10px;
-  padding: 4px;
+  display: flex !important;
+  gap: 8px !important;
+  background: #2D3748 !important;
+  border-radius: 10px !important;
+  padding: 4px !important;
 }
 
 .tab {
-  flex: 1;
-  padding: 8px 12px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: #A0AEC0;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  flex: 1 !important;
+  padding: 8px 12px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px !important;
+  color: #A0AEC0 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
 }
 
 .tab:hover {
-  color: #FFFFFF;
-  background: rgba(149, 39, 245, 0.1);
+  color: #FFFFFF !important;
+  background: rgba(149, 39, 245, 0.1) !important;
 }
 
 .tabActive {
-  background: #9527F5;
-  color: #FFFFFF;
+  background: #9527F5 !important;
+  color: #FFFFFF !important;
 }
 
 .themeToggle {
-  display: flex;
-  gap: 12px;
+  display: flex !important;
+  gap: 12px !important;
 }
 
 .themeOption {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: #2D3748;
-  border: 2px solid transparent;
-  border-radius: 10px;
-  color: #A0AEC0;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  background: #2D3748 !important;
+  border: 2px solid transparent !important;
+  border-radius: 10px !important;
+  color: #A0AEC0 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
 }
 
 .themeOption:hover {
-  border-color: #9527F5;
-  color: #FFFFFF;
+  border-color: #9527F5 !important;
+  color: #FFFFFF !important;
 }
 
 .themeActive {
-  background: #9527F5;
-  border-color: #9527F5;
-  color: #FFFFFF;
+  background: #9527F5 !important;
+  border-color: #9527F5 !important;
+  color: #FFFFFF !important;
 }
 
 .themeOption svg {
-  width: 20px;
-  height: 20px;
+  width: 20px !important;
+  height: 20px !important;
 }
 
 .toggleContainer {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
+  display: flex !important;
+  align-items: center !important;
+  cursor: pointer !important;
 }
 
 .toggleTrack {
-  position: relative;
-  width: 44px;
-  height: 24px;
-  border-radius: 12px;
-  background: #4A5568;
-  transition: background-color 0.2s ease;
+  position: relative !important;
+  width: 44px !important;
+  height: 24px !important;
+  border-radius: 12px !important;
+  background: #4A5568 !important;
+  transition: background-color 0.2s ease !important;
 }
 
 .toggleTrack.checked {
-  background: #9527F5;
+  background: #9527F5 !important;
 }
 
 .toggleThumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: left 0.2s ease;
+  position: absolute !important;
+  top: 3px !important;
+  left: 3px !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  transition: left 0.2s ease !important;
 }
 
 .toggleThumb.thumbChecked {
-  left: 23px;
+  left: 23px !important;
 }
 
 .toggleSetting {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
 }
 
 .toggleLabel {
-  font-size: 15px;
-  font-weight: 600;
-  color: #FFFFFF;
-  user-select: none;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #FFFFFF !important;
+  user-select: none !important;
 }
-

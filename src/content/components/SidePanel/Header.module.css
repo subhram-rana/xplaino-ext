@@ -1,50 +1,50 @@
 /* src/content/components/SidePanel/Header.module.css */
+/* ALL properties use !important for style isolation */
 
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  background: #FFFFFF;
-  border-bottom: 1px solid #BF7EFA;
-  height: 60px;
-  flex-shrink: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px 24px !important;
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #BF7EFA !important;
+  height: 60px !important;
+  flex-shrink: 0 !important;
 }
 
 .brandImage {
-  max-width: 150px;
-  height: auto;
-  object-fit: contain;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  max-width: 150px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease !important;
 }
 
 .brandImage:hover {
-  transform: scale(1.05);
+  transform: scale(1.05) !important;
 }
 
 .closeButton {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: background 0.2s ease;
-  color: #718096;
-  padding: 0;
+  width: 32px !important;
+  height: 32px !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  transition: background 0.2s ease !important;
+  color: #718096 !important;
+  padding: 0 !important;
 }
 
 .closeButton:hover {
-  background: #F7FAFC;
-  color: #9527F5;
+  background: #F7FAFC !important;
+  color: #9527F5 !important;
 }
 
 .closeButton svg {
-  width: 20px;
-  height: 20px;
+  width: 20px !important;
+  height: 20px !important;
 }
-

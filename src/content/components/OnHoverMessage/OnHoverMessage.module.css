@@ -1,0 +1,44 @@
+/* src/content/components/OnHoverMessage/OnHoverMessage.module.css */
+/* ALL properties use !important for style isolation */
+
+.onHoverMessage {
+  position: fixed !important;
+  background: var(--color-primary-very-light) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  color: var(--color-primary-light) !important;
+  font-family: var(--font-family-primary) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 8px 12px !important;
+  white-space: nowrap !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.2s ease !important, visibility 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.onHoverMessage.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Position variants - these classes are applied but positioning is handled via inline styles */
+.onHoverMessage.top {
+  transform: translateX(-50%) !important;
+}
+
+.onHoverMessage.bottom {
+  transform: translateX(-50%) !important;
+}
+
+.onHoverMessage.left {
+  transform: translateY(-50%) !important;
+}
+
+.onHoverMessage.right {
+  transform: translateY(-50%) !important;
+}
+

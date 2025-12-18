@@ -1,41 +1,41 @@
 /* src/content/components/SidePanel/Footer.module.css */
+/* ALL properties use !important for style isolation */
 
 .footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 0;
-  background: #FFFFFF;
-  border-top: 1px solid #E2E8F0;
-  height: 50px;
-  flex-shrink: 0;
-  gap: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+  padding: 0 !important;
+  background: #FFFFFF !important;
+  border-top: 1px solid #E2E8F0 !important;
+  height: 50px !important;
+  flex-shrink: 0 !important;
+  gap: 0 !important;
 }
 
 .tab {
-  flex: 1;
-  height: 100%;
-  border: none;
-  background: transparent;
-  color: #9527F5;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-bottom: 3px solid transparent;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex: 1 !important;
+  height: 100% !important;
+  border: none !important;
+  background: transparent !important;
+  color: #9527F5 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border-bottom: 3px solid transparent !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .tab:hover {
-  background: rgba(149, 39, 245, 0.05);
+  background: rgba(149, 39, 245, 0.05) !important;
 }
 
 .tab.active {
-  background: #9527F5;
-  color: #FFFFFF;
-  border-bottom-color: #9527F5;
+  background: #9527F5 !important;
+  color: #FFFFFF !important;
+  border-bottom-color: #9527F5 !important;
 }
-

@@ -1,18 +1,14 @@
-/* src/content/components/SidePanel/SidePanel.module.css */
-/* ALL properties use !important for style isolation */
+/* src/content/styles/sidePanel.shadow.css */
+/* Shadow DOM compatible styles for SidePanel component */
+/* ALL properties use !important for Shadow DOM style isolation */
 
-/* CSS Variables */
 :host {
-  --panel-primary: #9527F5 !important;
-  --panel-primary-light: #BF7EFA !important;
-  --panel-primary-medium: #8607f5 !important;
-  --panel-white: #FFFFFF !important;
-  --panel-shadow: 0 0 20px rgba(149, 39, 245, 0.3) !important;
-  --panel-border-radius: 30px !important;
-  --panel-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  --panel-min-width: 300px !important;
-  --panel-max-width: 800px !important;
-  --panel-default-width: 400px !important;
+  all: initial !important;
+  font-family: var(--font-family-primary) !important;
+}
+
+* {
+  box-sizing: border-box !important;
 }
 
 /* Side Panel Container */
@@ -21,17 +17,17 @@
   top: 80px !important;
   right: 0 !important;
   bottom: 80px !important;
-  width: var(--panel-default-width) !important;
-  min-width: var(--panel-min-width) !important;
-  max-width: var(--panel-max-width) !important;
-  background: var(--panel-white) !important;
-  border-radius: var(--panel-border-radius) 0 0 var(--panel-border-radius) !important;
-  box-shadow: var(--panel-shadow) !important;
+  width: 400px !important;
+  min-width: 300px !important;
+  max-width: 800px !important;
+  background: var(--color-white) !important;
+  border-radius: 30px 0 0 30px !important;
+  box-shadow: 0 0 20px var(--color-primary-light) !important;
   z-index: 2147483647 !important;
   display: flex !important;
   flex-direction: column !important;
   transform: translateX(100%) !important;
-  transition: transform var(--panel-transition) !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   overflow: hidden !important;
 }
 
@@ -57,15 +53,15 @@
   left: 0 !important;
   width: 8px !important;
   height: 30px !important;
-  background: var(--panel-primary) !important;
-  border-radius: var(--panel-border-radius) 0 0 0 !important;
+  background: var(--color-primary) !important;
+  border-radius: 30px 0 0 0 !important;
   cursor: nw-resize !important;
   pointer-events: all !important;
   z-index: 11 !important;
 }
 
 .resizeHandleTopLeft:hover {
-  background: var(--panel-primary-medium) !important;
+  background: var(--color-primary-dark) !important;
 }
 
 /* Resize Handle - Left */
@@ -75,14 +71,14 @@
   left: 0 !important;
   bottom: 30px !important;
   width: 8px !important;
-  background: var(--panel-primary) !important;
+  background: var(--color-primary) !important;
   cursor: ew-resize !important;
   pointer-events: all !important;
   z-index: 11 !important;
 }
 
 .resizeHandleLeft:hover {
-  background: var(--panel-primary-medium) !important;
+  background: var(--color-primary-dark) !important;
 }
 
 /* Resize Handle - Bottom Left */
@@ -92,21 +88,21 @@
   left: 0 !important;
   width: 8px !important;
   height: 30px !important;
-  background: var(--panel-primary) !important;
-  border-radius: 0 0 0 var(--panel-border-radius) !important;
+  background: var(--color-primary) !important;
+  border-radius: 0 0 0 30px !important;
   cursor: sw-resize !important;
   pointer-events: all !important;
   z-index: 11 !important;
 }
 
 .resizeHandleBottomLeft:hover {
-  background: var(--panel-primary-medium) !important;
+  background: var(--color-primary-dark) !important;
 }
 
 /* Header */
 .header {
-  background: var(--panel-white) !important;
-  border-bottom: 1px solid var(--panel-primary-light) !important;
+  background: var(--color-white) !important;
+  border-bottom: 1px solid var(--color-primary-light) !important;
   padding: 16px 24px !important;
   display: flex !important;
   align-items: center !important;
@@ -116,15 +112,9 @@
 }
 
 .headerBrand {
-  height: 32px !important;
-  width: auto !important;
-  object-fit: contain !important;
-  cursor: pointer !important;
-  transition: transform 0.2s ease !important;
-}
-
-.headerBrand:hover {
-  transform: scale(1.05) !important;
+  color: var(--color-primary) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
 }
 
 .closeButton {
@@ -134,7 +124,7 @@
   border-radius: 50% !important;
   background: transparent !important;
   border: none !important;
-  color: #718096 !important;
+  color: var(--color-gray-600) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
@@ -145,8 +135,8 @@
 }
 
 .closeButton:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
-  color: #9527F5 !important;
+  background: var(--color-primary-light) !important;
+  color: var(--color-primary) !important;
 }
 
 .closeButton:active {
@@ -163,14 +153,15 @@
   flex: 1 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  padding: 0 !important;
+  padding: 16px !important;
   position: relative !important;
+  color: var(--color-text-primary) !important;
 }
 
 /* Footer */
 .footer {
-  background: var(--panel-white) !important;
-  border-top: 1px solid var(--panel-primary-light) !important;
+  background: var(--color-white) !important;
+  border-top: 1px solid var(--color-primary-light) !important;
   padding: 0 !important;
   display: flex !important;
   flex-shrink: 0 !important;
@@ -188,7 +179,7 @@
   flex: 1 !important;
   background: transparent !important;
   border: none !important;
-  color: var(--panel-primary) !important;
+  color: var(--color-primary) !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
@@ -200,16 +191,16 @@
 }
 
 .tab:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-light) !important;
 }
 
 .tab.active {
-  background: var(--panel-primary) !important;
-  color: var(--panel-white) !important;
+  background: var(--color-primary) !important;
+  color: var(--color-white) !important;
 }
 
 .tab:not(:last-child) {
-  border-right: 1px solid var(--panel-primary-light) !important;
+  border-right: 1px solid var(--color-primary-light) !important;
 }
 
 /* Scrollbar Styling */
@@ -222,10 +213,10 @@
 }
 
 .content::-webkit-scrollbar-thumb {
-  background: var(--panel-primary-light) !important;
+  background: var(--color-primary-light) !important;
   border-radius: 4px !important;
 }
 
 .content::-webkit-scrollbar-thumb:hover {
-  background: var(--panel-primary) !important;
+  background: var(--color-primary) !important;
 }

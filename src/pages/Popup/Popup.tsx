@@ -71,13 +71,13 @@ export const Popup: React.FC = () => {
     return (
       <div
         style={{
-          width: '500px',
-          height: '250px',
+          width: '100%',
+          height: '100%',
           backgroundColor: COLORS.WHITE,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: SPACING.LG,
+          padding: SPACING.XL,
         }}
       >
         <p style={{ color: COLORS.TEXT_SECONDARY }}>Loading...</p>
@@ -92,12 +92,12 @@ export const Popup: React.FC = () => {
   return (
     <div
       style={{
-        width: '500px',
-        height: '250px',
+        width: '100%',
+        height: '100%',
         backgroundColor: COLORS.WHITE,
         display: 'flex',
         flexDirection: 'column',
-        padding: SPACING.LG,
+        padding: SPACING.XL,
         gap: SPACING.MD,
         position: 'relative',
         overflow: 'hidden',

@@ -1,56 +1,59 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
 
+/* ALL properties use !important for style isolation */
 :root {
   /* Purple color variants (from xplaino-web) */
-  --very-light-purple: #eaddf8;
-  --medium-purple: #BF7EFA;
-  --purple: #9527F5;
-  --darker-purple: #8607f5;
+  --very-light-purple: #eaddf8 !important;
+  --medium-purple: #BF7EFA !important;
+  --purple: #9527F5 !important;
+  --darker-purple: #8607f5 !important;
 
   /* Green color variants (from xplaino-web) */
-  --light-green: #D1FAE5;
-  --medium-green: #34D399;
-  --green: #10B981;
+  --light-green: #D1FAE5 !important;
+  --medium-green: #34D399 !important;
+  --green: #10B981 !important;
 
   /* Red color variants (from xplaino-web) */
-  --light-red: #FEE2E2;
-  --medium-red: #F87171;
-  --red: #EF4444;
+  --light-red: #FEE2E2 !important;
+  --medium-red: #F87171 !important;
+  --red: #EF4444 !important;
 
   /* Button border radius */
-  --button-border-radius: 10px;
+  --button-border-radius: 10px !important;
+  
+  /* Font Family - from src/constants/styles.ts */
+  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  width: 500px;
-  height: 250px;
+  font-family: var(--font-family-primary) !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  width: 500px !important;
+  height: 250px !important;
+  padding: 35px 30px 20px 30px !important;
 }
 
 #root {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 @keyframes spin {
   from {
-    transform: rotate(0deg);
+    transform: rotate(0deg) !important;
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(360deg) !important;
   }
 }
 
 .globe-spin {
-  animation: spin 3s linear infinite;
+  animation: spin 3s linear infinite !important;
 }
-

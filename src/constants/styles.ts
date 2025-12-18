@@ -57,3 +57,10 @@ export const TRANSITION = {
   SLOW: '350ms ease',
 } as const;
 
+export const FONT_FAMILY = {
+  /** Primary font family - Inter with system font fallbacks */
+  PRIMARY: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+} as const;
+
+export type FontFamilyKey = keyof typeof FONT_FAMILY;
+

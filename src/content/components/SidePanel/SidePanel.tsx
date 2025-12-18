@@ -1,11 +1,5 @@
 // src/content/components/SidePanel/SidePanel.tsx
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Header } from './Header';
-import { Footer, TabType } from './Footer';
-import { SummaryView } from './SummaryView';
-import { SettingsView } from './SettingsView';
-import { MyView } from './MyView';
-import { ResizeHandle, ResizeHandlePosition } from './ResizeHandle';
 import styles from './SidePanel.module.css';
 
 export interface SidePanelProps {
@@ -13,9 +7,11 @@ export interface SidePanelProps {
   isOpen: boolean;
   /** Close handler */
   onClose?: () => void;
-  /** Brand image source */
-  brandImageSrc?: string;
+  /** Whether component is rendered in Shadow DOM (uses plain class names) */
+  useShadowDom?: boolean;
 }
+
+type TabType = 'summary' | 'settings' | 'my';
 
 const MIN_WIDTH = 300;
 const MAX_WIDTH = 800;
@@ -24,7 +20,7 @@ const DEFAULT_WIDTH = 400;
 export const SidePanel: React.FC<SidePanelProps> = ({
   isOpen,
   onClose,
-  brandImageSrc,
+  useShadowDom = false,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [width, setWidth] = useState(DEFAULT_WIDTH);
@@ -33,9 +29,14 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   const startXRef = useRef<number>(0);
   const startWidthRef = useRef<number>(DEFAULT_WIDTH);
 
+  // Get class name based on context (Shadow DOM vs CSS Modules)
+  const getClassName = useCallback((shadowClass: string, moduleClass: string) => {
+    return useShadowDom ? shadowClass : moduleClass;
+  }, [useShadowDom]);
+
   // Handle resize start
   const handleResizeStart = useCallback(
-    (e: React.MouseEvent, position: ResizeHandlePosition) => {
+    (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setIsResizing(true);
@@ -44,7 +45,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       
       // Prevent text selection during resize
       document.body.style.userSelect = 'none';
-      document.body.style.cursor = position === 'left' ? 'ew-resize' : position === 'top-left' ? 'nw-resize' : 'sw-resize';
+      document.body.style.cursor = 'ew-resize';
     },
     [width]
   );
@@ -55,7 +56,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
 
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
-      const deltaX = startXRef.current - e.clientX; // Negative because we're resizing from left
+      const deltaX = startXRef.current - e.clientX;
       let newWidth = startWidthRef.current + deltaX;
 
       // Clamp width
@@ -87,60 +88,112 @@ export const SidePanel: React.FC<SidePanelProps> = ({
     }
   }, [isOpen]);
 
-  // Render content based on active tab
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'summary':
-        return (
-          <SummaryView
-            onSendMessage={(msg) => console.log('[Summary] Send:', msg)}
-            onVoiceRecord={() => console.log('[Summary] Voice record')}
-            onClearChat={() => console.log('[Summary] Clear chat')}
-          />
-        );
-      case 'settings':
-        return <SettingsView />;
-      case 'my':
-        return <MyView />;
-      default:
-        return null;
-    }
-  };
+  const handleClose = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
 
   if (!isOpen) {
     return null;
   }
 
+  // Class names for Shadow DOM vs CSS Modules
+  const sidePanelClass = getClassName(
+    `sidePanel ${isOpen ? 'open' : ''}`,
+    `${styles.sidePanel} ${isOpen ? styles.open : ''}`
+  );
+  const resizeHandlesClass = getClassName('resizeHandles', styles.resizeHandles);
+  const resizeHandleTopLeftClass = getClassName('resizeHandleTopLeft', styles.resizeHandleTopLeft);
+  const resizeHandleLeftClass = getClassName('resizeHandleLeft', styles.resizeHandleLeft);
+  const resizeHandleBottomLeftClass = getClassName('resizeHandleBottomLeft', styles.resizeHandleBottomLeft);
+  const headerClass = getClassName('header', styles.header);
+  const headerBrandClass = getClassName('headerBrand', styles.headerBrand);
+  const closeButtonClass = getClassName('closeButton', styles.closeButton);
+  const contentClass = getClassName('content', styles.content);
+  const footerClass = getClassName('footer', styles.footer);
+  const tabGroupClass = getClassName('tabGroup', styles.tabGroup);
+
   return (
     <div
       ref={panelRef}
-      className={`${styles.sidePanel} ${isOpen ? styles.open : ''}`}
+      className={sidePanelClass}
       style={{ width: `${width}px` }}
     >
       {/* Resize Handles */}
-      <div className={styles.resizeHandles}>
-        <ResizeHandle
-          position="top-left"
+      <div className={resizeHandlesClass}>
+        <div
+          className={resizeHandleTopLeftClass}
           onMouseDown={handleResizeStart}
         />
-        <ResizeHandle
-          position="left"
+        <div
+          className={resizeHandleLeftClass}
           onMouseDown={handleResizeStart}
         />
-        <ResizeHandle
-          position="bottom-left"
+        <div
+          className={resizeHandleBottomLeftClass}
           onMouseDown={handleResizeStart}
         />
       </div>
 
       {/* Header */}
-      <Header brandImageSrc={brandImageSrc} onClose={onClose} />
+      <div className={headerClass}>
+        <span className={headerBrandClass}>Xplaino</span>
+        <button
+          className={closeButtonClass}
+          onClick={handleClose}
+          aria-label="Close panel"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
 
       {/* Content */}
-      <div className={styles.content}>{renderContent()}</div>
+      <div className={contentClass}>
+        Content for {activeTab} tab
+      </div>
 
       {/* Footer */}
-      <Footer activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className={footerClass}>
+        <div className={tabGroupClass}>
+          <button
+            className={getClassName(
+              `tab ${activeTab === 'summary' ? 'active' : ''}`,
+              `${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`
+            )}
+            onClick={() => setActiveTab('summary')}
+          >
+            Summary
+          </button>
+          <button
+            className={getClassName(
+              `tab ${activeTab === 'settings' ? 'active' : ''}`,
+              `${styles.tab} ${activeTab === 'settings' ? styles.active : ''}`
+            )}
+            onClick={() => setActiveTab('settings')}
+          >
+            Settings
+          </button>
+          <button
+            className={getClassName(
+              `tab ${activeTab === 'my' ? 'active' : ''}`,
+              `${styles.tab} ${activeTab === 'my' ? styles.active : ''}`
+            )}
+            onClick={() => setActiveTab('my')}
+          >
+            My
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

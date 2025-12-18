@@ -231,17 +231,64 @@ const Hero: React.FC = () => (
 );
 ```
 
-## Best Practices
+## ⚠️ CRITICAL: Always Use Icon Libraries
+
+### NEVER Create Custom SVG Icons
+
+**ALWAYS use icon libraries (Lucide React) instead of creating custom SVG icons.**
+
+### Why Use Icon Libraries?
+
+- **Consistency**: All icons have the same style and weight
+- **Maintainability**: Icons are maintained by the library
+- **Tree-shaking**: Only used icons are bundled
+- **TypeScript**: Full type safety
+- **Customization**: Easy to customize size, color, stroke width
+
+### Icon Library Priority
+
+1. **Primary**: `lucide-react` (already installed)
+2. **Fallback**: Only create custom icons if Lucide doesn't have the icon you need
+
+### Best Practices
 
 ### 1. Prefer Lucide Icons
 
 ```typescript
 // ✅ Good: Use Lucide
-import { Search } from 'lucide-react';
-<Search size={20} />
+import { Search, FileText, Languages, Settings } from 'lucide-react';
+<Search size={20} strokeWidth={2.5} style={{ color: 'var(--color-primary-light)' }} />
 
-// ❌ Bad: Custom icon when Lucide has it
-import { CustomSearchIcon } from '@/assets/icons';
+// ❌ BAD: Custom SVG icon when Lucide has it
+const SearchIcon = () => (
+  <svg>
+    <path d="..." />
+  </svg>
+);
+
+// ❌ BAD: Inline SVG
+<svg xmlns="..." viewBox="0 0 24 24">
+  <path d="..." />
+</svg>
+```
+
+### 2. Icon Styling with CSS Variables
+
+For Shadow DOM or CSS-controlled icons, use inline styles with CSS variables:
+
+```typescript
+// ✅ Good: Use CSS variable for color
+import { FileText } from 'lucide-react';
+
+<FileText
+  size={18}
+  strokeWidth={2.5}
+  style={{ color: 'var(--color-primary-light)' }}
+/>
+
+// ✅ Good: For regular React components
+import { COLORS } from '@/constants/colors';
+<FileText size={18} strokeWidth={2.5} color={COLORS.PRIMARY_LIGHT} />
 ```
 
 ### 2. Consistent Icon Sizing
@@ -272,9 +319,50 @@ const ICON_SIZES = {
 
 ```
 assets/
-├── icons/     # Interactive icons (buttons, nav)
+├── icons/     # Custom icon components (ONLY if not in Lucide)
 ├── logos/     # Brand identity
 ├── svg/       # Decorative/illustrative
 └── photos/    # Photography/images
 ```
+
+### 5. Icon Size Standards
+
+```typescript
+// Standard icon sizes for different contexts
+const ICON_SIZES = {
+  XS: 12,   // Very small (badges, inline)
+  SM: 16,   // Small (toolbar, compact UI)
+  MD: 18,   // Medium (action buttons, FAB actions)
+  LG: 20,   // Standard (buttons, nav)
+  XL: 24,   // Large (headers, prominent)
+  XXL: 32,  // Extra large (hero sections)
+};
+
+// For action buttons (FAB actions)
+<FileText size={ICON_SIZES.MD} strokeWidth={2.5} />
+```
+
+### 6. Icon Stroke Width
+
+```typescript
+// Standard stroke widths
+const STROKE_WIDTHS = {
+  THIN: 1.5,    // Subtle icons
+  NORMAL: 2,    // Standard icons
+  THICK: 2.5,   // Prominent icons (action buttons)
+  BOLD: 3,      // Very bold icons
+};
+
+// For action buttons, use thick stroke
+<Settings size={18} strokeWidth={STROKE_WIDTHS.THICK} />
+```
+
+### Enforcement Rules
+
+- **NEVER** create custom SVG icons if Lucide has an equivalent
+- **ALWAYS** check Lucide icon library first: https://lucide.dev/icons/
+- **ONLY** create custom icons for brand-specific graphics (logos, mascots)
+- **ALWAYS** use CSS variables for icon colors in Shadow DOM contexts
+- **ALWAYS** use color constants (`COLORS`) for icon colors in regular React components
+- **ALWAYS** use consistent icon sizes and stroke widths
 
