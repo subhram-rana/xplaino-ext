@@ -222,6 +222,27 @@ export const Popup: React.FC = () => {
         </div>
       )}
 
+      {/* Visit Website Link - Bottom Right */}
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          handleGlobeClick();
+        }}
+        style={{
+          position: 'absolute',
+          bottom: '16px',
+          right: '16px',
+          color: COLORS.PRIMARY,
+          fontSize: '13px',
+          fontWeight: 600,
+          fontStyle: 'italic',
+          textDecoration: 'underline',
+          cursor: 'pointer',
+        }}
+      >
+        Visit website
+      </a>
     </div>
   );
 };
