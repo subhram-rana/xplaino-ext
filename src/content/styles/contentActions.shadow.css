@@ -1,0 +1,328 @@
+/* src/content/styles/contentActions.shadow.css */
+/* Shadow DOM compatible styles for Content Actions component */
+/* 
+ * Color Variables: These are injected from src/constants/colors.css.ts
+ * NEVER use hardcoded hex or rgba values - always use CSS variables
+ * ALL properties use !important for Shadow DOM style isolation
+ */
+
+:host {
+  all: initial !important;
+  font-family: var(--font-family-primary) !important;
+}
+
+* {
+  box-sizing: border-box !important;
+}
+
+/* Color variable fallbacks */
+:host {
+  --color-primary: #9527F5 !important;
+  --color-primary-light: #BF7EFA !important;
+  --color-primary-very-light: #eaddf8 !important;
+  --color-primary-dark: #8607f5 !important;
+  --color-white: #FFFFFF !important;
+}
+
+/* Main container */
+.contentActionsContainer {
+  display: flex !important;
+  align-items: center !important;
+  pointer-events: auto !important;
+}
+
+/* Xplaino Icon Button */
+.xplainoIconButton {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background: var(--color-white) !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 0 10px rgba(149, 39, 245, 0.35) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0 !important;
+  outline: none !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  transform: translateX(-50%) !important;
+}
+
+.xplainoIconButton.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateX(-50%) scale(1) !important;
+}
+
+.xplainoIconButton.hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateX(-50%) scale(0.8) !important;
+  pointer-events: none !important;
+}
+
+.xplainoIconButton:hover {
+  box-shadow: 0 0 14px rgba(149, 39, 245, 0.45) !important;
+}
+
+.xplainoIcon {
+  width: 18px !important;
+  height: 18px !important;
+  object-fit: contain !important;
+  display: block !important;
+  pointer-events: none !important;
+}
+
+/* Button Group - Pill shaped */
+.contentActionsButtonGroup {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 2px !important;
+  background: var(--color-white) !important;
+  border-radius: 999px !important;
+  padding: 5px !important;
+  box-shadow: 0 0 12px rgba(149, 39, 245, 0.35) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateX(-12px) scale(0.95) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  transform-origin: left center !important;
+}
+
+.contentActionsButtonGroup.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateX(-12px) scale(1) !important;
+}
+
+/* Action Button Wrapper (for tooltip positioning) */
+.contentActionButtonWrapper {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Individual Action Button - Compact with circular shape for pill effect */
+.contentActionButton {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0 !important;
+  outline: none !important;
+  animation: buttonSlideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  opacity: 0 !important;
+}
+
+.contentActionsButtonGroup.visible .contentActionButton {
+  opacity: 1 !important;
+}
+
+.contentActionButton:hover {
+  background: var(--color-primary-very-light) !important;
+}
+
+.contentActionButton:active {
+  transform: scale(0.92) !important;
+}
+
+/* Action Button Icons */
+.contentActionButton svg {
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--color-primary-light) !important;
+  stroke: var(--color-primary-light) !important;
+  stroke-width: 2.5 !important;
+  fill: none !important;
+  pointer-events: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.contentActionButton:hover svg {
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
+}
+
+/* Tooltip */
+.contentActionTooltip {
+  position: absolute !important;
+  bottom: calc(100% + 8px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: var(--color-primary-very-light) !important;
+  color: var(--color-primary-light) !important;
+  padding: 4px 12px !important;
+  border-radius: 999px !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.15) !important;
+  pointer-events: none !important;
+  animation: tooltipFadeIn 0.15s ease forwards !important;
+  z-index: 10 !important;
+}
+
+.contentActionTooltip::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  border: 5px solid transparent !important;
+  border-top-color: var(--color-primary-very-light) !important;
+}
+
+/* Animations */
+@keyframes buttonSlideIn {
+  from {
+    opacity: 0 !important;
+    transform: translateX(-8px) scale(0.8) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateX(0) scale(1) !important;
+  }
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0 !important;
+    transform: translateX(-50%) translateY(4px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(0) !important;
+  }
+}
+
+/* Icon button appear animation */
+@keyframes iconButtonAppear {
+  from {
+    opacity: 0 !important;
+    transform: translateX(-50%) scale(0.5) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateX(-50%) scale(1) !important;
+  }
+}
+
+.xplainoIconButton.visible {
+  animation: iconButtonAppear 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Power Button Wrapper */
+.powerButtonWrapper {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Disable Popover */
+.disablePopover {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  right: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  background: var(--color-white) !important;
+  border-radius: 10px !important;
+  padding: 4px !important;
+  box-shadow: 0 0 12px rgba(149, 39, 245, 0.35) !important;
+  animation: popoverFadeInDown 0.15s ease forwards !important;
+  z-index: 20 !important;
+  min-width: 150px !important;
+}
+
+.disablePopover::before {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 100% !important;
+  right: 10px !important;
+  border: 6px solid transparent !important;
+  border-bottom-color: var(--color-white) !important;
+}
+
+/* Disable Popover Option Button */
+.disablePopoverOption {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--color-primary-light) !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+  text-align: left !important;
+  width: 100% !important;
+}
+
+.disablePopoverOption:hover {
+  background: var(--color-primary-very-light) !important;
+  color: var(--color-primary) !important;
+}
+
+.disablePopoverOption:active {
+  transform: scale(0.98) !important;
+}
+
+.disablePopoverOption svg {
+  width: 14px !important;
+  height: 14px !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5 !important;
+  fill: none !important;
+  flex-shrink: 0 !important;
+}
+
+.disablePopoverOption span {
+  flex: 1 !important;
+}
+
+/* Popover fade in animation (from above) */
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0 !important;
+    transform: translateY(4px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+/* Popover fade in animation (from below - for dropdown) */
+@keyframes popoverFadeInDown {
+  from {
+    opacity: 0 !important;
+    transform: translateY(-4px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}

@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom/client';
 // Import components
 import { FAB } from './components/FAB';
 import { SidePanel } from './components/SidePanel';
+import { ContentActionsTrigger } from './components/ContentActions';
 
 // Import Shadow DOM utilities
 import {
@@ -19,6 +20,7 @@ import {
 // Import Shadow DOM styles as inline strings
 import fabStyles from './styles/fab.shadow.css?inline';
 import sidePanelStyles from './styles/sidePanel.shadow.css?inline';
+import contentActionsStyles from './styles/contentActions.shadow.css?inline';
 
 // Import color CSS variables
 import { FAB_COLOR_VARIABLES } from '../constants/colors.css.js';
@@ -31,6 +33,7 @@ console.log('[Content Script] Initialized');
 
 const FAB_HOST_ID = 'xplaino-fab-host';
 const SIDE_PANEL_HOST_ID = 'xplaino-side-panel-host';
+const CONTENT_ACTIONS_HOST_ID = 'xplaino-content-actions-host';
 
 /**
  * Domain status enum (must match src/types/domain.ts)
@@ -49,6 +52,7 @@ enum DomainStatus {
 // React root references
 let fabRoot: ReactDOM.Root | null = null;
 let sidePanelRoot: ReactDOM.Root | null = null;
+let contentActionsRoot: ReactDOM.Root | null = null;
 
 // Shared state for side panel
 let sidePanelOpen = false;
@@ -253,6 +257,59 @@ function removeSidePanel(): void {
 }
 
 // =============================================================================
+// CONTENT ACTIONS INJECTION
+// =============================================================================
+
+/**
+ * Inject Content Actions into the page with Shadow DOM
+ */
+function injectContentActions(): void {
+  // Check if already injected
+  if (shadowHostExists(CONTENT_ACTIONS_HOST_ID)) {
+    console.log('[Content Script] Content Actions already injected');
+    return;
+  }
+
+  // Create Shadow DOM host
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: CONTENT_ACTIONS_HOST_ID,
+    zIndex: 2147483647, // Highest z-index for selection popup
+  });
+
+  // Inject color CSS variables first
+  injectStyles(shadow, FAB_COLOR_VARIABLES);
+  
+  // Inject component styles
+  injectStyles(shadow, contentActionsStyles);
+
+  // Append to document
+  document.body.appendChild(host);
+
+  // Render React component
+  contentActionsRoot = ReactDOM.createRoot(mountPoint);
+  contentActionsRoot.render(
+    React.createElement(ContentActionsTrigger, {
+      useShadowDom: true,
+      onExplain: (text: string) => console.log('[ContentActions] Explain:', text),
+      onGrammar: (text: string) => console.log('[ContentActions] Grammar:', text),
+      onTranslate: (text: string) => console.log('[ContentActions] Translate:', text),
+      onBookmark: (text: string) => console.log('[ContentActions] Bookmark:', text),
+    })
+  );
+
+  console.log('[Content Script] Content Actions injected successfully');
+}
+
+/**
+ * Remove Content Actions from the page
+ */
+function removeContentActions(): void {
+  removeShadowHost(CONTENT_ACTIONS_HOST_ID, contentActionsRoot);
+  contentActionsRoot = null;
+  console.log('[Content Script] Content Actions removed');
+}
+
+// =============================================================================
 // INITIALIZATION
 // =============================================================================
 
@@ -266,10 +323,12 @@ async function initContentScript(): Promise<void> {
     console.log('[Content Script] Running content script functionality...');
     injectFAB();
     injectSidePanel();
+    injectContentActions();
   } else {
     console.log('[Content Script] Not running - extension not allowed on this page');
     removeFAB();
     removeSidePanel();
+    removeContentActions();
   }
 }
 
