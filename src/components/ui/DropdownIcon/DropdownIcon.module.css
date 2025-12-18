@@ -1,0 +1,12 @@
+.dropdownIcon {
+  color: currentColor;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.dropdownIconOpen {
+  transform: rotate(180deg);
+}
+
