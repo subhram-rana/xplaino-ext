@@ -1,0 +1,205 @@
+/* src/content/components/FAB/FAB.module.css */
+
+/* CSS Variables for theming */
+:host {
+  --fab-primary: #9527F5;
+  --fab-primary-hover: #8607f5;
+  --fab-primary-light: #BF7EFA;
+  --fab-white: #FFFFFF;
+  --fab-shadow: 0 4px 12px rgba(149, 39, 245, 0.35);
+  --fab-shadow-hover: 0 6px 20px rgba(149, 39, 245, 0.5);
+  --fab-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --fab-size: 52px;
+  --action-size: 44px;
+  --fab-gap: 12px;
+}
+
+/* Parent container - positioned at top-right, appears from right edge */
+.fabParent {
+  position: fixed;
+  top: 120px;
+  right: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--fab-gap);
+  z-index: 2147483647;
+  padding: 8px;
+  padding-right: 0;
+  transform: translateX(calc(100% - var(--fab-size) - 8px));
+  transition: transform var(--fab-transition);
+}
+
+/* When actions are visible, slide in fully */
+.fabParent.actionsVisible {
+  transform: translateX(0);
+}
+
+/* FAB container */
+.fabContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Main FAB button */
+.fabButton {
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border-radius: 50%;
+  background: var(--fab-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--fab-shadow);
+  transition: all var(--fab-transition);
+  padding: 0;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.fabButton:hover {
+  background: var(--fab-primary-hover);
+  box-shadow: var(--fab-shadow-hover);
+  transform: scale(1.05);
+}
+
+.fabButton:active {
+  transform: scale(0.98);
+}
+
+.fabButton img,
+.fabButton svg {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Actions container */
+.actionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(20px);
+  transition: all var(--fab-transition);
+}
+
+.actionsContainer.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+/* Action button styles */
+.actionButton {
+  width: var(--action-size);
+  height: var(--action-size);
+  border-radius: 50%;
+  background: var(--fab-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--fab-shadow);
+  transition: all var(--fab-transition);
+  padding: 0;
+  outline: none;
+  position: relative;
+}
+
+.actionButton:hover {
+  background: var(--fab-primary-hover);
+  box-shadow: var(--fab-shadow-hover);
+  transform: scale(1.1);
+}
+
+.actionButton:active {
+  transform: scale(0.95);
+}
+
+.actionButton svg {
+  width: 22px;
+  height: 22px;
+  color: var(--fab-white);
+  fill: var(--fab-white);
+  pointer-events: none;
+}
+
+/* Tooltip for action buttons */
+.actionButton::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--fab-primary);
+  color: var(--fab-white);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.actionButton:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Staggered animation for action buttons */
+.actionsContainer.visible .actionButton:nth-child(1) {
+  animation: slideIn 0.3s ease forwards;
+  animation-delay: 0s;
+}
+
+.actionsContainer.visible .actionButton:nth-child(2) {
+  animation: slideIn 0.3s ease forwards;
+  animation-delay: 0.05s;
+}
+
+.actionsContainer.visible .actionButton:nth-child(3) {
+  animation: slideIn 0.3s ease forwards;
+  animation-delay: 0.1s;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Pulse animation for FAB when first loaded */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(149, 39, 245, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(149, 39, 245, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(149, 39, 245, 0);
+  }
+}
+
+.fabButton.pulse {
+  animation: pulse 2s ease-in-out 3;
+}
+
