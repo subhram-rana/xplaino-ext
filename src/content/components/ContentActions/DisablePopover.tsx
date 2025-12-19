@@ -1,6 +1,7 @@
 // src/content/components/ContentActions/DisablePopover.tsx
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Globe, Monitor } from 'lucide-react';
+import { useEmergeAnimation } from '../../../hooks';
 
 export interface DisablePopoverProps {
   /** Whether the popover is visible */
@@ -67,6 +68,51 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
   onShowModal,
 }) => {
   const [currentDomain] = useState(() => extractDomain(window.location.href));
+  const wasVisible = useRef(false);
+
+  // Animation hook
+  const {
+    elementRef,
+    sourceRef,
+    emerge,
+    shrink,
+    shouldRender,
+    style: animationStyle,
+    animationState,
+  } = useEmergeAnimation({
+    duration: 300,
+    easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Slight overshoot for playful feel
+    transformOrigin: 'top right', // Animate from top-right (near the button)
+  });
+
+  // Find the source button from DOM (parent button element)
+  // This is more reliable than ref passing which has timing issues
+  useEffect(() => {
+    // The popover is rendered inside ContentActionButton's div wrapper
+    // which contains the button as a sibling
+    const popoverElement = elementRef.current;
+    if (popoverElement) {
+      // Find the closest button sibling or ancestor
+      const wrapper = popoverElement.parentElement;
+      const button = wrapper?.querySelector('button.contentActionButton');
+      if (button) {
+        (sourceRef as React.MutableRefObject<HTMLElement | null>).current = button as HTMLElement;
+      }
+    }
+  }, [elementRef, sourceRef, shouldRender]); // Re-run when element renders
+
+  // Handle visibility changes with animation
+  useEffect(() => {
+    if (visible && !wasVisible.current) {
+      // Opening
+      wasVisible.current = true;
+      emerge();
+    } else if (!visible && wasVisible.current) {
+      // Closing
+      wasVisible.current = false;
+      shrink();
+    }
+  }, [visible, emerge, shrink]);
 
   const handleDisableGlobally = useCallback(async () => {
     await updateExtensionSettings({ globalDisabled: true });
@@ -85,11 +131,14 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
     onShowModal?.();
   }, [currentDomain, onDisabled, onShowModal]);
 
-  if (!visible) return null;
+  // Don't render if animation is complete and not visible
+  if (!shouldRender && !visible) return null;
 
   return (
     <div
-      className="disablePopover"
+      ref={elementRef as React.RefObject<HTMLDivElement>}
+      className={`disablePopover ${animationState === 'shrinking' ? 'closing' : ''}`}
+      style={animationStyle}
       onMouseDown={(e) => e.stopPropagation()}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}

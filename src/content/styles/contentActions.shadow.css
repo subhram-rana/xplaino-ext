@@ -251,7 +251,7 @@
   border-radius: 15px !important;
   padding: 4px !important;
   box-shadow: 0 0 12px rgba(149, 39, 245, 0.35) !important;
-  animation: popoverFadeInDown 0.15s ease forwards !important;
+  /* Animation is handled by JavaScript useEmergeAnimation hook */
   z-index: 20 !important;
   width: fit-content !important;
 }
@@ -329,4 +329,45 @@
     opacity: 1 !important;
     transform: translateY(0) !important;
   }
+}
+
+/* ============================================
+   EMERGE/SHRINK ANIMATIONS
+   Generic animations for components that appear 
+   from a source element while growing, and 
+   disappear back into the source while shrinking.
+   ============================================ */
+
+/* Emerge out animation keyframes (fallback for CSS-only usage) */
+@keyframes emergeOut {
+  from {
+    opacity: 0 !important;
+    transform: var(--emerge-start-transform, scale(0) translate(0, 0)) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: var(--emerge-end-transform, scale(1) translate(0, 0)) !important;
+  }
+}
+
+/* Shrink in animation keyframes (fallback for CSS-only usage) */
+@keyframes shrinkIn {
+  from {
+    opacity: 1 !important;
+    transform: var(--shrink-start-transform, scale(1) translate(0, 0)) !important;
+  }
+  to {
+    opacity: 0 !important;
+    transform: var(--shrink-end-transform, scale(0) translate(0, 0)) !important;
+  }
+}
+
+/* Emerge animation class */
+.emerge-animation {
+  animation: emergeOut var(--emerge-duration, 200ms) var(--emerge-easing, cubic-bezier(0.4, 0, 0.2, 1)) forwards !important;
+}
+
+/* Shrink animation class */
+.shrink-animation {
+  animation: shrinkIn var(--shrink-duration, 200ms) var(--shrink-easing, cubic-bezier(0.4, 0, 0.2, 1)) forwards !important;
 }

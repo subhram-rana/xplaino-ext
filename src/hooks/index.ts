@@ -5,5 +5,10 @@
  * Add custom hook exports here as they are created
  */
 
-export {};
+export { useEmergeAnimation } from './useEmergeAnimation';
+export type {
+  EmergeAnimationOptions,
+  EmergeAnimationReturn,
+  EmergeAnimationState,
+} from './useEmergeAnimation';
 
