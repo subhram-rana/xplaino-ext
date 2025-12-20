@@ -138,11 +138,12 @@ export const IconTabGroup: React.FC<IconTabGroupProps> = ({
     // Use offsetLeft which gives position relative to offset parent (tabGroup)
     // This properly accounts for padding and layout
     const offsetX = activeWrapper.offsetLeft;
-    // Use tabSize prop instead of hardcoded value
-    const width = tabSize;
+    // Use tabSize prop to ensure slider matches button size exactly (square)
+    const size = tabSize;
 
     sliderRef.current.style.transform = `translateX(${offsetX}px)`;
-    sliderRef.current.style.width = `${width}px`;
+    sliderRef.current.style.width = `${size}px`;
+    sliderRef.current.style.height = `${size}px`;
     return true;
   }, [activeTabId, tabs, useShadowDom, styles, tabSize]);
 
