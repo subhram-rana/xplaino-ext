@@ -26,7 +26,7 @@
   top: 80px !important;
   right: 0 !important;
   bottom: 80px !important;
-  width: 400px !important;
+  width: var(--panel-width, 400px) !important;
   min-width: 300px !important;
   max-width: 800px !important;
   background: var(--color-white) !important;
@@ -39,7 +39,7 @@
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease !important;
+              border-radius 0.2s ease 0.3s !important;
   overflow: hidden !important;
 }
 
@@ -58,7 +58,7 @@
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease 0.3s !important;
+              border-radius 0.2s ease !important;
 }
 
 /* Resize Handle - Small Centered Strip */
@@ -73,10 +73,11 @@
   border-radius: 0 3px 3px 0 !important;
   cursor: ew-resize !important;
   pointer-events: auto !important;
-  z-index: 11 !important;
+  z-index: 10000 !important;
   transition: background 0.2s ease, height 0.2s ease, width 0.2s ease !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+  touch-action: none !important;
 }
 
 .resizeHandle:hover,
@@ -174,7 +175,7 @@
 }
 
 .loginButton {
-  padding: 6px 14px !important;
+  padding: 8px 16px !important;
   border: none !important;
   background: var(--color-primary) !important;
   color: var(--color-white) !important;
@@ -183,6 +184,7 @@
   cursor: pointer !important;
   border-radius: 6px !important;
   transition: all 0.2s ease !important;
+  min-height: 32px !important;
 }
 
 .loginButton:hover {
@@ -319,7 +321,7 @@
   align-items: center !important;
   position: relative !important;
   padding: 2px !important;
-  border-radius: 13px !important;
+  border-radius: 11px !important;
   background: transparent !important;
   gap: 0 !important;
 }
@@ -331,24 +333,28 @@
   left: 2px !important;
   height: calc(100% - 4px) !important;
   background: var(--color-primary) !important;
-  border-radius: 11px !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 9px !important;
+  transition: none !important;
   z-index: 0 !important;
   pointer-events: none !important;
+}
+
+.tabSlider.animated {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* IconTabGroup - Tab Button */
 .tab {
   position: relative !important;
   z-index: 1 !important;
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
-  max-width: 40px !important;
-  max-height: 40px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
   aspect-ratio: 1 !important;
-  border-radius: 11px !important;
+  border-radius: 9px !important;
   background: transparent !important;
   border: none !important;
   cursor: pointer !important;
@@ -361,7 +367,6 @@
   transition: background 0.2s ease !important;
   box-sizing: border-box !important;
   line-height: 1 !important;
-  vertical-align: middle !important;
 }
 
 .tab:hover {
@@ -377,18 +382,18 @@
 }
 
 .tab svg {
-  width: 24px !important;
-  height: 24px !important;
-  min-width: 24px !important;
-  min-height: 24px !important;
-  max-width: 24px !important;
-  max-height: 24px !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
   margin: 0 !important;
   padding: 0 !important;
   display: block !important;
   color: var(--color-primary-light) !important;
   stroke: var(--color-primary-light) !important;
-  stroke-width: 3 !important;
+  stroke-width: 2.5 !important;
   fill: none !important;
   pointer-events: none !important;
   transition: color 0.2s ease, stroke 0.2s ease !important;
@@ -408,6 +413,116 @@
 .tab.active:hover svg {
   color: #FFFFFF !important;
   stroke: #FFFFFF !important;
+}
+
+/* IconTabGroup - Tab Wrapper for Tooltip */
+.tabWrapper {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+/* IconTabGroup - Tooltip */
+.tabTooltip {
+  position: absolute !important;
+  bottom: calc(100% + 8px) !important;
+  background: rgba(26, 32, 44, 0.9) !important;
+  color: #FFFFFF !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.25) !important;
+  pointer-events: none !important;
+  z-index: 1000 !important;
+}
+
+/* Center positioning (default) */
+.tabTooltip.center {
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.tabTooltip.center::after {
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+/* Right positioning (when near right edge) */
+.tabTooltip.right {
+  right: 0 !important;
+  transform: none !important;
+}
+
+.tabTooltip.right::after {
+  right: 16px !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+/* Left positioning (when near left edge) */
+.tabTooltip.left {
+  left: 0 !important;
+  transform: none !important;
+}
+
+.tabTooltip.left::after {
+  left: 16px !important;
+  transform: none !important;
+}
+
+.tabTooltip::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 100% !important;
+  border: 5px solid transparent !important;
+  border-top-color: rgba(26, 32, 44, 0.9) !important;
+}
+
+.tabTooltip.center {
+  animation: tooltipFadeInCenter 0.15s ease forwards !important;
+}
+
+.tabTooltip.right {
+  animation: tooltipFadeInRight 0.15s ease forwards !important;
+}
+
+.tabTooltip.left {
+  animation: tooltipFadeInLeft 0.15s ease forwards !important;
+}
+
+@keyframes tooltipFadeInCenter {
+  from {
+    opacity: 0 !important;
+    transform: translateX(-50%) translateY(4px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(0) !important;
+  }
+}
+
+@keyframes tooltipFadeInRight {
+  from {
+    opacity: 0 !important;
+    transform: translateY(4px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+@keyframes tooltipFadeInLeft {
+  from {
+    opacity: 0 !important;
+    transform: translateY(4px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
 }
 
 /* Scrollbar Styling */
@@ -1017,7 +1132,7 @@
   height: 100% !important;
   overflow-y: auto !important;
   background: #FFFFFF !important;
-  color: #1A202C !important;
+  color: #4A5568 !important;
 }
 
 .loading {
@@ -1029,14 +1144,15 @@
 }
 
 .section {
-  margin-bottom: 24px !important;
+  margin-top: 10px !important;
+  margin-bottom: 35px !important;
 }
 
 .sectionHeader {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
-  margin-bottom: 16px !important;
+  margin-bottom: 8px !important;
   position: relative !important;
 }
 
@@ -1051,7 +1167,7 @@
 .sectionTitle {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #1A202C !important;
+  color: #4A5568 !important;
   margin: 0 !important;
   flex-shrink: 0 !important;
 }
@@ -1059,10 +1175,28 @@
 .sectionHeaderLine {
   flex: 1 !important;
   height: 2px !important;
+  min-height: 2px !important;
+  max-height: 2px !important;
   background: #9527F5 !important;
   margin-left: 8px !important;
   margin-right: 16px !important;
   border-radius: 2px !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  line-height: 0 !important;
+  overflow: visible !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  font-size: 0 !important;
+  display: block !important;
+  vertical-align: baseline !important;
+  text-decoration: none !important;
 }
 
 .sectionContent {
@@ -1079,14 +1213,15 @@
 
 .settingLabel {
   font-size: 14px !important;
-  font-weight: 500 !important;
-  color: #1A202C !important;
+  font-weight: 400 !important;
+  color: #4A5568 !important;
 }
 
 .languageSettingRow {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
+  min-height: 40px !important;
 }
 
 .languageSettingRow .settingLabel {
@@ -1109,127 +1244,20 @@
   align-items: center !important;
   justify-content: space-between !important;
   gap: 12px !important;
+  min-height: 40px !important;
 }
 
-.tabGroup {
-  display: flex !important;
-  gap: 4px !important;
-  background: #F9FAFB !important;
-  border-radius: 15px !important;
-  padding: 2px !important;
-  position: relative !important;
-}
-
-.tabSlider {
-  position: absolute !important;
-  top: 2px !important;
-  left: 2px !important;
-  height: calc(100% - 4px) !important;
-  background: #9527F5 !important;
-  border-radius: 15px !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  z-index: 0 !important;
-}
-
-.tab {
-  width: auto !important;
-  min-width: 32px !important;
-  height: 24px !important;
-  padding: 4px !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 15px !important;
-  color: #4A5568 !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: color 0.2s ease !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-.tab:hover {
-  color: #9527F5 !important;
-}
-
-.tabActive {
-  color: #FFFFFF !important;
-}
-
-.tabActive:hover {
-  color: #FFFFFF !important;
-  background: transparent !important;
-}
-
-.tabActive svg {
-  color: #FFFFFF !important;
-}
-
-.tab svg {
-  width: 16px !important;
-  height: 16px !important;
-  min-width: 16px !important;
-  min-height: 16px !important;
-  max-width: 16px !important;
-  max-height: 16px !important;
-  aspect-ratio: 1 / 1 !important;
-  flex-shrink: 0 !important;
-  display: block !important;
-  box-sizing: border-box !important;
-}
+/* Tab group styles are now handled by IconTabGroup component (see lines 316-394) */
 
 .themeToggleRow {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   gap: 12px !important;
+  min-height: 40px !important;
 }
 
-.themeToggleButton {
-  display: flex !important;
-  background: #F9FAFB !important;
-  border-radius: 50% !important;
-  padding: 4px !important;
-  gap: 4px !important;
-}
-
-.themeToggleOption {
-  width: 48px !important;
-  height: 48px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 50% !important;
-  border: none !important;
-  background: transparent !important;
-  color: #4A5568 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  padding: 0 !important;
-}
-
-.themeToggleOption:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
-  color: #9527F5 !important;
-}
-
-.themeToggleActive {
-  background: #9527F5 !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 2px 4px rgba(149, 39, 245, 0.2) !important;
-}
-
-.themeToggleActive:hover {
-  background: #9527F5 !important;
-  color: #FFFFFF !important;
-}
-
-.themeToggleActive svg {
-  color: #FFFFFF !important;
-}
+/* Theme toggle styles are now handled by IconTabGroup component (see lines 316-394) */
 
 .toggleContainer {
   display: flex !important;
@@ -1269,13 +1297,15 @@
 .toggleSetting {
   display: flex !important;
   align-items: center !important;
+  justify-content: space-between !important;
   gap: 12px !important;
+  min-height: 40px !important;
 }
 
 .toggleLabel {
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  color: #1A202C !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: #4A5568 !important;
   user-select: none !important;
 }
 

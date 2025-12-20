@@ -21,6 +21,10 @@ export class ChromeStorage {
     DISABLE_MODAL_DISMISSED: 'disable_modal_dismissed',
     XPLAINO_AUTH_INFO: 'xplaino_ext_user_auth_info',
     PAGE_CONTENT: 'page_content',
+    USER_SETTING_GLOBAL_THEME: 'user_setting_global_theme',
+    USER_SETTING_PAGE_TRANSLATION_VIEW: 'user_setting_page_translation_view',
+    USER_SETTING_THEME_ON_SITE: 'user_setting_theme_on_site',
+    USER_SETTING_NATIVE_LANGUAGE: 'user_setting_native_language',
   } as const;
 
   // ============================================
@@ -328,6 +332,110 @@ export class ChromeStorage {
 
   static async clearAllPageContent(): Promise<void> {
     return this.remove(this.KEYS.PAGE_CONTENT);
+  }
+
+  // ============================================
+  // NEW FLAT STORAGE METHODS
+  // ============================================
+
+  /**
+   * Migrate old nested user settings to new flat storage keys
+   * This should be called once on extension startup or settings load
+   */
+  static async migrateUserSettingsToFlatKeys(): Promise<void> {
+    // Check if migration already done by checking if new keys exist
+    const [hasGlobalTheme, hasTranslationView, hasThemeOnSite, hasNativeLanguage] = await Promise.all([
+      this.get(this.KEYS.USER_SETTING_GLOBAL_THEME),
+      this.get(this.KEYS.USER_SETTING_PAGE_TRANSLATION_VIEW),
+      this.get(this.KEYS.USER_SETTING_THEME_ON_SITE),
+      this.get(this.KEYS.USER_SETTING_NATIVE_LANGUAGE),
+    ]);
+
+    // Get old nested settings
+    const oldSettings = await this.getUserSettings();
+
+    if (oldSettings) {
+      // Migrate global theme
+      if (oldSettings.globalTheme && hasGlobalTheme === null) {
+        await this.set(this.KEYS.USER_SETTING_GLOBAL_THEME, oldSettings.globalTheme);
+      }
+
+      // Migrate translation view (skip 'none' as it's deprecated)
+      if (oldSettings.translationView && oldSettings.translationView !== 'none' && hasTranslationView === null) {
+        await this.set(this.KEYS.USER_SETTING_PAGE_TRANSLATION_VIEW, oldSettings.translationView);
+      }
+
+      // Migrate domain themes
+      if (oldSettings.domainThemes && Object.keys(oldSettings.domainThemes).length > 0 && hasThemeOnSite === null) {
+        await this.set(this.KEYS.USER_SETTING_THEME_ON_SITE, oldSettings.domainThemes);
+      }
+
+      // Migrate native language
+      if (oldSettings.language && hasNativeLanguage === null) {
+        await this.set(this.KEYS.USER_SETTING_NATIVE_LANGUAGE, oldSettings.language);
+      }
+    }
+  }
+
+  // --- User Setting: Global Theme ---
+  static async getUserSettingGlobalTheme(): Promise<'light' | 'dark' | null> {
+    // Run migration first
+    await this.migrateUserSettingsToFlatKeys();
+    return this.get<'light' | 'dark'>(this.KEYS.USER_SETTING_GLOBAL_THEME);
+  }
+
+  static async setUserSettingGlobalTheme(theme: 'light' | 'dark'): Promise<void> {
+    return this.set(this.KEYS.USER_SETTING_GLOBAL_THEME, theme);
+  }
+
+  // --- User Setting: Page Translation View ---
+  static async getUserSettingPageTranslationView(): Promise<'append' | 'replace' | null> {
+    // Run migration first
+    await this.migrateUserSettingsToFlatKeys();
+    const value = await this.get<'append' | 'replace' | 'none'>(this.KEYS.USER_SETTING_PAGE_TRANSLATION_VIEW);
+    // Migrate 'none' to 'append' if found
+    if (value === 'none') {
+      await this.setUserSettingPageTranslationView('append');
+      return 'append';
+    }
+    return value;
+  }
+
+  static async setUserSettingPageTranslationView(view: 'append' | 'replace'): Promise<void> {
+    return this.set(this.KEYS.USER_SETTING_PAGE_TRANSLATION_VIEW, view);
+  }
+
+  // --- User Setting: Theme On Site (Domain Map) ---
+  static async getUserSettingThemeOnSite(): Promise<Record<string, 'light' | 'dark'>> {
+    // Run migration first
+    await this.migrateUserSettingsToFlatKeys();
+    const value = await this.get<Record<string, 'light' | 'dark'>>(this.KEYS.USER_SETTING_THEME_ON_SITE);
+    return value ?? {};
+  }
+
+  static async getUserSettingThemeOnSiteForDomain(domain: string): Promise<'light' | 'dark' | null> {
+    const themeMap = await this.getUserSettingThemeOnSite();
+    return themeMap[domain] ?? null;
+  }
+
+  static async setUserSettingThemeOnSiteForDomain(domain: string, theme: 'light' | 'dark'): Promise<void> {
+    const themeMap = await this.getUserSettingThemeOnSite();
+    const updatedMap = {
+      ...themeMap,
+      [domain]: theme,
+    };
+    return this.set(this.KEYS.USER_SETTING_THEME_ON_SITE, updatedMap);
+  }
+
+  // --- User Setting: Native Language ---
+  static async getUserSettingNativeLanguage(): Promise<string | null> {
+    // Run migration first
+    await this.migrateUserSettingsToFlatKeys();
+    return this.get<string>(this.KEYS.USER_SETTING_NATIVE_LANGUAGE);
+  }
+
+  static async setUserSettingNativeLanguage(language: string): Promise<void> {
+    return this.set(this.KEYS.USER_SETTING_NATIVE_LANGUAGE, language);
   }
 }
 

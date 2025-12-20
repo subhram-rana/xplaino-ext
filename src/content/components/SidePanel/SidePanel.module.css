@@ -21,7 +21,7 @@
   top: 80px !important;
   right: 0 !important;
   bottom: 80px !important;
-  width: var(--panel-default-width) !important;
+  width: var(--panel-width, var(--panel-default-width)) !important;
   min-width: var(--panel-min-width) !important;
   max-width: var(--panel-max-width) !important;
   background: var(--panel-white) !important;
@@ -34,7 +34,7 @@
   transition: transform var(--panel-transition), 
               top var(--panel-transition), 
               bottom var(--panel-transition),
-              border-radius 0.2s ease !important;
+              border-radius 0.2s ease 0.3s !important;
   overflow: hidden !important;
 }
 
@@ -53,7 +53,7 @@
   transition: transform var(--panel-transition), 
               top var(--panel-transition), 
               bottom var(--panel-transition),
-              border-radius 0.2s ease 0.3s !important;
+              border-radius 0.2s ease !important;
 }
 
 /* Resize Handle - Small Centered Strip */
@@ -68,10 +68,11 @@
   border-radius: 0 3px 3px 0 !important;
   cursor: ew-resize !important;
   pointer-events: auto !important;
-  z-index: 11 !important;
+  z-index: 10000 !important;
   transition: background 0.2s ease, height 0.2s ease, width 0.2s ease !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+  touch-action: none !important;
 }
 
 .resizeHandle:hover,

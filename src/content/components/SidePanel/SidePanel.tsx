@@ -141,7 +141,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
     <div
       ref={panelRef}
       className={sidePanelClass}
-      style={{ width: `${width}px` }}
+      style={{ '--panel-width': `${width}px` } as React.CSSProperties }
     >
       {/* Resize Handle */}
       <div

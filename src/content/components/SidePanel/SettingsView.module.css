@@ -6,7 +6,7 @@
   height: 100% !important;
   overflow-y: auto !important;
   background: #FFFFFF !important;
-  color: #1A202C !important;
+  color: #4A5568 !important;
 }
 
 .loading {
@@ -18,14 +18,15 @@
 }
 
 .section {
-  margin-bottom: 24px !important;
+  margin-top: 10px !important;
+  margin-bottom: 35px !important;
 }
 
 .sectionHeader {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
-  margin-bottom: 16px !important;
+  margin-bottom: 8px !important;
   position: relative !important;
 }
 
@@ -40,7 +41,7 @@
 .sectionTitle {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #1A202C !important;
+  color: #4A5568 !important;
   margin: 0 !important;
   flex-shrink: 0 !important;
 }
@@ -48,10 +49,28 @@
 .sectionHeaderLine {
   flex: 1 !important;
   height: 2px !important;
+  min-height: 2px !important;
+  max-height: 2px !important;
   background: #9527F5 !important;
   margin-left: 8px !important;
   margin-right: 16px !important;
   border-radius: 2px !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  line-height: 0 !important;
+  overflow: visible !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  font-size: 0 !important;
+  display: block !important;
+  vertical-align: baseline !important;
+  text-decoration: none !important;
 }
 
 .sectionContent {
@@ -68,14 +87,15 @@
 
 .settingLabel {
   font-size: 14px !important;
-  font-weight: 500 !important;
-  color: #1A202C !important;
+  font-weight: 400 !important;
+  color: #4A5568 !important;
 }
 
 .languageSettingRow {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
+  min-height: 40px !important;
 }
 
 .languageSettingRow .settingLabel {
@@ -98,127 +118,20 @@
   align-items: center !important;
   justify-content: space-between !important;
   gap: 12px !important;
+  min-height: 40px !important;
 }
 
-.tabGroup {
-  display: flex !important;
-  gap: 4px !important;
-  background: #F9FAFB !important;
-  border-radius: 15px !important;
-  padding: 2px !important;
-  position: relative !important;
-}
-
-.tabSlider {
-  position: absolute !important;
-  top: 2px !important;
-  left: 2px !important;
-  height: calc(100% - 4px) !important;
-  background: #9527F5 !important;
-  border-radius: 15px !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  z-index: 0 !important;
-}
-
-.tab {
-  width: auto !important;
-  min-width: 32px !important;
-  height: 24px !important;
-  padding: 4px !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 15px !important;
-  color: #4A5568 !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: color 0.2s ease !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-.tab:hover {
-  color: #9527F5 !important;
-}
-
-.tabActive {
-  color: #FFFFFF !important;
-}
-
-.tabActive:hover {
-  color: #FFFFFF !important;
-  background: transparent !important;
-}
-
-.tabActive svg {
-  color: #FFFFFF !important;
-}
-
-.tab svg {
-  width: 16px !important;
-  height: 16px !important;
-  min-width: 16px !important;
-  min-height: 16px !important;
-  max-width: 16px !important;
-  max-height: 16px !important;
-  aspect-ratio: 1 / 1 !important;
-  flex-shrink: 0 !important;
-  display: block !important;
-  box-sizing: border-box !important;
-}
+/* Tab group styles are now handled by IconTabGroup component */
 
 .themeToggleRow {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   gap: 12px !important;
+  min-height: 40px !important;
 }
 
-.themeToggleButton {
-  display: flex !important;
-  background: #F9FAFB !important;
-  border-radius: 50% !important;
-  padding: 4px !important;
-  gap: 4px !important;
-}
-
-.themeToggleOption {
-  width: 48px !important;
-  height: 48px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 50% !important;
-  border: none !important;
-  background: transparent !important;
-  color: #4A5568 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  padding: 0 !important;
-}
-
-.themeToggleOption:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
-  color: #9527F5 !important;
-}
-
-.themeToggleActive {
-  background: #9527F5 !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 2px 4px rgba(149, 39, 245, 0.2) !important;
-}
-
-.themeToggleActive:hover {
-  background: #9527F5 !important;
-  color: #FFFFFF !important;
-}
-
-.themeToggleActive svg {
-  color: #FFFFFF !important;
-}
+/* Theme toggle styles are now handled by IconTabGroup component */
 
 .toggleContainer {
   display: flex !important;
@@ -258,12 +171,14 @@
 .toggleSetting {
   display: flex !important;
   align-items: center !important;
+  justify-content: space-between !important;
   gap: 12px !important;
+  min-height: 40px !important;
 }
 
 .toggleLabel {
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  color: #1A202C !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: #4A5568 !important;
   user-select: none !important;
 }

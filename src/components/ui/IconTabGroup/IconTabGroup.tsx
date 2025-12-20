@@ -1,5 +1,5 @@
 // src/components/ui/IconTabGroup/IconTabGroup.tsx
-import React, { useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useLayoutEffect, useCallback, useState } from 'react';
 import { LucideIcon } from 'lucide-react';
 import styles from './IconTabGroup.module.css';
 
@@ -20,6 +20,8 @@ export interface IconTabGroupProps {
   useShadowDom?: boolean;
   /** Icon size in pixels */
   iconSize?: number;
+  /** Icon stroke width (thickness) */
+  strokeWidth?: number;
 }
 
 export const IconTabGroup: React.FC<IconTabGroupProps> = ({
@@ -28,42 +30,123 @@ export const IconTabGroup: React.FC<IconTabGroupProps> = ({
   onTabChange,
   useShadowDom = false,
   iconSize = 24,
+  strokeWidth = 2.0,
 }) => {
   const tabGroupRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const wrapperRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const tooltipRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [hoveredTabId, setHoveredTabId] = useState<string | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<Record<string, 'left' | 'center' | 'right'>>({});
+  const isInitialMount = useRef(true);
+  const lastActiveTabId = useRef<string>(activeTabId);
+  const clickedTabId = useRef<string | null>(null);
 
   // Initialize tab refs array
   useEffect(() => {
     tabRefs.current = tabs.map(() => null);
+    wrapperRefs.current = tabs.map(() => null);
+    tooltipRefs.current = tabs.map(() => null);
   }, [tabs]);
 
-  const updateSliderPosition = useCallback(() => {
+  // Calculate tooltip position to prevent overflow
+  const updateTooltipPosition = useCallback((tabId: string, index: number) => {
+    const wrapper = wrapperRefs.current[index];
+    const tooltip = tooltipRefs.current[index];
+    if (!wrapper || !tooltip) return;
+
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const margin = 8; // Minimum distance from viewport edge
+
+    // Calculate centered position
+    const centerX = wrapperRect.left + wrapperRect.width / 2;
+    const tooltipLeft = centerX - tooltipRect.width / 2;
+    const tooltipRight = centerX + tooltipRect.width / 2;
+
+    let position: 'left' | 'center' | 'right' = 'center';
+
+    // Check if tooltip would overflow on the right
+    if (tooltipRight > viewportWidth - margin) {
+      // Position tooltip to align right edge with viewport margin
+      position = 'right';
+    }
+    // Check if tooltip would overflow on the left
+    else if (tooltipLeft < margin) {
+      // Position tooltip to align left edge with viewport margin
+      position = 'left';
+    }
+
+    setTooltipPosition((prev) => ({ ...prev, [tabId]: position }));
+  }, []);
+
+  // Update tooltip position when hovered
+  useEffect(() => {
+    if (!hoveredTabId) return;
+
+    const index = tabs.findIndex((tab) => tab.id === hoveredTabId);
+    if (index === -1) return;
+
+    // Small delay to ensure tooltip is rendered
+    const timeoutId = setTimeout(() => {
+      updateTooltipPosition(hoveredTabId, index);
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [hoveredTabId, tabs, updateTooltipPosition]);
+
+  const updateSliderPosition = useCallback((animate: boolean = false) => {
     if (!sliderRef.current || !tabGroupRef.current) return false;
 
     const activeIndex = tabs.findIndex((tab) => tab.id === activeTabId);
     if (activeIndex === -1) return false;
 
-    const activeTab = tabRefs.current[activeIndex];
-    if (!activeTab) return false;
+    // Use wrapper's offsetLeft since button is now inside wrapper
+    const activeWrapper = wrapperRefs.current[activeIndex];
+    if (!activeWrapper) return false;
 
-    const groupRect = tabGroupRef.current.getBoundingClientRect();
-    const tabRect = activeTab.getBoundingClientRect();
-    
-    // Check if we have valid dimensions
-    if (groupRect.width === 0 || tabRect.width === 0) return false;
+    // Apply animated class directly to element if needed
+    if (sliderRef.current) {
+      if (useShadowDom) {
+        // Shadow DOM - use plain class name
+        if (animate) {
+          sliderRef.current.classList.add('animated');
+        } else {
+          sliderRef.current.classList.remove('animated');
+        }
+      } else {
+        // CSS Modules - use hashed class name
+        const animatedClass = styles.animated;
+        if (animatedClass) {
+          if (animate) {
+            sliderRef.current.classList.add(animatedClass);
+          } else {
+            sliderRef.current.classList.remove(animatedClass);
+          }
+        }
+      }
+    }
 
-    const offsetX = tabRect.left - groupRect.left;
-    const width = tabRect.width;
+    // Use offsetLeft which gives position relative to offset parent (tabGroup)
+    // This properly accounts for padding and layout
+    const offsetX = activeWrapper.offsetLeft;
+    // Use fixed width from CSS (32px) instead of measuring to avoid subpixel rounding issues
+    const width = 32;
 
     sliderRef.current.style.transform = `translateX(${offsetX}px)`;
     sliderRef.current.style.width = `${width}px`;
     return true;
-  }, [activeTabId, tabs]);
+  }, [activeTabId, tabs, useShadowDom, styles]);
 
   // Use layout effect for initial mount to ensure slider is positioned before paint
   useLayoutEffect(() => {
-    updateSliderPosition();
+    updateSliderPosition(false); // No animation on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      lastActiveTabId.current = activeTabId;
+    }
   }, [updateSliderPosition]);
 
   // Also use a regular effect as a fallback for initial mount with retry
@@ -87,12 +170,36 @@ export const IconTabGroup: React.FC<IconTabGroupProps> = ({
 
   // Update slider position when activeTabId changes
   useEffect(() => {
-    // Use requestAnimationFrame for subsequent updates to allow smooth transitions
-    const rafId = requestAnimationFrame(() => {
-      updateSliderPosition();
-    });
+    // Skip if this is the initial mount (handled by useLayoutEffect)
+    if (isInitialMount.current) {
+      return;
+    }
 
-    return () => cancelAnimationFrame(rafId);
+    // Check if activeTabId actually changed
+    if (lastActiveTabId.current === activeTabId) {
+      return;
+    }
+
+    // Check if this change matches a user click
+    const wasUserClick = clickedTabId.current === activeTabId;
+    
+    // Clear the clicked tab ID after checking
+    clickedTabId.current = null;
+    
+    if (wasUserClick) {
+      // User interaction - animate the transition
+      // Use double RAF to ensure animated class is applied before position update
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          updateSliderPosition(true);
+        });
+      });
+    } else {
+      // Prop change from parent - update position without animation
+      updateSliderPosition(false);
+    }
+    
+    lastActiveTabId.current = activeTabId;
   }, [activeTabId, updateSliderPosition]);
 
   // Handle window resize to recalculate slider position
@@ -115,28 +222,55 @@ export const IconTabGroup: React.FC<IconTabGroupProps> = ({
 
   return (
     <div className={getClassName('tabGroup')} ref={tabGroupRef}>
-      <div className={getClassName('tabSlider')} ref={sliderRef} />
+      <div 
+        className={getClassName('tabSlider')}
+        ref={sliderRef} 
+      />
       {tabs.map((tab, index) => {
         const IconComponent = tab.icon;
         const isActive = activeTabId === tab.id;
+        const showTooltip = hoveredTabId === tab.id && tab.label;
 
         const tabClassName = useShadowDom
           ? `tab ${isActive ? 'active' : ''}`
           : `${styles.tab} ${isActive ? styles.active : ''}`;
 
         return (
-          <button
+          <div
             key={tab.id}
             ref={(el) => {
-              tabRefs.current[index] = el;
+              wrapperRefs.current[index] = el;
             }}
-            className={tabClassName}
-            onClick={() => onTabChange(tab.id)}
-            aria-label={tab.label || tab.id}
-            type="button"
+            className={getClassName('tabWrapper')}
+            onMouseEnter={() => tab.label && setHoveredTabId(tab.id)}
+            onMouseLeave={() => setHoveredTabId(null)}
           >
-            <IconComponent size={iconSize} strokeWidth={3} />
-          </button>
+            <button
+              ref={(el) => {
+                tabRefs.current[index] = el;
+              }}
+              className={tabClassName}
+              onClick={() => {
+                // Mark this tab as clicked so we know to animate
+                clickedTabId.current = tab.id;
+                onTabChange(tab.id);
+              }}
+              aria-label={tab.label || tab.id}
+              type="button"
+            >
+              <IconComponent size={iconSize} strokeWidth={strokeWidth} />
+            </button>
+            {showTooltip && (
+              <div
+                ref={(el) => {
+                  tooltipRefs.current[index] = el;
+                }}
+                className={`${getClassName('tabTooltip')} ${tooltipPosition[tab.id] || 'center'}`}
+              >
+                {tab.label}
+              </div>
+            )}
+          </div>
         );
       })}
     </div>

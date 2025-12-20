@@ -1,11 +1,12 @@
 // src/content/components/SidePanel/SettingsView.tsx
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Sun, Moon, Layers, RefreshCw } from 'lucide-react';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { DomainStatus } from '@/types/domain';
 import { extractDomain } from '@/utils/domain';
 import { Dropdown } from './Dropdown';
 import { showDisableModal } from '@/content/index';
+import { IconTabGroup, IconTab } from '@/components/ui/IconTabGroup';
 import styles from './SettingsView.module.css';
 
 export interface SettingsViewProps {
@@ -38,30 +39,26 @@ const Toggle: React.FC<{
     );
   };
 
-  // Theme Toggle component - single button with Light/Dark options
+  // Theme Toggle component - using IconTabGroup
   const ThemeToggle: React.FC<{
     value: 'light' | 'dark';
     onChange: (value: 'light' | 'dark') => void;
   }> = ({ value, onChange }) => {
+    const themeTabs: IconTab[] = [
+      { id: 'light', icon: Sun, label: 'Light theme' },
+      { id: 'dark', icon: Moon, label: 'Dark theme' },
+    ];
+
     return (
-      <div className={getClassName('themeToggleButton')}>
-        <button
-          className={`${getClassName('themeToggleOption')} ${value === 'light' ? getClassName('themeToggleActive') : ''}`}
-          onClick={() => onChange('light')}
-          type="button"
-        >
-          <Sun size={18} strokeWidth={2.5} />
-        </button>
-        <button
-          className={`${getClassName('themeToggleOption')} ${value === 'dark' ? getClassName('themeToggleActive') : ''}`}
-          onClick={() => onChange('dark')}
-          type="button"
-        >
-          <Moon size={18} strokeWidth={2.5} />
-        </button>
-    </div>
-  );
-};
+      <IconTabGroup
+        tabs={themeTabs}
+        activeTabId={value}
+        onTabChange={(tabId) => onChange(tabId as 'light' | 'dark')}
+        useShadowDom={useShadowDom}
+        iconSize={18}
+      />
+    );
+  };
   const [language, setLanguage] = useState<string>('English');
   const [translationView, setTranslationView] = useState<'append' | 'replace'>('append');
   const [globalTheme, setGlobalTheme] = useState<'light' | 'dark'>('light');
@@ -70,53 +67,10 @@ const Toggle: React.FC<{
   const [domainStatus, setDomainStatus] = useState<DomainStatus | null>(null);
   const [currentDomain, setCurrentDomain] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
-  const tabGroupRef = useRef<HTMLDivElement>(null);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const sliderRef = useRef<HTMLDivElement>(null);
-
-  const updateSliderPosition = useCallback((activeView: 'append' | 'replace') => {
-    if (!sliderRef.current || !tabGroupRef.current) return;
-    
-    const activeIndex = activeView === 'append' ? 0 : 1;
-    const activeTab = tabRefs.current[activeIndex];
-    
-    if (activeTab && tabGroupRef.current) {
-      const groupRect = tabGroupRef.current.getBoundingClientRect();
-      const tabRect = activeTab.getBoundingClientRect();
-      const offsetX = tabRect.left - groupRect.left;
-      const width = tabRect.width;
-      
-      sliderRef.current.style.transform = `translateX(${offsetX}px)`;
-      sliderRef.current.style.width = `${width}px`;
-    }
-  }, []);
 
   useEffect(() => {
     loadSettings();
   }, []);
-
-  useEffect(() => {
-    // Update slider position when component mounts or translationView changes
-    if (!loading) {
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        updateSliderPosition(translationView);
-      }, 10);
-      return () => clearTimeout(timer);
-    }
-  }, [translationView, loading, updateSliderPosition]);
-
-  useEffect(() => {
-    // Handle window resize
-    const handleResize = () => {
-      if (!loading) {
-        updateSliderPosition(translationView);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [translationView, loading, updateSliderPosition]);
 
   const loadSettings = async () => {
     try {
@@ -133,17 +87,16 @@ const Toggle: React.FC<{
         gDisabled,
         dStatus,
       ] = await Promise.all([
-        ChromeStorage.getLanguage(),
-        ChromeStorage.getTranslationView(),
-        ChromeStorage.getGlobalTheme(),
-        domain ? ChromeStorage.getDomainTheme(domain) : null,
+        ChromeStorage.getUserSettingNativeLanguage(),
+        ChromeStorage.getUserSettingPageTranslationView(),
+        ChromeStorage.getUserSettingGlobalTheme(),
+        domain ? ChromeStorage.getUserSettingThemeOnSiteForDomain(domain) : null,
         ChromeStorage.getGlobalDisabled(),
         domain ? ChromeStorage.getDomainStatus(domain) : null,
       ]);
 
       if (lang) setLanguage(lang);
-      if (transView && transView !== 'none') setTranslationView(transView);
-      else if (transView === 'none') setTranslationView('append'); // Migrate 'none' to 'append'
+      if (transView) setTranslationView(transView);
       if (gTheme) setGlobalTheme(gTheme);
       if (dTheme) setDomainTheme(dTheme);
       setGlobalDisabled(gDisabled);
@@ -157,27 +110,23 @@ const Toggle: React.FC<{
 
   const handleLanguageChange = async (value: string) => {
     setLanguage(value);
-    await ChromeStorage.setLanguage(value);
+    await ChromeStorage.setUserSettingNativeLanguage(value);
   };
 
   const handleTranslationViewChange = async (view: 'append' | 'replace') => {
     setTranslationView(view);
-    await ChromeStorage.setTranslationView(view);
-    // Update slider position after state update
-    requestAnimationFrame(() => {
-      updateSliderPosition(view);
-    });
+    await ChromeStorage.setUserSettingPageTranslationView(view);
   };
 
   const handleGlobalThemeChange = async (theme: 'light' | 'dark') => {
     setGlobalTheme(theme);
-    await ChromeStorage.setGlobalTheme(theme);
+    await ChromeStorage.setUserSettingGlobalTheme(theme);
   };
 
   const handleDomainThemeChange = async (theme: 'light' | 'dark') => {
     if (!currentDomain) return;
     setDomainTheme(theme);
-    await ChromeStorage.setDomainTheme(currentDomain, theme);
+    await ChromeStorage.setUserSettingThemeOnSiteForDomain(currentDomain, theme);
   };
 
   const handleGlobalToggle = async (checked: boolean) => {
@@ -319,7 +268,6 @@ const Toggle: React.FC<{
             <div className={getClassName('languageSettingRow')}>
               <label className={getClassName('settingLabel')}>My native language</label>
               <Dropdown
-                key={language}
                 options={languageOptions}
                 value={language}
                 onChange={handleLanguageChange}
@@ -331,25 +279,16 @@ const Toggle: React.FC<{
           <div className={getClassName('settingItem')}>
             <div className={getClassName('translationViewRow')}>
               <label className={getClassName('settingLabel')}>Page translation view</label>
-              <div className={getClassName('tabGroup')} ref={tabGroupRef}>
-                <div className={getClassName('tabSlider')} ref={sliderRef}></div>
-                <button
-                  ref={(el) => { tabRefs.current[0] = el; }}
-                  className={`${getClassName('tab')} ${translationView === 'append' ? getClassName('tabActive') : ''}`}
-                  onClick={() => handleTranslationViewChange('append')}
-                  title="Show me both"
-                >
-                  <Layers size={16} strokeWidth={3} />
-                </button>
-                <button
-                  ref={(el) => { tabRefs.current[1] = el; }}
-                  className={`${getClassName('tab')} ${translationView === 'replace' ? getClassName('tabActive') : ''}`}
-                  onClick={() => handleTranslationViewChange('replace')}
-                  title="Replace existing content"
-                >
-                  <RefreshCw size={16} strokeWidth={3} />
-                </button>
-              </div>
+              <IconTabGroup
+                tabs={[
+                  { id: 'append', icon: Layers, label: 'Show me both' },
+                  { id: 'replace', icon: RefreshCw, label: 'Replace existing content' },
+                ]}
+                activeTabId={translationView}
+                onTabChange={(tabId) => handleTranslationViewChange(tabId as 'append' | 'replace')}
+                useShadowDom={useShadowDom}
+                iconSize={16}
+              />
             </div>
           </div>
         </div>
@@ -396,23 +335,23 @@ const Toggle: React.FC<{
         <div className={getClassName('sectionContent')}>
           <div className={getClassName('settingItem')}>
             <div className={getClassName('toggleSetting')}>
+              <label className={getClassName('settingLabel')}>Enable globally</label>
               <Toggle
                 checked={!globalDisabled}
                 onChange={handleGlobalToggle}
               />
-              <span className={getClassName('toggleLabel')}>Enable globally</span>
             </div>
           </div>
           {currentDomain && !globalDisabled && domainStatus !== DomainStatus.INVALID && (
             <div className={getClassName('settingItem')}>
               <div className={getClassName('toggleSetting')}>
+                <label className={getClassName('settingLabel')}>
+                  Enable on <span className={getClassName('domainName')}>{currentDomain}</span>
+                </label>
                 <Toggle
                   checked={domainStatus === DomainStatus.ENABLED}
                   onChange={handleDomainToggle}
                 />
-                <span className={getClassName('toggleLabel')}>
-                  Enable on <span className={getClassName('domainName')}>{currentDomain}</span>
-                </span>
               </div>
             </div>
           )}
