@@ -90,7 +90,6 @@
   overflow-x: hidden !important;
   padding: 10px 15px !important;
   position: relative !important;
-  border-top: 2px solid var(--panel-primary-light) !important;
 }
 
 /* Footer */

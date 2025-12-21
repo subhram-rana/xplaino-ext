@@ -89,7 +89,7 @@
 
 /* Header */
 .header {
-  background: var(--color-white) !important;
+  background: rgba(149, 39, 245, 0.05) !important;
   padding: 8px 12px !important;
   display: flex !important;
   align-items: center !important;
@@ -300,13 +300,13 @@
   padding: 10px 15px !important;
   position: relative !important;
   color: var(--color-text-primary) !important;
-  border-top: 2px solid var(--color-primary-light) !important;
 }
 
 /* Footer */
 .footer {
-  background: transparent !important;
+  background: rgba(149, 39, 245, 0.05) !important;
   padding: 0 !important;
+  padding-top: 20px !important;
   padding-bottom: 20px !important;
   display: flex !important;
   align-items: center !important;
