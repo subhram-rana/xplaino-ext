@@ -3,6 +3,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { createStore, Provider } from 'jotai';
 
 // Import components
 import { FAB } from './components/FAB';
@@ -28,6 +29,19 @@ import loginModalStyles from './styles/loginModal.shadow.css?inline';
 
 // Import color CSS variables
 import { FAB_COLOR_VARIABLES } from '../constants/colors.css.js';
+
+// Import services and utilities
+import { SummariseService } from '../api-services/SummariseService';
+import { extractAndStorePageContent, getStoredPageContent } from './utils/pageContentExtractor';
+import {
+  summariseStateAtom,
+  streamingTextAtom,
+  summaryAtom,
+  summaryErrorAtom,
+  messageQuestionsAtom,
+  pageReadingStateAtom,
+} from '../store/summaryAtoms';
+import { showLoginModalAtom } from '../store/uiAtoms';
 
 console.log('[Content Script] Initialized');
 
@@ -68,12 +82,21 @@ let modalVisible = false;
 // Shared state for side panel
 let sidePanelOpen = false;
 
+// Jotai store for managing atoms outside React
+const store = createStore();
+
+// FAB loading state
+let isSummarising = false;
+let summariseAbortController: AbortController | null = null;
+let firstChunkReceived = false;
+let canHideFABActions = true;
+
 /**
  * Toggle side panel open/closed state
  */
-function setSidePanelOpen(open: boolean): void {
+function setSidePanelOpen(open: boolean, initialTab?: 'summary' | 'settings' | 'my'): void {
   sidePanelOpen = open;
-  updateSidePanel();
+  updateSidePanel(initialTab);
 }
 
 // =============================================================================
@@ -188,17 +211,168 @@ function removeFAB(): void {
 // =============================================================================
 
 /**
+ * Handle summarise button click
+ */
+async function handleSummariseClick(): Promise<void> {
+  console.log('[Content Script] Summarise clicked from FAB');
+  
+  // Check if summary already exists
+  const existingSummary = store.get(summaryAtom);
+  const hasSummary = !!existingSummary && existingSummary.trim().length > 0;
+  
+  // If summary exists, just open the side panel
+  if (hasSummary) {
+    console.log('[Content Script] Summary exists, opening side panel');
+    setSidePanelOpen(true, 'summary');
+    return;
+  }
+  
+  // If already summarising, abort and reset
+  if (isSummarising && summariseAbortController) {
+    summariseAbortController.abort();
+    summariseAbortController = null;
+    isSummarising = false;
+    firstChunkReceived = false;
+    canHideFABActions = true;
+    store.set(summariseStateAtom, 'idle');
+    updateFAB();
+    return;
+  }
+
+  // Set loading state
+  isSummarising = true;
+  firstChunkReceived = false;
+  canHideFABActions = false; // Prevent hiding actions during loading
+  store.set(summariseStateAtom, 'summarising');
+  store.set(streamingTextAtom, '');
+  store.set(summaryAtom, '');
+  store.set(summaryErrorAtom, '');
+  store.set(messageQuestionsAtom, {});
+  updateFAB();
+
+  try {
+    // Extract page content if not already available
+    let pageContent = await getStoredPageContent();
+    if (!pageContent) {
+      console.log('[Content Script] Extracting page content...');
+      store.set(pageReadingStateAtom, 'reading');
+      pageContent = await extractAndStorePageContent();
+      if (!pageContent) {
+        throw new Error('Could not extract page content');
+      }
+      store.set(pageReadingStateAtom, 'ready');
+    }
+
+    // Create abort controller
+    summariseAbortController = new AbortController();
+
+    // Call summarise API
+    await SummariseService.summarise(
+      {
+        text: pageContent,
+        context_type: 'PAGE',
+      },
+      {
+        onChunk: (_chunk, accumulated) => {
+          // Update streaming text first
+          store.set(streamingTextAtom, accumulated);
+          
+          // On first chunk, open side panel with summary tab and allow FAB actions to hide
+          if (!firstChunkReceived) {
+            firstChunkReceived = true;
+            canHideFABActions = true; // Allow actions to hide after first event
+            isSummarising = false; // Stop showing spinner, revert to icon
+            console.log('[Content Script] First chunk received, opening side panel');
+            setSidePanelOpen(true, 'summary');
+            // Update FAB after setting streaming text so hasSummary will be true
+            updateFAB(); // Update FAB to reflect changes (spinner -> icon, canHideActions, hasSummary)
+          }
+        },
+        onComplete: (finalSummary, questions) => {
+          console.log('[Content Script] Summarise complete');
+          store.set(summaryAtom, finalSummary);
+          store.set(streamingTextAtom, '');
+          store.set(summariseStateAtom, 'done');
+          
+          // Store questions for summary (use -1 as key for summary)
+          if (questions.length > 0) {
+            const currentQuestions = store.get(messageQuestionsAtom);
+            store.set(messageQuestionsAtom, {
+              ...currentQuestions,
+              [-1]: questions,
+            });
+          }
+          
+          // Reset loading state
+          isSummarising = false;
+          summariseAbortController = null;
+          firstChunkReceived = false;
+          canHideFABActions = true;
+          updateFAB();
+        },
+        onError: (errorCode, errorMsg) => {
+          console.error('[Content Script] Summarise error:', errorCode, errorMsg);
+          store.set(summariseStateAtom, 'error');
+          store.set(summaryErrorAtom, errorMsg);
+          
+          // Reset loading state
+          isSummarising = false;
+          summariseAbortController = null;
+          firstChunkReceived = false;
+          canHideFABActions = true;
+          updateFAB();
+        },
+        onLoginRequired: () => {
+          console.log('[Content Script] Login required for summarise');
+          store.set(summariseStateAtom, 'idle');
+          store.set(showLoginModalAtom, true);
+          
+          // Reset loading state
+          isSummarising = false;
+          summariseAbortController = null;
+          firstChunkReceived = false;
+          canHideFABActions = true;
+          updateFAB();
+        },
+      },
+      summariseAbortController
+    );
+  } catch (error) {
+    console.error('[Content Script] Summarise exception:', error);
+    store.set(summariseStateAtom, 'error');
+    store.set(summaryErrorAtom, error instanceof Error ? error.message : 'An error occurred while summarising');
+    
+    // Reset loading state
+    isSummarising = false;
+    summariseAbortController = null;
+    firstChunkReceived = false;
+    canHideFABActions = true;
+    updateFAB();
+  }
+}
+
+/**
  * Update FAB state
  */
 function updateFAB(): void {
   if (fabRoot) {
+    // Check if summary exists (either in summaryAtom or streamingTextAtom)
+    const summary = store.get(summaryAtom);
+    const streamingText = store.get(streamingTextAtom);
+    const hasSummary = (!!summary && summary.trim().length > 0) || (!!streamingText && streamingText.trim().length > 0);
+    
     fabRoot.render(
-      React.createElement(FAB, {
-        useShadowDom: true,
-        onSummarise: () => console.log('[FAB] Summarise clicked'),
-        onTranslate: () => console.log('[FAB] Translate clicked'),
-        onOptions: () => setSidePanelOpen(true),
-      })
+      React.createElement(Provider, { store },
+        React.createElement(FAB, {
+          useShadowDom: true,
+          onSummarise: handleSummariseClick,
+          onTranslate: () => console.log('[FAB] Translate clicked'),
+          onOptions: () => setSidePanelOpen(true),
+          isSummarising: isSummarising,
+          hasSummary: hasSummary,
+          canHideActions: canHideFABActions,
+        })
+      )
     );
   }
 }
@@ -206,14 +380,17 @@ function updateFAB(): void {
 /**
  * Update side panel state
  */
-function updateSidePanel(): void {
+function updateSidePanel(initialTab?: 'summary' | 'settings' | 'my'): void {
   if (sidePanelRoot) {
     sidePanelRoot.render(
-      React.createElement(SidePanel, {
-        isOpen: sidePanelOpen,
-        useShadowDom: true,
-        onClose: () => setSidePanelOpen(false),
-      })
+      React.createElement(Provider, { store },
+        React.createElement(SidePanel, {
+          isOpen: sidePanelOpen,
+          useShadowDom: true,
+          onClose: () => setSidePanelOpen(false),
+          initialTab: initialTab,
+        })
+      )
     );
   }
   // Also update FAB to reflect side panel state
@@ -248,11 +425,14 @@ function injectSidePanel(): void {
   // Render React component
   sidePanelRoot = ReactDOM.createRoot(mountPoint);
   sidePanelRoot.render(
-    React.createElement(SidePanel, {
-      isOpen: sidePanelOpen,
-      useShadowDom: true,
-      onClose: () => setSidePanelOpen(false),
-    })
+    React.createElement(Provider, { store },
+      React.createElement(SidePanel, {
+        isOpen: sidePanelOpen,
+        useShadowDom: true,
+        onClose: () => setSidePanelOpen(false),
+        initialTab: 'summary',
+      })
+    )
   );
 
   console.log('[Content Script] Side Panel injected successfully');
@@ -441,9 +621,11 @@ function injectLoginModal(): void {
   // Render React component
   loginModalRoot = ReactDOM.createRoot(mountPoint);
   loginModalRoot.render(
-    React.createElement(LoginModal, {
-      useShadowDom: true,
-    })
+    React.createElement(Provider, { store },
+      React.createElement(LoginModal, {
+        useShadowDom: true,
+      })
+    )
   );
 
   console.log('[Content Script] Login Modal injected successfully');

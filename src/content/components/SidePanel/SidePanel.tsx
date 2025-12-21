@@ -19,6 +19,8 @@ export interface SidePanelProps {
   useShadowDom?: boolean;
   /** Callback when login is required (401 error) */
   onLoginRequired?: () => void;
+  /** Initial tab to show when panel opens */
+  initialTab?: TabType;
 }
 
 type TabType = 'summary' | 'settings' | 'my';
@@ -32,8 +34,9 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onClose,
   useShadowDom = false,
   onLoginRequired,
+  initialTab,
 }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('summary');
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'summary');
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
   const [isSlidingOut, setIsSlidingOut] = useState(false);
@@ -115,8 +118,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({
     if (!isOpen) {
       setActiveTab('summary');
       setIsSlidingOut(false);
+    } else if (initialTab) {
+      // Set initial tab when panel opens
+      setActiveTab(initialTab);
     }
-  }, [isOpen]);
+  }, [isOpen, initialTab]);
 
   const handleSlideOut = useCallback(() => {
     setIsSlidingOut(true);

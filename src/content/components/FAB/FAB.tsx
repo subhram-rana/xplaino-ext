@@ -12,6 +12,12 @@ export interface FABProps {
   onOptions?: () => void;
   /** Whether component is rendered in Shadow DOM (uses plain class names) */
   useShadowDom?: boolean;
+  /** Whether summarise button is loading */
+  isSummarising?: boolean;
+  /** Whether a summary already exists */
+  hasSummary?: boolean;
+  /** Whether it's safe to hide actions (after first event received) */
+  canHideActions?: boolean;
 }
 
 /**
@@ -31,6 +37,9 @@ export const FAB: React.FC<FABProps> = ({
   onTranslate,
   onOptions,
   useShadowDom = false,
+  isSummarising = false,
+  hasSummary = false,
+  canHideActions = true,
 }) => {
   const [actionsVisible, setActionsVisible] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
@@ -75,13 +84,17 @@ export const FAB: React.FC<FABProps> = ({
   // Handle parent container mouse leave - hides actions after delay
   const handleParentMouseLeave = useCallback(() => {
     isHoveringRef.current = false;
+    // Don't hide if summarising or if actions shouldn't be hidden yet
+    if (isSummarising || !canHideActions) {
+      return;
+    }
     clearHideTimeout();
     hideTimeoutRef.current = setTimeout(() => {
       if (!isHoveringRef.current) {
         setActionsVisible(false);
       }
     }, 300); // Small delay before hiding
-  }, [clearHideTimeout]);
+  }, [clearHideTimeout, isSummarising, canHideActions]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -137,9 +150,10 @@ export const FAB: React.FC<FABProps> = ({
       <div className={actionsContainerClass}>
         <ActionButton
           icon="summarise"
-          tooltip="Summarise Page"
+          tooltip={hasSummary ? 'View summary' : 'Summarise page'}
           onClick={handleSummarise}
           className={actionButtonClass}
+          isLoading={isSummarising}
         />
         <ActionButton
           icon="translate"

@@ -159,6 +159,26 @@
   transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+/* Ensure spinner inside action button works correctly */
+.actionButton .loadingSpinner {
+  width: 18px !important;
+  height: 18px !important;
+  border: 2px solid rgba(149, 39, 245, 0.2) !important;
+  border-top-color: var(--color-primary, #9527F5) !important;
+  border-right-color: rgba(149, 39, 245, 0.2) !important;
+  border-bottom-color: rgba(149, 39, 245, 0.2) !important;
+  border-left-color: rgba(149, 39, 245, 0.2) !important;
+  border-radius: 50% !important;
+  animation: spinSpinner 0.8s linear infinite !important;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+  transform-origin: center center !important;
+  will-change: transform !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 /* Icon color changes to darker purple on hover */
 .actionButton:hover svg {
   color: var(--color-primary) !important;
@@ -181,6 +201,35 @@
   animation-delay: 0.1s !important;
 }
 
+/* CRITICAL: Override button transform when loading to allow spinner to animate */
+.actionButton.isLoading {
+  transform: none !important;
+  animation: none !important;
+}
+
+/* CRITICAL: Ensure spinner animation works - override ALL button transforms */
+.actionButton .loadingSpinner,
+.actionButton.isLoading .loadingSpinner {
+  animation: spinSpinner 0.8s linear infinite !important;
+  transform: rotate(0deg) !important;
+  animation-fill-mode: none !important;
+  isolation: isolate !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Force spinner animation in all states */
+.actionButton:not(:hover) .loadingSpinner,
+.actionButton:hover .loadingSpinner,
+.actionButton.isLoading:not(:hover) .loadingSpinner,
+.actionButton.isLoading:hover .loadingSpinner,
+.actionsContainer.visible .actionButton .loadingSpinner,
+.actionsContainer.visible .actionButton:hover .loadingSpinner,
+.actionsContainer.visible .actionButton.isLoading .loadingSpinner {
+  animation: spinSpinner 0.8s linear infinite !important;
+  transform: rotate(0deg) !important;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0 !important;
@@ -190,6 +239,19 @@
     opacity: 1 !important;
     transform: translateX(0) scale(1) !important;
   }
+}
+
+/* Reset button transform after slideIn animation completes so spinner can animate */
+.actionsContainer.visible .actionButton {
+  animation-fill-mode: forwards !important;
+}
+
+/* Ensure spinner is isolated from button transforms */
+.actionsContainer.visible .actionButton .loadingSpinner {
+  animation: spinSpinner 0.8s linear infinite !important;
+  transform: rotate(0deg) !important;
+  animation-fill-mode: none !important;
+  isolation: isolate !important;
 }
 
 /* Pulse animation for FAB when first loaded - using CSS variable */
@@ -207,4 +269,37 @@
 
 .fabButton.pulse {
   animation: pulse 2s ease-in-out 3 !important;
+}
+
+/* Loading Spinner for ActionButton */
+.loadingSpinner {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  border: 2px solid rgba(149, 39, 245, 0.2) !important;
+  border-top-color: var(--color-primary, #9527F5) !important;
+  border-right-color: rgba(149, 39, 245, 0.2) !important;
+  border-bottom-color: rgba(149, 39, 245, 0.2) !important;
+  border-left-color: rgba(149, 39, 245, 0.2) !important;
+  border-radius: 50% !important;
+  animation: spinSpinner 0.8s linear infinite !important;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+  transform-origin: 50% 50% !important;
+  will-change: transform !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  vertical-align: middle !important;
+  position: relative !important;
+}
+
+@keyframes spinSpinner {
+  0% {
+    transform: rotate(0deg) !important;
+  }
+  100% {
+    transform: rotate(360deg) !important;
+  }
 }

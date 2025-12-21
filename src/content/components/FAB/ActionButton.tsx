@@ -12,6 +12,8 @@ export interface ActionButtonProps {
   icon: 'summarise' | 'translate' | 'options';
   /** Additional class name */
   className?: string;
+  /** Whether to show loading spinner instead of icon */
+  isLoading?: boolean;
 }
 
 const iconMap = {
@@ -25,6 +27,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   onClick,
   icon,
   className = '',
+  isLoading = false,
 }) => {
   const IconComponent = iconMap[icon];
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -33,14 +36,36 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
     <>
       <button
         ref={buttonRef}
-        className={className}
+        className={`${className} ${isLoading ? 'isLoading' : ''}`}
         onClick={onClick}
         aria-label={tooltip}
+        disabled={isLoading}
       >
-        <IconComponent
-          size={18}
-          strokeWidth={2.5}
-        />
+        {isLoading ? (
+          <span 
+            className="loadingSpinner"
+            style={{
+              display: 'block',
+              width: '18px',
+              height: '18px',
+              minWidth: '18px',
+              minHeight: '18px',
+              border: '2px solid rgba(149, 39, 245, 0.2)',
+              borderTopColor: '#9527F5',
+              borderRadius: '50%',
+              animation: 'spinSpinner 0.8s linear infinite',
+              transform: 'rotate(0deg)',
+              transformOrigin: 'center center',
+              boxSizing: 'border-box',
+              margin: '0 auto',
+            }}
+          />
+        ) : (
+          <IconComponent
+            size={18}
+            strokeWidth={2.5}
+          />
+        )}
       </button>
       <OnHoverMessage
         message={tooltip}
