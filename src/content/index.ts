@@ -371,6 +371,7 @@ function updateFAB(): void {
           isSummarising: isSummarising,
           hasSummary: hasSummary,
           canHideActions: canHideFABActions,
+          onShowModal: showDisableModal,
         })
       )
     );

@@ -1,9 +1,9 @@
-// src/content/components/ContentActions/DisablePopover.tsx
+// src/content/components/FAB/FABDisablePopover.tsx
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Globe, Monitor } from 'lucide-react';
 import { useEmergeAnimation } from '../../../hooks';
 
-export interface DisablePopoverProps {
+export interface FABDisablePopoverProps {
   /** Whether the popover is visible */
   visible: boolean;
   /** Callback after disable action is executed */
@@ -60,7 +60,7 @@ async function updateExtensionSettings(
   });
 }
 
-export const DisablePopover: React.FC<DisablePopoverProps> = ({
+export const FABDisablePopover: React.FC<FABDisablePopoverProps> = ({
   visible,
   onDisabled,
   onMouseEnter,
@@ -88,13 +88,14 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
   // Find the source button from DOM (parent button element)
   // This is more reliable than ref passing which has timing issues
   useEffect(() => {
-    // The popover is rendered inside ContentActionButton's div wrapper
+    // The popover is rendered inside ActionButton's wrapper
     // which contains the button as a sibling
     const popoverElement = elementRef.current;
     if (popoverElement) {
       // Find the closest button sibling or ancestor
       const wrapper = popoverElement.parentElement;
-      const button = wrapper?.querySelector('button.contentActionButton');
+      // Look for button with actionButton class or any button in the wrapper
+      const button = wrapper?.querySelector('button.actionButton') || wrapper?.querySelector('button');
       if (button) {
         (sourceRef as React.MutableRefObject<HTMLElement | null>).current = button as HTMLElement;
       }
@@ -116,7 +117,7 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
 
   const handleDisableGlobally = useCallback(async () => {
     await updateExtensionSettings({ globalDisabled: true });
-    console.log('[ContentActions] Disabled globally');
+    console.log('[FAB] Disabled globally');
     onDisabled?.();
     onShowModal?.();
   }, [onDisabled, onShowModal]);
@@ -126,7 +127,7 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
     await updateExtensionSettings({
       domainStatus: { domain: currentDomain, status: 'DISABLED' },
     });
-    console.log('[ContentActions] Disabled on:', currentDomain);
+    console.log('[FAB] Disabled on:', currentDomain);
     onDisabled?.();
     onShowModal?.();
   }, [currentDomain, onDisabled, onShowModal]);
@@ -137,7 +138,7 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
   return (
     <div
       ref={elementRef as React.RefObject<HTMLDivElement>}
-      className={`disablePopover ${animationState === 'shrinking' ? 'closing' : ''}`}
+      className={`fabDisablePopover ${animationState === 'shrinking' ? 'closing' : ''}`}
       style={animationStyle}
       onMouseDown={(e) => e.stopPropagation()}
       onMouseEnter={onMouseEnter}
@@ -145,7 +146,7 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
     >
       {/* This site first, then All sites */}
       <button
-        className="disablePopoverOption"
+        className="fabDisablePopoverOption"
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
@@ -156,7 +157,7 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
         <span>This site</span>
       </button>
       <button
-        className="disablePopoverOption"
+        className="fabDisablePopoverOption"
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
@@ -170,5 +171,5 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
   );
 };
 
-DisablePopover.displayName = 'DisablePopover';
+FABDisablePopover.displayName = 'FABDisablePopover';
 

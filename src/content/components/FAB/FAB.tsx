@@ -1,6 +1,7 @@
 // src/content/components/FAB/FAB.tsx
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ActionButton } from './ActionButton';
+import { FABDisablePopover } from './FABDisablePopover';
 import styles from './FAB.module.css';
 
 export interface FABProps {
@@ -18,6 +19,8 @@ export interface FABProps {
   hasSummary?: boolean;
   /** Whether it's safe to hide actions (after first event received) */
   canHideActions?: boolean;
+  /** Callback to show disable notification modal */
+  onShowModal?: () => void;
 }
 
 /**
@@ -40,9 +43,11 @@ export const FAB: React.FC<FABProps> = ({
   isSummarising = false,
   hasSummary = false,
   canHideActions = true,
+  onShowModal,
 }) => {
   const [actionsVisible, setActionsVisible] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
+  const [showDisablePopover, setShowDisablePopover] = useState(false);
   const parentRef = useRef<HTMLDivElement>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isHoveringRef = useRef(false);
@@ -121,6 +126,22 @@ export const FAB: React.FC<FABProps> = ({
     onOptions?.();
   }, [onOptions]);
 
+  const handleDisableExtensionButtonClick = useCallback(() => {
+    setShowDisablePopover((prev) => {
+      const newValue = !prev;
+      if (newValue) {
+        // Popover is opening - ensure actions stay visible
+        clearHideTimeout();
+        isHoveringRef.current = true;
+      }
+      return newValue;
+    });
+  }, [clearHideTimeout]);
+
+  const handleDisabled = useCallback(() => {
+    setShowDisablePopover(false);
+  }, []);
+
   const iconUrl = getIconUrl(useShadowDom);
 
   // Class names for Shadow DOM vs CSS Modules
@@ -167,6 +188,21 @@ export const FAB: React.FC<FABProps> = ({
           onClick={handleOptions}
           className={actionButtonClass}
         />
+        <ActionButton
+          icon="disable"
+          tooltip="Disable extension"
+          onClick={handleDisableExtensionButtonClick}
+          className={actionButtonClass}
+          hideTooltip={showDisablePopover}
+        >
+          <FABDisablePopover
+            visible={showDisablePopover}
+            onDisabled={handleDisabled}
+            onMouseEnter={handleParentMouseEnter}
+            onMouseLeave={handleParentMouseLeave}
+            onShowModal={onShowModal}
+          />
+        </ActionButton>
       </div>
 
       {/* FAB Container - on the right */}

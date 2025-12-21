@@ -201,6 +201,11 @@
   animation-delay: 0.1s !important;
 }
 
+.actionsContainer.visible .actionButton:nth-child(4) {
+  animation: slideIn 0.3s ease forwards !important;
+  animation-delay: 0.15s !important;
+}
+
 /* CRITICAL: Override button transform when loading to allow spinner to animate */
 .actionButton.isLoading {
   transform: none !important;
@@ -302,4 +307,78 @@
   100% {
     transform: rotate(360deg) !important;
   }
+}
+
+/* Action Button Wrapper */
+.actionButtonWrapper {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+/* FAB Disable Popover */
+.fabDisablePopover {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  right: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  background: var(--color-white) !important;
+  border-radius: 15px !important;
+  padding: 4px !important;
+  box-shadow: 0 0 12px rgba(149, 39, 245, 0.35) !important;
+  /* Animation is handled by JavaScript useEmergeAnimation hook */
+  z-index: 20 !important;
+  width: fit-content !important;
+}
+
+.fabDisablePopover::before {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 100% !important;
+  right: 10px !important;
+  border: 6px solid transparent !important;
+  border-bottom-color: var(--color-white) !important;
+}
+
+/* FAB Disable Popover Option Button */
+.fabDisablePopoverOption {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--color-primary-light) !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+  text-align: left !important;
+  width: auto !important;
+}
+
+.fabDisablePopoverOption:hover {
+  background: var(--color-primary-very-light) !important;
+  color: var(--color-primary) !important;
+}
+
+.fabDisablePopoverOption:active {
+  transform: scale(0.98) !important;
+}
+
+.fabDisablePopoverOption svg {
+  width: 14px !important;
+  height: 14px !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5 !important;
+  fill: none !important;
+  flex-shrink: 0 !important;
+}
+
+.fabDisablePopoverOption span {
+  flex: 1 !important;
 }

@@ -1,6 +1,6 @@
 // src/content/components/FAB/ActionButton.tsx
 import React, { useRef } from 'react';
-import { FileText, Languages, Settings } from 'lucide-react';
+import { FileText, Languages, MoreVertical, Power } from 'lucide-react';
 import { OnHoverMessage } from '../OnHoverMessage';
 
 export interface ActionButtonProps {
@@ -9,17 +9,22 @@ export interface ActionButtonProps {
   /** Click handler */
   onClick: () => void;
   /** Icon to display */
-  icon: 'summarise' | 'translate' | 'options';
+  icon: 'summarise' | 'translate' | 'options' | 'disable';
   /** Additional class name */
   className?: string;
   /** Whether to show loading spinner instead of icon */
   isLoading?: boolean;
+  /** Children to render (for popover) */
+  children?: React.ReactNode;
+  /** Whether to hide the tooltip (e.g., when popover is open) */
+  hideTooltip?: boolean;
 }
 
 const iconMap = {
   summarise: FileText,
   translate: Languages,
-  options: Settings,
+  options: MoreVertical,
+  disable: Power,
 };
 
 export const ActionButton: React.FC<ActionButtonProps> = ({
@@ -28,12 +33,14 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   icon,
   className = '',
   isLoading = false,
+  children,
+  hideTooltip = false,
 }) => {
   const IconComponent = iconMap[icon];
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <>
+    <div className="actionButtonWrapper">
       <button
         ref={buttonRef}
         className={`${className} ${isLoading ? 'isLoading' : ''}`}
@@ -67,13 +74,16 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
           />
         )}
       </button>
-      <OnHoverMessage
-        message={tooltip}
-        targetRef={buttonRef}
-        position="left"
-        offset={10}
-      />
-    </>
+      {!hideTooltip && (
+        <OnHoverMessage
+          message={tooltip}
+          targetRef={buttonRef}
+          position="left"
+          offset={10}
+        />
+      )}
+      {children}
+    </div>
   );
 };
 
