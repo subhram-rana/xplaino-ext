@@ -40,7 +40,7 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 2px 8px rgba(0, 200, 0, 0.3) !important;
+  box-shadow: none !important;
   transition: box-shadow 0.2s ease, transform 0.2s ease, border 0.2s ease !important;
   padding: 2px !important;
   margin: 0 !important;
@@ -69,25 +69,25 @@
 
 .loadingSpinner {
   display: block !important;
-  width: 18px !important;
-  height: 18px !important;
-  min-width: 18px !important;
-  min-height: 18px !important;
-  border: 2px solid rgba(149, 39, 245, 0.2) !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  border: 3px solid rgba(149, 39, 245, 0.15) !important;
   border-top-color: #9527F5 !important;
+  border-right-color: #9527F5 !important;
   border-radius: 50% !important;
-  animation: spinSpinner 0.8s linear infinite !important;
-  transform: rotate(0deg) !important;
-  transform-origin: center center !important;
+  animation: spinSpinner 0.6s linear infinite !important;
   box-sizing: border-box !important;
+  flex-shrink: 0 !important;
 }
 
 @keyframes spinSpinner {
-  from {
-    transform: rotate(0deg) !important;
+  0% {
+    transform: rotate(0deg);
   }
-  to {
-    transform: rotate(360deg) !important;
+  100% {
+    transform: rotate(360deg);
   }
 }
 

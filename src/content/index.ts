@@ -193,7 +193,25 @@ function setupGlobalAuthListener(): void {
 /**
  * Toggle side panel open/closed state
  */
-function setSidePanelOpen(open: boolean, initialTab?: 'summary' | 'settings' | 'my'): void {
+async function setSidePanelOpen(open: boolean, initialTab?: 'summary' | 'settings' | 'my'): Promise<void> {
+  // If opening side panel and text explanation panel is open, close it first with shrink animation
+  if (open && store.get(textExplanationPanelOpenAtom)) {
+    console.log('[Content Script] Closing text explanation panel before opening side panel');
+    
+    if (textExplanationPanelCloseHandler) {
+      // Use the animated close handler (triggers shrink animation)
+      textExplanationPanelCloseHandler();
+      // Wait for shrink animation to complete (400ms duration)
+      await new Promise(resolve => setTimeout(resolve, 450));
+    } else {
+      // Fallback: immediate close if handler not available
+      console.warn('[Content Script] Text explanation panel close handler not available, using immediate close');
+      store.set(textExplanationPanelOpenAtom, false);
+      updateTextExplanationPanel();
+      updateTextExplanationIconContainer();
+    }
+  }
+  
   sidePanelOpen = open;
   updateSidePanel(initialTab);
 }
@@ -460,6 +478,9 @@ function updateFAB(): void {
     const streamingText = store.get(streamingTextAtom);
     const hasSummary = (!!summary && summary.trim().length > 0) || (!!streamingText && streamingText.trim().length > 0);
     
+    // Check if any panel is open
+    const isAnyPanelOpen = sidePanelOpen || store.get(textExplanationPanelOpenAtom);
+    
     fabRoot.render(
       React.createElement(Provider, { store },
         React.createElement(FAB, {
@@ -471,6 +492,7 @@ function updateFAB(): void {
           hasSummary: hasSummary,
           canHideActions: canHideFABActions,
           onShowModal: showDisableModal,
+          isPanelOpen: isAnyPanelOpen,
         })
       )
     );
@@ -720,33 +742,42 @@ async function handleExplainClick(
       ],
       {
         onChunk: (_chunk, accumulated) => {
+          let isFirstChunk = false;
+          
           updateExplanationInMap(explanationId, (state) => {
             const updatedState = { ...state, streamingText: accumulated };
             
             // On first chunk: switch to green icon, add underline, open panel
             if (!updatedState.firstChunkReceived) {
+              isFirstChunk = true;
               updatedState.firstChunkReceived = true;
               updatedState.isSpinning = false;
+              
+              // Clear text selection to hide purple action button
+              window.getSelection()?.removeAllRanges();
               
               // Add underline to selected text
               if (updatedState.range) {
                 const underlineState = addTextUnderline(updatedState.range);
                 updatedState.underlineState = underlineState;
               }
-              
-              // Open panel
-              store.set(textExplanationPanelOpenAtom, true);
-              updateTextExplanationPanel();
-              
-              // Update icon container
-              updateTextExplanationIconContainer();
-            } else {
-              // Update panel with new content
-              updateTextExplanationPanel();
             }
             
             return updatedState;
           });
+          
+          // Update UI after state is committed to atom
+          if (isFirstChunk) {
+            // Open panel
+            store.set(textExplanationPanelOpenAtom, true);
+            updateTextExplanationPanel();
+            
+            // Update icon container (now reads the updated state with isSpinning = false)
+            updateTextExplanationIconContainer();
+          } else {
+            // Update panel with new content
+            updateTextExplanationPanel();
+          }
         },
         onComplete: (simplifiedText, shouldAllowSimplifyMore, possibleQuestions) => {
           console.log('[Content Script] Text explanation complete');
@@ -835,7 +866,7 @@ async function handleExplainClick(
  * If clicking same explanation ID: toggle panel (close if open, open if closed)
  * If clicking different ID: close current panel, set new active ID, open new panel
  */
-function toggleTextExplanationPanel(explanationId: string): void {
+async function toggleTextExplanationPanel(explanationId: string): Promise<void> {
   const activeId = store.get(activeTextExplanationIdAtom);
   const panelOpen = store.get(textExplanationPanelOpenAtom);
   
@@ -854,7 +885,14 @@ function toggleTextExplanationPanel(explanationId: string): void {
         updateTextExplanationIconContainer();
       }
     } else {
-      // Opening
+      // Opening - close side panel first if it's open
+      if (sidePanelOpen) {
+        console.log('[Content Script] Closing side panel before opening text explanation panel');
+        setSidePanelOpen(false);
+        // Wait for slide animation to complete (300ms duration)
+        await new Promise(resolve => setTimeout(resolve, 350));
+      }
+      
       store.set(textExplanationPanelOpenAtom, true);
       updateTextExplanationPanel();
       updateTextExplanationIconContainer();
@@ -869,6 +907,15 @@ function toggleTextExplanationPanel(explanationId: string): void {
         previousExplanation.abortController.abort();
       }
     }
+    
+    // Close side panel first if it's open
+    if (sidePanelOpen) {
+      console.log('[Content Script] Closing side panel before opening text explanation panel');
+      setSidePanelOpen(false);
+      // Wait for slide animation to complete (300ms duration)
+      await new Promise(resolve => setTimeout(resolve, 350));
+    }
+    
     store.set(activeTextExplanationIdAtom, explanationId);
     store.set(textExplanationPanelOpenAtom, true);
     updateTextExplanationPanel();

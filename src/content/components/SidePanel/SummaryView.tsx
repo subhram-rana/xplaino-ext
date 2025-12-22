@@ -587,6 +587,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   const handleAskQuestion = async (question: string) => {
     if (!question.trim() || askingState === 'asking') return;
 
+    console.log('[SummaryView] Ask question started:', question);
+
     const userMessage: ChatMessage = {
       role: 'user',
       content: question.trim(),
@@ -597,6 +599,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     setInputValue('');
     setAskingState('asking');
     setAskStreamingText('');
+    console.log('[SummaryView] State set to asking, waiting for first chunk...');
 
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
@@ -615,6 +618,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         },
         {
           onChunk: (_chunk, accumulated) => {
+            console.log('[SummaryView] First chunk received, hiding loading dots');
             setAskStreamingText(accumulated);
           },
           onComplete: (updatedChatHistory, questions) => {
@@ -705,6 +709,44 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     handleAskQuestion(question);
   };
 
+  const handleStopRequest = () => {
+    console.log('[SummaryView] Stop request clicked');
+    
+    // Stop summarise if in progress
+    if (summariseState === 'summarising' && abortControllerRef.current) {
+      console.log('[SummaryView] Stopping summarise API');
+      abortControllerRef.current.abort();
+      
+      // Save streaming content to summary
+      if (streamingText) {
+        setSummary(streamingText);
+      }
+      
+      setStreamingText('');
+      setSummariseState('done');
+      abortControllerRef.current = null;
+    }
+    
+    // Stop ask if in progress
+    if (askingState === 'asking' && abortControllerRef.current) {
+      console.log('[SummaryView] Stopping ask API');
+      abortControllerRef.current.abort();
+      
+      // Save streaming content to chat
+      if (askStreamingText) {
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: askStreamingText,
+        };
+        setChatMessages((prev) => [...prev, assistantMessage]);
+      }
+      
+      setAskStreamingText('');
+      setAskingState('idle');
+      abortControllerRef.current = null;
+    }
+  };
+
   // Get button text and icon based on state
   const getButtonContent = () => {
     if (pageReadingState === 'reading') {
@@ -753,11 +795,6 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         {/* 3-Dot Loading Animation - Show when summarising and no chunks received yet */}
         {summariseState === 'summarising' && streamingText.length === 0 && (
           <LoadingDots dotCount={summaryLoadingDotCount} getClassName={getClassName} />
-        )}
-
-        {/* 3-Dot Loading Animation - Show when asking and no chunks received yet */}
-        {askingState === 'asking' && askStreamingText.length === 0 && (
-          <LoadingDots dotCount={askLoadingDotCount} getClassName={getClassName} />
         )}
 
         {/* Summary Content with Header */}
@@ -820,6 +857,12 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                 )}
               </React.Fragment>
             ))}
+            {/* 3-Dot Loading Animation - Show when asking and no chunks received yet */}
+            {askingState === 'asking' && askStreamingText.length === 0 && (
+              <div className={getClassName('loadingContainer')}>
+                <LoadingDots dotCount={askLoadingDotCount} getClassName={getClassName} />
+              </div>
+            )}
             {/* Show streaming assistant response */}
             {askStreamingText && (
               <div className={`${getClassName('message')} ${getClassName('assistantMessage')}`}>
@@ -873,23 +916,37 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={askingState === 'asking'}
           />
         </div>
         
-        {/* Send Button */}
-        <button
-          ref={sendButtonRef}
-          className={getClassName('sendButton')}
-          onClick={handleSend}
-          onMouseEnter={() => setHoveredIcon('send')}
-          onMouseLeave={() => setHoveredIcon(null)}
-          disabled={!inputValue.trim() || askingState === 'asking'}
-          aria-label="Ask question"
-          type="button"
-        >
-          <ArrowUp size={18} />
-        </button>
+        {/* Stop Button - Show when any API is in progress */}
+        {(summariseState === 'summarising' || askingState === 'asking') ? (
+          <button
+            ref={sendButtonRef}
+            className={getClassName('stopButton')}
+            onClick={handleStopRequest}
+            onMouseEnter={() => setHoveredIcon('send')}
+            onMouseLeave={() => setHoveredIcon(null)}
+            aria-label="Stop request"
+            type="button"
+          >
+            <Square size={18} />
+          </button>
+        ) : (
+          /* Send Button - Show when not requesting */
+          <button
+            ref={sendButtonRef}
+            className={getClassName('sendButton')}
+            onClick={handleSend}
+            onMouseEnter={() => setHoveredIcon('send')}
+            onMouseLeave={() => setHoveredIcon(null)}
+            disabled={!inputValue.trim()}
+            aria-label="Ask question"
+            type="button"
+          >
+            <ArrowUp size={18} />
+          </button>
+        )}
 
         {/* Delete/Clear Button - Only show when there is content */}
         {hasContent && (

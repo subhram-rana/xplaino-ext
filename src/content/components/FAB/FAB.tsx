@@ -21,6 +21,8 @@ export interface FABProps {
   canHideActions?: boolean;
   /** Callback to show disable notification modal */
   onShowModal?: () => void;
+  /** Whether any panel (side panel or text explanation panel) is open */
+  isPanelOpen?: boolean;
 }
 
 /**
@@ -44,6 +46,7 @@ export const FAB: React.FC<FABProps> = ({
   hasSummary = false,
   canHideActions = true,
   onShowModal,
+  isPanelOpen = false,
 }) => {
   const [actionsVisible, setActionsVisible] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
@@ -73,12 +76,15 @@ export const FAB: React.FC<FABProps> = ({
     }
   }, []);
 
-  // Handle FAB button hover - shows actions
+  // Handle FAB button hover - shows actions (unless a panel is open)
   const handleFabMouseEnter = useCallback(() => {
     clearHideTimeout();
     isHoveringRef.current = true;
-    setActionsVisible(true);
-  }, [clearHideTimeout]);
+    // Don't show actions if any panel is open
+    if (!isPanelOpen) {
+      setActionsVisible(true);
+    }
+  }, [clearHideTimeout, isPanelOpen]);
 
   // Handle parent container mouse enter - keeps actions visible
   const handleParentMouseEnter = useCallback(() => {
@@ -100,6 +106,13 @@ export const FAB: React.FC<FABProps> = ({
       }
     }, 300); // Small delay before hiding
   }, [clearHideTimeout, isSummarising, canHideActions]);
+
+  // Hide actions immediately when any panel opens
+  useEffect(() => {
+    if (isPanelOpen) {
+      setActionsVisible(false);
+    }
+  }, [isPanelOpen]);
 
   // Cleanup on unmount
   useEffect(() => {

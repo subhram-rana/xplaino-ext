@@ -335,21 +335,33 @@
 
 /* Stop Button variant */
 .stopButton {
-  background: #EF4444 !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: var(--color-error, #EF4444) !important;
+  border: none !important;
+  color: var(--color-white, #FFFFFF) !important;
+  cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
 }
 
-.stopButton:hover:not(:disabled) {
+.stopButton:hover {
   background: #DC2626 !important;
+  transform: scale(1.05) !important;
+}
+
+.stopButton:active {
+  transform: scale(0.95) !important;
 }
 
 .stopButton svg {
-  width: 14px !important;
-  height: 14px !important;
-  fill: currentColor !important;
+  width: 18px !important;
+  height: 18px !important;
 }
 
 /* User Input Bar */

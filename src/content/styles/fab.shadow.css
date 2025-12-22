@@ -302,10 +302,10 @@
 
 @keyframes spinSpinner {
   0% {
-    transform: rotate(0deg) !important;
+    transform: rotate(0deg);
   }
   100% {
-    transform: rotate(360deg) !important;
+    transform: rotate(360deg);
   }
 }
 

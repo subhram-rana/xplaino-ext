@@ -894,14 +894,20 @@
 }
 
 /* Loading Dots Animation */
-.loadingDots {
+.loadingContainer {
   display: flex !important;
-  justify-content: center !important;
   align-items: center !important;
-  padding: 16px 0 !important;
+  justify-content: flex-start !important;
+  padding: 12px 16px !important;
+  min-height: 40px !important;
+}
+
+.loadingDots {
   font-size: 24px !important;
-  color: var(--color-primary) !important;
+  color: var(--color-primary, #9527F5) !important;
   font-weight: 600 !important;
+  letter-spacing: 4px !important;
+  font-family: var(--font-family-primary) !important;
 }
 
 /* Empty State */
@@ -972,21 +978,33 @@
 
 /* Stop Button variant */
 .stopButton {
-  background: #EF4444 !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: var(--color-error, #EF4444) !important;
+  border: none !important;
+  color: var(--color-white, #FFFFFF) !important;
+  cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
 }
 
-.stopButton:hover:not(:disabled) {
+.stopButton:hover {
   background: #DC2626 !important;
+  transform: scale(1.05) !important;
+}
+
+.stopButton:active {
+  transform: scale(0.95) !important;
 }
 
 .stopButton svg {
-  width: 14px !important;
-  height: 14px !important;
-  fill: currentColor !important;
+  width: 18px !important;
+  height: 18px !important;
 }
 
 /* User Input Bar */

@@ -52,20 +52,19 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
           <span 
             className="loadingSpinner"
             style={{
-              display: 'block',
-              width: '18px',
-              height: '18px',
-              minWidth: '18px',
-              minHeight: '18px',
-              border: '2px solid rgba(149, 39, 245, 0.2)',
+              display: 'inline-block',
+              width: '20px',
+              height: '20px',
+              minWidth: '20px',
+              minHeight: '20px',
+              border: '3px solid rgba(149, 39, 245, 0.2)',
               borderTopColor: '#9527F5',
               borderRadius: '50%',
-              animation: 'spinSpinner 0.8s linear infinite',
-              transform: 'rotate(0deg)',
-              transformOrigin: 'center center',
+              animation: 'spinSpinner 0.65s linear infinite',
               boxSizing: 'border-box',
-              margin: '0 auto',
             }}
+            role="status"
+            aria-label="Loading"
           />
         ) : (
           <IconComponent
