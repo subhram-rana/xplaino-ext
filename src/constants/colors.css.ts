@@ -39,18 +39,19 @@ export function getColorCSSVariables(): string {
 /**
  * Minimal set of CSS variables for FAB components
  * Only includes colors actually used in FAB/SidePanel
+ * Uses :host for Shadow DOM compatibility
  */
 export const FAB_COLOR_VARIABLES = `
-  :root {
-    --color-primary: ${COLORS.PRIMARY};
-    --color-primary-light: ${COLORS.PRIMARY_LIGHT};
-    --color-primary-very-light: ${COLORS.PRIMARY_VERY_LIGHT};
-    --color-primary-dark: ${COLORS.PRIMARY_DARK};
-    --color-white: ${COLORS.WHITE};
-    --color-gray-600: ${COLORS.GRAY_600};
-    --color-secondary-medium: ${COLORS.SECONDARY_MEDIUM};
-    --color-secondary-light: ${COLORS.SECONDARY_LIGHT};
-    --font-family-primary: ${FONT_FAMILY.PRIMARY};
+  :host {
+    --color-primary: ${COLORS.PRIMARY} !important;
+    --color-primary-light: ${COLORS.PRIMARY_LIGHT} !important;
+    --color-primary-very-light: ${COLORS.PRIMARY_VERY_LIGHT} !important;
+    --color-primary-dark: ${COLORS.PRIMARY_DARK} !important;
+    --color-white: ${COLORS.WHITE} !important;
+    --color-gray-600: ${COLORS.GRAY_600} !important;
+    --color-secondary-medium: ${COLORS.SECONDARY_MEDIUM} !important;
+    --color-secondary-light: ${COLORS.SECONDARY_LIGHT} !important;
+    --font-family-primary: ${FONT_FAMILY.PRIMARY} !important;
   }
 `;
 

@@ -1,0 +1,93 @@
+/* src/content/styles/textExplanationIcon.shadow.css */
+/* Shadow DOM compatible styles for TextExplanationIcon component */
+/* ALL properties use !important for Shadow DOM style isolation */
+
+:host {
+  all: initial !important;
+  font-family: var(--font-family-primary) !important;
+}
+
+/* Color variable fallbacks */
+:host {
+  --color-primary: #9527F5 !important;
+  --color-primary-light: #BF7EFA !important;
+  --color-white: #FFFFFF !important;
+}
+
+* {
+  box-sizing: border-box !important;
+}
+
+/* Icon Container */
+.iconContainer {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+}
+
+.iconContainer > * {
+  pointer-events: auto !important;
+}
+
+/* Text Explanation Icon */
+.textExplanationIcon {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: var(--color-white, #FFFFFF) !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 8px rgba(0, 200, 0, 0.3) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border 0.2s ease !important;
+  padding: 2px !important;
+  margin: 0 !important;
+  border: 2px solid transparent !important;
+}
+
+.textExplanationIcon:hover {
+  box-shadow: 0 4px 12px rgba(0, 200, 0, 0.5) !important;
+  transform: scale(1.1) !important;
+}
+
+.textExplanationIcon.panelOpen {
+  border: 3px solid rgba(0, 200, 0, 0.8) !important;
+}
+
+.textExplanationIcon:active {
+  transform: scale(0.95) !important;
+}
+
+.iconImage {
+  width: 24px !important;
+  height: 24px !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.loadingSpinner {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  border: 2px solid rgba(149, 39, 245, 0.2) !important;
+  border-top-color: #9527F5 !important;
+  border-radius: 50% !important;
+  animation: spinSpinner 0.8s linear infinite !important;
+  transform: rotate(0deg) !important;
+  transform-origin: center center !important;
+  box-sizing: border-box !important;
+}
+
+@keyframes spinSpinner {
+  from {
+    transform: rotate(0deg) !important;
+  }
+  to {
+    transform: rotate(360deg) !important;
+  }
+}
+

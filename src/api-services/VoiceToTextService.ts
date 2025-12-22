@@ -3,6 +3,7 @@
 
 import { ENV } from '@/config/env';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
+import { TokenRefreshService } from './TokenRefreshService';
 
 // Types
 export interface VoiceToTextRequest {
@@ -65,7 +66,60 @@ export class VoiceToTextService {
 
       // Handle 401 errors
       if (response.status === 401) {
-        const errorData = await response.json().catch(() => ({}));
+        // Clone response to read body without consuming it
+        const responseClone = response.clone();
+        const errorData = await responseClone.json().catch(() => ({}));
+        
+        // Check for TOKEN_EXPIRED error code
+        if (TokenRefreshService.isTokenExpiredError(response.status, errorData)) {
+          console.log('[VoiceToTextService] Token expired, attempting refresh');
+          
+          try {
+            // Refresh the token and get the new access token directly
+            const refreshResponse = await TokenRefreshService.refreshAccessToken();
+            
+            // Retry the request with new token directly from refresh response
+            const retryResponse = await fetch(url, {
+              method: 'POST',
+              headers: {
+                // Don't set Content-Type header - browser will set it with boundary for FormData
+                'Authorization': `Bearer ${refreshResponse.accessToken}`,
+              },
+              body: formData,
+              credentials: 'include',
+            });
+
+            // Handle 401 errors on retry
+            if (retryResponse.status === 401) {
+              const retryErrorData = await retryResponse.json().catch(() => ({}));
+              if (retryErrorData.error_code === 'LOGIN_REQUIRED' || retryErrorData.detail?.includes('LOGIN_REQUIRED')) {
+                callbacks.onLoginRequired();
+                return;
+              }
+              callbacks.onError('AUTH_ERROR', 'Authentication failed');
+              return;
+            }
+
+            // If retry successful, process response
+            if (!retryResponse.ok) {
+              const errorText = await retryResponse.text();
+              callbacks.onError('HTTP_ERROR', `HTTP ${retryResponse.status}: ${errorText}`);
+              return;
+            }
+
+            const data = await retryResponse.json() as VoiceToTextResponse;
+            callbacks.onSuccess(data.text);
+            return; // Successfully processed retry response
+          } catch (refreshError) {
+            console.error('[VoiceToTextService] Token refresh failed:', refreshError);
+            // Handle refresh failure
+            await TokenRefreshService.handleTokenRefreshFailure();
+            callbacks.onLoginRequired();
+            return;
+          }
+        }
+        
+        // Handle other 401 errors (LOGIN_REQUIRED, etc.)
         if (errorData.error_code === 'LOGIN_REQUIRED' || errorData.detail?.includes('LOGIN_REQUIRED')) {
           callbacks.onLoginRequired();
           return;

@@ -124,11 +124,19 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
   const animationRef = useRef<Animation | null>(null);
   const initialTransformRef = useRef<string | null>(null);
   const animationStartedRef = useRef<boolean>(false);
+  const animationStateRef = useRef<EmergeAnimationState>(
+    initialVisible ? 'visible' : 'hidden'
+  );
 
   const [animationState, setAnimationState] = useState<EmergeAnimationState>(
     initialVisible ? 'visible' : 'hidden'
   );
   const [isVisible, setIsVisible] = useState(initialVisible);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    animationStateRef.current = animationState;
+  }, [animationState]);
 
   // Cleanup animation on unmount
   useEffect(() => {
@@ -156,24 +164,16 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
    * Trigger emerge animation (appear from source)
    */
   const emerge = useCallback(async (): Promise<void> => {
-    console.log('[useEmergeAnimation] emerge() called - current state:', {
-      animationState,
-      isVisible,
-      animationStarted: animationStartedRef.current,
-    });
-
-    if (animationState === 'emerging' || animationState === 'visible') {
-      console.log('[useEmergeAnimation] emerge() - already emerging or visible, returning early');
+    // Use ref to check current state to avoid stale closures and dependency issues
+    if (animationStateRef.current === 'emerging' || animationStateRef.current === 'visible') {
       return;
     }
 
     // Cancel any ongoing animation
     if (animationRef.current) {
-      console.log('[useEmergeAnimation] emerge() - cancelling existing animation');
       animationRef.current.cancel();
     }
 
-    console.log('[useEmergeAnimation] emerge() - setting state to emerging');
     setAnimationState('emerging');
     setIsVisible(true);
 
@@ -291,7 +291,8 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
    * Trigger shrink animation (disappear into source)
    */
   const shrink = useCallback(async (): Promise<void> => {
-    if (animationState === 'shrinking' || animationState === 'hidden') {
+    // Use ref to check current state to avoid stale closures
+    if (animationStateRef.current === 'shrinking' || animationStateRef.current === 'hidden') {
       return;
     }
 
@@ -351,7 +352,7 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       setAnimationState('hidden');
       setIsVisible(false);
     }
-  }, [animationState, duration, easing, transformOrigin]);
+  }, [duration, easing, transformOrigin]);
 
   /**
    * Toggle between emerge and shrink

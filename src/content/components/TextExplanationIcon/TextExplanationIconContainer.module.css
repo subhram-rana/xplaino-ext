@@ -1,0 +1,12 @@
+/* src/content/components/TextExplanationIcon/TextExplanationIconContainer.module.css */
+
+.iconContainer {
+  position: fixed;
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+.iconContainer > * {
+  pointer-events: auto;
+}
+

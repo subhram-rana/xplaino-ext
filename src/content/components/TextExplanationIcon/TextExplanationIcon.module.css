@@ -1,0 +1,63 @@
+/* src/content/components/TextExplanationIcon/TextExplanationIcon.module.css */
+
+.textExplanationIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-white, #FFFFFF);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 200, 0, 0.3);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border 0.2s ease;
+  padding: 2px;
+  margin: 0;
+  border: 2px solid transparent;
+}
+
+.textExplanationIcon:hover {
+  box-shadow: 0 4px 12px rgba(0, 200, 0, 0.5);
+  transform: scale(1.1);
+}
+
+.textExplanationIcon.panelOpen {
+  border: 3px solid rgba(0, 200, 0, 0.8);
+}
+
+.textExplanationIcon:active {
+  transform: scale(0.95);
+}
+
+.iconImage {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+.loadingSpinner {
+  display: block;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border: 2px solid rgba(149, 39, 245, 0.2);
+  border-top-color: #9527F5;
+  border-radius: 50%;
+  animation: spinSpinner 0.8s linear infinite;
+  transform: rotate(0deg);
+  transform-origin: center center;
+  box-sizing: border-box;
+}
+
+@keyframes spinSpinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

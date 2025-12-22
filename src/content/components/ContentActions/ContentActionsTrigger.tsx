@@ -6,7 +6,7 @@ export interface ContentActionsTriggerProps {
   /** Whether component is rendered in Shadow DOM */
   useShadowDom?: boolean;
   /** Callback when Explain is clicked */
-  onExplain?: (selectedText: string) => void;
+  onExplain?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
   /** Callback when Grammar is clicked */
   onGrammar?: (selectedText: string) => void;
   /** Callback when Translate is clicked */
@@ -92,7 +92,16 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   // Handle double-click (word selection)
   const handleDoubleClick = useCallback((e: MouseEvent) => {
     // Ignore if clicking on our own component
-    if (containerRef.current?.contains(e.target as Node)) return;
+    const target = e.target;
+    if (target && target instanceof Node && containerRef.current?.contains(target)) {
+      return;
+    }
+    
+    // Also ignore if clicking on text explanation icon container
+    const textExplanationIconHost = document.getElementById('xplaino-text-explanation-icon-host');
+    if (target && target instanceof Node && textExplanationIconHost?.shadowRoot?.contains(target)) {
+      return;
+    }
 
     const windowSelection = window.getSelection();
     if (!windowSelection) return;
@@ -115,16 +124,27 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   // Handle mouse up (text selection)
   const handleMouseUp = useCallback((e: MouseEvent) => {
     // Ignore if clicking on our own component - check both target and relatedTarget
-    const target = e.target as Node;
-    if (containerRef.current?.contains(target)) {
+    const target = e.target;
+    if (target && target instanceof Node && containerRef.current?.contains(target)) {
+      return;
+    }
+    
+    // Also ignore if clicking on text explanation icon container
+    const textExplanationIconHost = document.getElementById('xplaino-text-explanation-icon-host');
+    if (target && target instanceof Node && textExplanationIconHost?.shadowRoot?.contains(target)) {
       return;
     }
     
     // Also check if the click originated from within our component
     // by checking if the event path includes our container
     const path = e.composedPath?.() || [];
-    if (path.some(node => node === containerRef.current || 
-        (node instanceof Node && containerRef.current?.contains(node)))) {
+    if (path.some(node => {
+      if (node === containerRef.current) return true;
+      if (node instanceof Node && containerRef.current?.contains(node)) return true;
+      // Check if node is in text explanation icon container
+      if (node instanceof Node && textExplanationIconHost?.shadowRoot?.contains(node)) return true;
+      return false;
+    })) {
       return;
     }
 
@@ -132,7 +152,12 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     setTimeout(() => {
       // Double-check that we're not inside our container (in case selection changed)
       const currentTarget = document.activeElement;
-      if (containerRef.current?.contains(currentTarget as Node)) {
+      if (currentTarget && currentTarget instanceof Node && containerRef.current?.contains(currentTarget)) {
+        return;
+      }
+      
+      // Also check text explanation icon container
+      if (currentTarget && currentTarget instanceof Node && textExplanationIconHost?.shadowRoot?.contains(currentTarget)) {
         return;
       }
 
@@ -222,7 +247,7 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
 
   // Handle mouse leave from container
   const handleContainerMouseLeave = useCallback((e: React.MouseEvent) => {
-    const relatedTarget = e.relatedTarget as Node | null;
+    const relatedTarget = e.relatedTarget;
     const currentTarget = e.currentTarget as HTMLElement;
     
     // Check if we're leaving from the button group specifically
@@ -242,19 +267,23 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
       currentTarget.closest?.('.disablePopover');
     
     // Check if moving to popover
-    const isMovingToPopover = relatedTarget && containerRef.current && (
+    const isMovingToPopover = relatedTarget && relatedTarget instanceof Node && containerRef.current && (
       (relatedTarget as HTMLElement).classList?.contains('disablePopover') ||
       (relatedTarget as HTMLElement).closest?.('.disablePopover') ||
-      containerRef.current.querySelector('.disablePopover')?.contains(relatedTarget)
+      (containerRef.current.querySelector('.disablePopover')?.contains(relatedTarget) ?? false)
     );
+    
+    // Check if moving to text explanation icon container
+    const textExplanationIconHost = document.getElementById('xplaino-text-explanation-icon-host');
+    const isMovingToTextExplanationIcon = relatedTarget && relatedTarget instanceof Node && textExplanationIconHost?.shadowRoot?.contains(relatedTarget);
     
     // Special case: leaving popover and moving to button group - don't hide
     if (isLeavingPopover && !isMovingToPopover) {
       // Only return early if moving to button group, otherwise continue to hide logic
-      const isMovingToButtonGroup = relatedTarget && containerRef.current && (
+      const isMovingToButtonGroup = relatedTarget && relatedTarget instanceof Node && containerRef.current && (
         (relatedTarget as HTMLElement).classList?.contains('contentActionsButtonGroup') ||
         (relatedTarget as HTMLElement).closest?.('.contentActionsButtonGroup') ||
-        containerRef.current.querySelector('.contentActionsButtonGroup')?.contains(relatedTarget)
+        (containerRef.current.querySelector('.contentActionsButtonGroup')?.contains(relatedTarget) ?? false)
       );
       if (isMovingToButtonGroup) {
         return;
@@ -266,7 +295,12 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
       return;
     }
     
-    // If leaving button group (and not moving to popover) - hide
+    // Special case: moving to text explanation icon - don't hide
+    if (isMovingToTextExplanationIcon) {
+      return;
+    }
+    
+    // If leaving button group (and not moving to popover or text explanation icon) - hide
     if (isLeavingButtonGroup) {
       const delay = popoverOpenRef.current ? 300 : 200;
       hideTimeoutRef.current = setTimeout(() => {
@@ -278,13 +312,16 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     }
     
     // If leaving container entirely
-    if (!relatedTarget || !containerRef.current?.contains(relatedTarget)) {
-      const delay = popoverOpenRef.current ? 300 : 200;
-      hideTimeoutRef.current = setTimeout(() => {
-        setShowButtonGroup(false);
-        setIsHovering(false);
-        popoverOpenRef.current = false;
-      }, delay);
+    if (!relatedTarget || !(relatedTarget instanceof Node) || !containerRef.current?.contains(relatedTarget)) {
+      // Also check if moving to text explanation icon container
+      if (!isMovingToTextExplanationIcon) {
+        const delay = popoverOpenRef.current ? 300 : 200;
+        hideTimeoutRef.current = setTimeout(() => {
+          setShowButtonGroup(false);
+          setIsHovering(false);
+          popoverOpenRef.current = false;
+        }, delay);
+      }
     }
   }, []);
 
@@ -314,7 +351,52 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   const handleExplain = useCallback(() => {
     if (selection) {
       console.log('[ContentActions] Explain:', selection.text);
-      onExplain?.(selection.text);
+      // Close button group
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      
+      // Get selection range for positioning and underline
+      const windowSelection = window.getSelection();
+      if (!windowSelection || windowSelection.rangeCount === 0) {
+        onExplain?.(selection.text);
+        return;
+      }
+      
+      const range = windowSelection.getRangeAt(0);
+      
+      // Calculate icon position
+      // 1. Find containing element
+      let containingElement: HTMLElement | null = null;
+      let node: Node | null = range.startContainer;
+      
+      while (node && node !== document.body) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          containingElement = node as HTMLElement;
+          break;
+        }
+        node = node.parentNode;
+      }
+      
+      if (!containingElement) {
+        containingElement = document.body;
+      }
+      
+      // 2. Get element's leftmost coordinate
+      const elementRect = containingElement.getBoundingClientRect();
+      const leftmostX = elementRect.left;
+      
+      // 3. Get selection's topmost coordinate
+      const selectionRect = range.getBoundingClientRect();
+      const topmostY = selectionRect.top;
+      
+      // 4. Position icon: same Y as selection top, X = element left - offset (30px)
+      const iconPosition = {
+        x: leftmostX - 30,
+        y: topmostY,
+      };
+      
+      // Call onExplain with selection text, range, and position
+      onExplain?.(selection.text, range, iconPosition);
     }
   }, [selection, onExplain]);
 

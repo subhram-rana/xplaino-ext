@@ -1,48 +1,60 @@
-// src/api-services/SummariseService.ts
-// Service for summarization API with SSE streaming
+// src/api-services/SimplifyService.ts
+// Service for text simplification API with SSE streaming
 
 import { ENV } from '@/config/env';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { TokenRefreshService } from './TokenRefreshService';
 
 // Types
-export interface SummariseRequest {
+export interface SimplifyRequest {
+  textStartIndex: number;
+  textLength: number;
   text: string;
-  context_type: 'PAGE' | 'TEXT';
+  previousSimplifiedTexts: string[];
+  context?: string;
   languageCode?: string;
 }
 
-export interface SummariseChunkEvent {
+export interface SimplifyChunkEvent {
   chunk: string;
-  accumulated: string;
+  accumulatedSimplifiedText: string;
+  textStartIndex: number;
+  textLength: number;
+  text: string;
+  previousSimplifiedTexts: string[];
 }
 
-export interface SummariseCompleteEvent {
+export interface SimplifyCompleteEvent {
   type: 'complete';
-  summary: string;
-  possibleQuestions: string[];
+  textStartIndex: number;
+  textLength: number;
+  text: string;
+  previousSimplifiedTexts: string[];
+  simplifiedText: string;
+  shouldAllowSimplifyMore: boolean;
+  possibleQuestions?: string[];
 }
 
-export interface SummariseErrorEvent {
+export interface SimplifyErrorEvent {
   type: 'error';
   error_code: string;
   error_message: string;
 }
 
-export type SummariseEvent = SummariseChunkEvent | SummariseCompleteEvent | SummariseErrorEvent;
+export type SimplifyEvent = SimplifyChunkEvent | SimplifyCompleteEvent | SimplifyErrorEvent;
 
-export interface SummariseCallbacks {
+export interface SimplifyCallbacks {
   onChunk: (chunk: string, accumulated: string) => void;
-  onComplete: (summary: string, possibleQuestions: string[]) => void;
+  onComplete: (simplifiedText: string, shouldAllowSimplifyMore: boolean, possibleQuestions: string[]) => void;
   onError: (errorCode: string, errorMessage: string) => void;
   onLoginRequired: () => void;
 }
 
 /**
- * Service for handling summarization API calls with SSE streaming
+ * Service for handling text simplification API calls with SSE streaming
  */
-export class SummariseService {
-  private static readonly ENDPOINT = '/api/v2/summarise';
+export class SimplifyService {
+  private static readonly ENDPOINT = '/api/v2/simplify';
 
   /**
    * Get authorization headers if auth info exists
@@ -58,11 +70,11 @@ export class SummariseService {
   }
 
   /**
-   * Summarise text with SSE streaming
+   * Simplify text with SSE streaming
    */
-  static async summarise(
-    request: SummariseRequest,
-    callbacks: SummariseCallbacks,
+  static async simplify(
+    request: SimplifyRequest[],
+    callbacks: SimplifyCallbacks,
     abortController?: AbortController
   ): Promise<void> {
     const url = `${ENV.API_BASE_URL}${this.ENDPOINT}`;
@@ -89,7 +101,7 @@ export class SummariseService {
         
         // Check for TOKEN_EXPIRED error code
         if (TokenRefreshService.isTokenExpiredError(response.status, errorData)) {
-          console.log('[SummariseService] Token expired, attempting refresh');
+          console.log('[SimplifyService] Token expired, attempting refresh');
           
           try {
             // Refresh the token and get the new access token directly
@@ -159,12 +171,16 @@ export class SummariseService {
                   }
 
                   try {
-                    const event = JSON.parse(data) as SummariseEvent;
+                    const event = JSON.parse(data) as SimplifyEvent;
                     
                     // Handle different event types
                     if ('type' in event) {
                       if (event.type === 'complete') {
-                        callbacks.onComplete(event.summary, event.possibleQuestions);
+                        callbacks.onComplete(
+                          event.simplifiedText,
+                          event.shouldAllowSimplifyMore,
+                          event.possibleQuestions || []
+                        );
                       } else if (event.type === 'error') {
                         if (event.error_code === 'LOGIN_REQUIRED') {
                           callbacks.onLoginRequired();
@@ -172,19 +188,19 @@ export class SummariseService {
                           callbacks.onError(event.error_code, event.error_message);
                         }
                       }
-                    } else if ('chunk' in event) {
+                    } else if ('chunk' in event && 'accumulatedSimplifiedText' in event) {
                       // Chunk event
-                      callbacks.onChunk(event.chunk, event.accumulated);
+                      callbacks.onChunk(event.chunk, event.accumulatedSimplifiedText);
                     }
                   } catch (parseError) {
-                    console.error('[SummariseService] Failed to parse SSE event:', data, parseError);
+                    console.error('[SimplifyService] Failed to parse SSE event:', data, parseError);
                   }
                 }
               }
             }
             return; // Successfully processed retry response
           } catch (refreshError) {
-            console.error('[SummariseService] Token refresh failed:', refreshError);
+            console.error('[SimplifyService] Token refresh failed:', refreshError);
             // Handle refresh failure
             await TokenRefreshService.handleTokenRefreshFailure();
             callbacks.onLoginRequired();
@@ -240,12 +256,16 @@ export class SummariseService {
             }
 
             try {
-              const event = JSON.parse(data) as SummariseEvent;
+              const event = JSON.parse(data) as SimplifyEvent;
               
               // Handle different event types
               if ('type' in event) {
                 if (event.type === 'complete') {
-                  callbacks.onComplete(event.summary, event.possibleQuestions);
+                  callbacks.onComplete(
+                    event.simplifiedText,
+                    event.shouldAllowSimplifyMore,
+                    event.possibleQuestions || []
+                  );
                 } else if (event.type === 'error') {
                   if (event.error_code === 'LOGIN_REQUIRED') {
                     callbacks.onLoginRequired();
@@ -253,12 +273,12 @@ export class SummariseService {
                     callbacks.onError(event.error_code, event.error_message);
                   }
                 }
-              } else if ('chunk' in event) {
+              } else if ('chunk' in event && 'accumulatedSimplifiedText' in event) {
                 // Chunk event
-                callbacks.onChunk(event.chunk, event.accumulated);
+                callbacks.onChunk(event.chunk, event.accumulatedSimplifiedText);
               }
             } catch (parseError) {
-              console.error('[SummariseService] Failed to parse SSE event:', data, parseError);
+              console.error('[SimplifyService] Failed to parse SSE event:', data, parseError);
             }
           }
         }
@@ -276,4 +296,6 @@ export class SummariseService {
     }
   }
 }
+
+
 

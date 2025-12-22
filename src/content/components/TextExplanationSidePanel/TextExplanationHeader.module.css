@@ -1,0 +1,86 @@
+/* src/content/components/TextExplanationSidePanel/TextExplanationHeader.module.css */
+/* ALL properties use !important for style isolation */
+/* CSS Variables - values from src/constants/colors.ts */
+
+.header {
+  /* CSS Variables defined on component */
+  --color-primary: #9527F5 !important;
+  --color-primary-light: #BF7EFA !important;
+  --color-primary-medium: #8607f5 !important;
+  --color-white: #FFFFFF !important;
+  --color-gray-600: #718096 !important;
+  --color-primary-hover-bg: rgba(149, 39, 245, 0.1) !important;
+  
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 12px !important;
+  background: rgba(149, 39, 245, 0.05) !important;
+  height: 48px !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Left Section: Action Icons */
+.headerLeft {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  flex-shrink: 0 !important;
+}
+
+.headerIconButton {
+  width: 32px !important;
+  height: 32px !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 10px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0 !important;
+  outline: none !important;
+}
+
+.headerIconButton:hover {
+  background: var(--color-primary-hover-bg) !important;
+}
+
+.headerIconButton:active {
+  transform: scale(0.95) !important;
+}
+
+.headerIconButton svg {
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--color-primary-light) !important;
+  stroke: var(--color-primary-light) !important;
+  stroke-width: 2.5 !important;
+  fill: none !important;
+  pointer-events: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.headerIconButton:hover svg {
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
+}
+
+/* Center Section: Empty */
+.headerCenter {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 1 !important;
+}
+
+/* Right Section: Action Icons */
+.headerRight {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  flex-shrink: 0 !important;
+}
+

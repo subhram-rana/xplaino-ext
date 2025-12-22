@@ -2,6 +2,7 @@
 
 import type { GetAllDomainsResponseDTO } from './dto/DomainDTO';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
+import { TokenRefreshService } from './TokenRefreshService';
 
 /**
  * Central class for all API calls
@@ -25,14 +26,21 @@ export class ApiService {
    * Generic request handler with error handling
    * @param endpoint - API endpoint (will be appended to BASE_URL)
    * @param options - Fetch options
+   * @param retryOnTokenExpired - Whether to retry on token expiration (default: true)
    * @returns Promise resolving to response data
    * @throws Error on non-OK response
    */
   private static async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    retryOnTokenExpired: boolean = true
   ): Promise<T> {
     const url = `${this.BASE_URL}${endpoint}`;
+
+    // Don't retry on token refresh endpoint itself to avoid infinite loops
+    if (endpoint.includes('/api/auth/refresh-token')) {
+      retryOnTokenExpired = false;
+    }
 
     const defaultHeaders: HeadersInit = {
       'Content-Type': 'application/json',
@@ -54,7 +62,64 @@ export class ApiService {
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
+      // Check for token expiration
+      if (response.status === 401 && retryOnTokenExpired) {
+        try {
+          // Clone response to read body without consuming it
+          const responseClone = response.clone();
+          const errorBodyText = await responseClone.text();
+          let errorBody: any;
+          try {
+            errorBody = JSON.parse(errorBodyText);
+          } catch {
+            errorBody = errorBodyText;
+          }
+
+          if (TokenRefreshService.isTokenExpiredError(response.status, errorBody)) {
+            console.log('[ApiService] Token expired, attempting refresh');
+            
+            try {
+              // Refresh the token and get the new access token directly
+              const refreshResponse = await TokenRefreshService.refreshAccessToken();
+              
+              // Retry the original request with new token directly from refresh response
+              const newHeaders: HeadersInit = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${refreshResponse.accessToken}`,
+              };
+
+              const retryResponse = await fetch(url, {
+                ...options,
+                headers: {
+                  ...newHeaders,
+                  ...options.headers,
+                },
+              });
+
+              if (!retryResponse.ok) {
+                const retryErrorBody = await retryResponse.text();
+                throw new Error(
+                  `API Error: ${retryResponse.status} ${retryResponse.statusText} - ${retryErrorBody}`
+                );
+              }
+
+              return retryResponse.json();
+            } catch (refreshError) {
+              console.error('[ApiService] Token refresh failed:', refreshError);
+              // Handle refresh failure
+              await TokenRefreshService.handleTokenRefreshFailure();
+              throw new Error(
+                `API Error: ${response.status} ${response.statusText} - Token refresh failed`
+              );
+            }
+          }
+        } catch (parseError) {
+          console.error('[ApiService] Error parsing 401 response:', parseError);
+        }
+      }
+
+      // If not token expiration or refresh failed, throw original error
+      const errorBody = await response.text().catch(() => '');
       throw new Error(
         `API Error: ${response.status} ${response.statusText} - ${errorBody}`
       );
