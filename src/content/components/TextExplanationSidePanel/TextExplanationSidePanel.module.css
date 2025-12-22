@@ -15,20 +15,11 @@
   z-index: 2147483646;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+  /* Transform is handled by animation hook - don't set it here */
+  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               border-radius 0.2s ease 0.3s;
   overflow: hidden;
-}
-
-.textExplanationSidePanel.open {
-  transform: translateX(0);
-}
-
-.textExplanationSidePanel.slidingOut {
-  transform: translateX(100%);
 }
 
 .textExplanationSidePanel.verticallyExpanded {

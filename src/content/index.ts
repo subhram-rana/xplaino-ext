@@ -776,7 +776,24 @@ function toggleTextExplanationPanel(explanationId: string): void {
   
   if (explanationId === activeId) {
     // Same explanation: toggle panel
-    store.set(textExplanationPanelOpenAtom, !panelOpen);
+    if (panelOpen) {
+      // Closing - use animated close handler if available
+      if (textExplanationPanelCloseHandler) {
+        console.log('[index.ts] Calling animated close handler from icon toggle');
+        textExplanationPanelCloseHandler();
+      } else {
+        // Fallback: direct close if handler not registered yet
+        console.warn('[index.ts] Close handler not available, using direct close');
+        store.set(textExplanationPanelOpenAtom, false);
+        updateTextExplanationPanel();
+        updateTextExplanationIconContainer();
+      }
+    } else {
+      // Opening
+      store.set(textExplanationPanelOpenAtom, true);
+      updateTextExplanationPanel();
+      updateTextExplanationIconContainer();
+    }
   } else {
     // Different explanation: close current, switch to new, open panel
     if (activeId) {
@@ -789,10 +806,9 @@ function toggleTextExplanationPanel(explanationId: string): void {
     }
     store.set(activeTextExplanationIdAtom, explanationId);
     store.set(textExplanationPanelOpenAtom, true);
+    updateTextExplanationPanel();
+    updateTextExplanationIconContainer();
   }
-  
-  updateTextExplanationPanel();
-  updateTextExplanationIconContainer();
 }
 
 // Stable callback functions to prevent infinite re-renders
@@ -802,6 +818,9 @@ let handleViewModeChangeCallback: ((mode: 'contextual' | 'translation') => void)
 let handleCloseCallback: (() => void) | null = null;
 let handleSimplifyCallback: (() => Promise<void>) | null = null;
 let handleTranslateCallback: ((language: string) => Promise<void>) | null = null;
+
+// Store reference to panel's close handler for animated close from icon toggle
+let textExplanationPanelCloseHandler: (() => void) | null = null;
 
 // Guard to prevent infinite update loops
 let isUpdatingPanel = false;
@@ -1464,6 +1483,7 @@ function updateTextExplanationPanel(): void {
         isOpen: panelOpen,
         useShadowDom: true,
         onClose: handleCloseCallback,
+        iconRef: activeExplanation.iconRef,
         streamingText,
         viewMode: textExplanationViewMode,
         possibleQuestions,
@@ -1487,6 +1507,10 @@ function updateTextExplanationPanel(): void {
         translations,
         onTranslate: handleTranslateCallback,
         isTranslating,
+        onCloseHandlerReady: (handler) => {
+          console.log('[index.ts] Close handler registered from TextExplanationSidePanel');
+          textExplanationPanelCloseHandler = handler;
+        },
       })
       )
     );

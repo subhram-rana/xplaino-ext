@@ -48,20 +48,11 @@
   z-index: 2147483645 !important;
   display: flex !important;
   flex-direction: column !important;
-  transform: translateX(100%) !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+  /* Transform is handled by animation hook - don't set it here */
+  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               border-radius 0.2s ease 0.3s !important;
   overflow: hidden !important;
-}
-
-.textExplanationSidePanel.open {
-  transform: translateX(0) !important;
-}
-
-.textExplanationSidePanel.slidingOut {
-  transform: translateX(100%) !important;
 }
 
 .textExplanationSidePanel.verticallyExpanded {

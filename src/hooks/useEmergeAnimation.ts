@@ -306,28 +306,73 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
     const element = elementRef.current;
     const source = sourceRef.current;
 
+    console.log('[useEmergeAnimation] shrink() - element and source check:', {
+      hasElement: !!element,
+      hasSource: !!source,
+      elementTag: element?.tagName,
+      sourceTag: source?.tagName,
+      sourceClassName: source?.className,
+    });
+
     if (!element || !source) {
+      console.warn('[useEmergeAnimation] shrink() - missing element or source');
       setAnimationState('hidden');
       setIsVisible(false);
       return;
     }
 
-    // Get current positions - element should be at translate(0,0) scale(1) at this point
-    // We need to calculate where it should move to (source button's top-right corner)
+    // IMPORTANT: We need to get the element's position WITHOUT any previous transforms
+    // Temporarily reset transform to get the natural position
+    element.style.transform = 'none';
+    
+    // Force a reflow to ensure the transform reset is applied
+    void element.offsetHeight;
+    
+    // Now get the element's natural position (without transforms)
     const elementRect = element.getBoundingClientRect();
     const sourceRect = source.getBoundingClientRect();
     
+    console.log('[useEmergeAnimation] shrink() - calculating transform with rects:', {
+      elementRect: {
+        left: elementRect.left,
+        top: elementRect.top,
+        right: elementRect.right,
+        bottom: elementRect.bottom,
+        width: elementRect.width,
+        height: elementRect.height,
+      },
+      sourceRect: {
+        left: sourceRect.left,
+        top: sourceRect.top,
+        right: sourceRect.right,
+        bottom: sourceRect.bottom,
+        width: sourceRect.width,
+        height: sourceRect.height,
+      },
+      transformOrigin,
+    });
+    
     // Calculate transform to move element's top-right corner to source's top-right corner
     const { translateX, translateY } = calculateTransform(elementRect, sourceRect, transformOrigin);
+    
+    console.log('[useEmergeAnimation] shrink() - calculated final transform:', {
+      translateX,
+      translateY,
+      finalTransform: `translate(${translateX}px, ${translateY}px) scale(0)`,
+    });
 
-    // Start from the final visible state (translate(0,0) scale(1))
-    // The animation fill: 'forwards' should have kept it at this state
+    // Start from the natural position (transform: none gives us translate(0,0) scale(1))
+    // Apply this immediately before starting the animation
     const startTransform = 'translate(0, 0) scale(1)';
+    element.style.transform = startTransform;
+    void element.offsetHeight; // Force reflow
+    
     const finalTransform = `translate(${translateX}px, ${translateY}px) scale(0)`;
 
     try {
       // Use Web Animations API for smooth animation
       // Keep opacity at 1 throughout - only animate transform
+      console.log('[useEmergeAnimation] shrink() - starting animation from:', startTransform, 'to:', finalTransform);
       animationRef.current = element.animate(
         [
           {
@@ -344,11 +389,14 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
         }
       );
 
+      console.log('[useEmergeAnimation] shrink() - animation created, waiting for finish');
       await animationRef.current.finished;
+      console.log('[useEmergeAnimation] shrink() - animation finished successfully');
       setAnimationState('hidden');
       setIsVisible(false);
-    } catch {
+    } catch (error) {
       // Animation was cancelled or failed - set to hidden as fallback
+      console.error('[useEmergeAnimation] shrink() - animation error:', error);
       setAnimationState('hidden');
       setIsVisible(false);
     }

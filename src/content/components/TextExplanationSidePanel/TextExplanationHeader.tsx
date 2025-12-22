@@ -1,6 +1,6 @@
 // src/content/components/TextExplanationSidePanel/TextExplanationHeader.tsx
 import React from 'react';
-import { ChevronRight, Bookmark, X, Eye } from 'lucide-react';
+import { Minus, Bookmark, X, Eye } from 'lucide-react';
 import styles from './TextExplanationHeader.module.css';
 
 // Custom expand icon - arrows pointing away from center (up and down)
@@ -48,8 +48,8 @@ const ContractVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
 );
 
 export interface TextExplanationHeaderProps {
-  /** Slide out handler */
-  onSlideOut?: () => void;
+  /** Close handler */
+  onClose?: () => void;
   /** Vertical expand handler */
   onVerticalExpand?: () => void;
   /** Bookmark handler */
@@ -67,7 +67,7 @@ export interface TextExplanationHeaderProps {
 }
 
 export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
-  onSlideOut,
+  onClose,
   onVerticalExpand,
   onBookmark,
   onRemove,
@@ -84,10 +84,6 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
     return styleClass || baseClass;
   };
 
-  const handleSlideOut = () => {
-    onSlideOut?.();
-  };
-
   const handleVerticalExpand = () => {
     onVerticalExpand?.();
   };
@@ -98,11 +94,11 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
       <div className={getClassName('headerLeft')}>
         <button
           className={getClassName('headerIconButton')}
-          onClick={handleSlideOut}
-          aria-label="Slide out panel"
+          onClick={onClose}
+          aria-label="Minimize panel"
           type="button"
         >
-          <ChevronRight size={18} />
+          <Minus size={18} />
         </button>
         <button
           className={getClassName('headerIconButton')}

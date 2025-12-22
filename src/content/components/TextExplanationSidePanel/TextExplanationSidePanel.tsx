@@ -1,18 +1,22 @@
 // src/content/components/TextExplanationSidePanel/TextExplanationSidePanel.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSetAtom } from 'jotai';
+import type { RefObject } from 'react';
 import styles from './TextExplanationSidePanel.module.css';
 import { TextExplanationHeader } from './TextExplanationHeader';
 import { TextExplanationFooter } from './TextExplanationFooter';
 import { TextExplanationView } from './TextExplanationView';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { showLoginModalAtom } from '@/store/uiAtoms';
+import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
 
 export interface TextExplanationSidePanelProps {
   /** Whether panel is open */
   isOpen: boolean;
   /** Close handler */
   onClose?: () => void;
+  /** Ref to the icon element for emerge animation */
+  iconRef?: RefObject<HTMLElement> | null;
   /** Whether component is rendered in Shadow DOM (uses plain class names) */
   useShadowDom?: boolean;
   /** Callback when login is required (401 error) */
@@ -63,6 +67,8 @@ export interface TextExplanationSidePanelProps {
   onTranslate?: (language: string) => void;
   /** Whether translation is in progress */
   isTranslating?: boolean;
+  /** Callback to register the close handler for external animated close */
+  onCloseHandlerReady?: (handler: () => void) => void;
 }
 
 const MIN_WIDTH = 300;
@@ -72,6 +78,7 @@ const DEFAULT_WIDTH = 560;
 export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> = ({
   isOpen,
   onClose,
+  iconRef,
   useShadowDom = false,
   onLoginRequired,
   streamingText = '',
@@ -97,15 +104,45 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   translations = [],
   onTranslate,
   isTranslating = false,
+  onCloseHandlerReady,
 }) => {
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
-  const [isSlidingOut, setIsSlidingOut] = useState(false);
   const [expandedLoaded, setExpandedLoaded] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const hasEmergedRef = useRef(false);
+  const isUnmountingRef = useRef(false);
+  const isAnimatingRef = useRef(false); // Prevent double animations
+  const previousIsOpenRef = useRef(false); // Start with false so first mount with isOpen=true triggers animation
+  
+  // Reset isUnmountingRef when component is open (handles reopening after close)
+  if (isOpen) {
+    isUnmountingRef.current = false;
+  }
   
   // Jotai setter for login modal
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
+
+  // Animation hook
+  const {
+    elementRef,
+    sourceRef: animationSourceRef,
+    emerge,
+    shrink,
+    style: animationStyle,
+  } = useEmergeAnimation({
+    duration: 400,
+    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    transformOrigin: 'top right',
+  });
+
+  // Sync sourceRef with iconRef prop immediately when iconRef changes
+  // This ensures the animation targets the correct element
+  useEffect(() => {
+    if (iconRef?.current) {
+      console.log('[TextExplanationSidePanel] Syncing iconRef:', iconRef.current.tagName, iconRef.current.className);
+      (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = iconRef.current;
+    }
+  }, [iconRef, animationSourceRef]);
 
   // Handle login required callback (from API errors)
   const handleLoginRequired = useCallback(() => {
@@ -169,44 +206,151 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
     ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
   }, [isVerticallyExpanded, expandedLoaded]);
 
-  // Reset sliding state when panel closes
+  // Trigger emerge animation when panel opens (only once)
+  // Track previous isOpen state to detect actual state changes
   useEffect(() => {
-    if (!isOpen) {
-      setIsSlidingOut(false);
+    const previousIsOpen = previousIsOpenRef.current;
+    const isOpening = !previousIsOpen && isOpen;
+    const isClosing = previousIsOpen && !isOpen;
+    
+    // Update previous state
+    previousIsOpenRef.current = isOpen;
+    
+    // Only trigger animation when isOpen changes from false to true
+    // Also check isAnimatingRef to prevent double animations
+    if (isOpening && !hasEmergedRef.current && !isUnmountingRef.current && !isAnimatingRef.current) {
+      hasEmergedRef.current = true;
+      isAnimatingRef.current = true;
+      
+      console.log('[TextExplanationSidePanel] Emerge animation starting...');
+      
+      // Sync iconRef before animation starts
+      if (iconRef?.current) {
+        const iconElement = iconRef.current;
+        const iconRect = iconElement.getBoundingClientRect();
+        console.log('[TextExplanationSidePanel] Pre-emerge sync iconRef:', {
+          tag: iconElement.tagName,
+          className: iconElement.className,
+          position: { left: iconRect.left, top: iconRect.top, right: iconRect.right, bottom: iconRect.bottom }
+        });
+        (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = iconElement;
+      }
+      
+      // Trigger emerge immediately without setTimeout to prevent flash
+      if (!isUnmountingRef.current) {
+        emerge()
+          .then(() => {
+            console.log('[TextExplanationSidePanel] Emerge animation completed');
+            isAnimatingRef.current = false;
+          })
+          .catch((error) => {
+            isAnimatingRef.current = false;
+            // Ignore errors if component is unmounting or if it's an abort error
+            if (!isUnmountingRef.current && (error as Error)?.name !== 'AbortError') {
+              console.error('[TextExplanationSidePanel] Emerge animation error:', error);
+            }
+          });
+      } else {
+        isAnimatingRef.current = false;
+      }
+    } else if (isClosing) {
+      // Only reset when isOpen actually changes from true to false
+      hasEmergedRef.current = false;
+      isAnimatingRef.current = false;
     }
-  }, [isOpen]);
+  }, [isOpen, iconRef, animationSourceRef]); // Added iconRef and animationSourceRef for sync
 
-  const handleSlideOut = useCallback(() => {
-    setIsSlidingOut(true);
-    setTimeout(() => {
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isUnmountingRef.current = true;
+    };
+  }, []);
+
+  // Handle close with shrink animation
+  const handleClose = useCallback(async () => {
+    console.log('[TextExplanationSidePanel] handleClose called');
+    
+    if (isUnmountingRef.current || isAnimatingRef.current) {
+      console.log('[TextExplanationSidePanel] Already closing or animating, skipping');
+      return; // Already closing/unmounting or animation in progress
+    }
+    isUnmountingRef.current = true;
+    isAnimatingRef.current = true;
+    
+    try {
+      // Ensure iconRef is synced before shrink animation
+      // Log to debug which element we're shrinking toward
+      if (iconRef?.current) {
+        const iconElement = iconRef.current;
+        const iconRect = iconElement.getBoundingClientRect();
+        console.log('[TextExplanationSidePanel] Shrink target (iconRef):', {
+          tag: iconElement.tagName,
+          className: iconElement.className,
+          position: { left: iconRect.left, top: iconRect.top, right: iconRect.right, bottom: iconRect.bottom }
+        });
+        (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = iconElement;
+      } else {
+        console.warn('[TextExplanationSidePanel] No iconRef.current available for shrink animation!');
+      }
+      
+      console.log('[TextExplanationSidePanel] Starting shrink animation...');
+      await shrink();
+      console.log('[TextExplanationSidePanel] Shrink animation completed successfully');
+      
+      // Call onClose AFTER animation completes, not in finally
+      isAnimatingRef.current = false;
+      console.log('[TextExplanationSidePanel] Calling onClose...');
       onClose?.();
-    }, 300); // Match transition duration
-  }, [onClose]);
+    } catch (error) {
+      console.error('[TextExplanationSidePanel] Shrink animation error:', error);
+      // On error, still call onClose to allow component to close
+      isAnimatingRef.current = false;
+      onClose?.();
+    }
+  }, [shrink, onClose, iconRef, animationSourceRef]);
+
+  // Register the close handler with parent so icon toggle can trigger animated close
+  useEffect(() => {
+    if (onCloseHandlerReady) {
+      console.log('[TextExplanationSidePanel] Registering close handler with parent');
+      onCloseHandlerReady(handleClose);
+    }
+  }, [handleClose, onCloseHandlerReady]);
 
   const handleVerticalExpand = useCallback(() => {
     setIsVerticallyExpanded((prev) => !prev);
   }, []);
 
   // Don't render if not open
+  // Note: We render when isOpen is true, and let the animation hook handle visibility
+  // The element needs to be in the DOM for the animation to work
   if (!isOpen) {
     return null;
   }
 
   // Class names for Shadow DOM vs CSS Modules
+  // Don't apply 'open' class when using animation - animation handles positioning
   const sidePanelClass = getClassName(
-    `textExplanationSidePanel ${isOpen ? 'open' : ''} ${isSlidingOut ? 'slidingOut' : ''} ${isVerticallyExpanded ? 'verticallyExpanded' : ''}`,
-    `${styles.textExplanationSidePanel} ${isOpen ? styles.open : ''} ${isSlidingOut ? styles.slidingOut : ''} ${isVerticallyExpanded ? styles.verticallyExpanded : ''}`
+    `textExplanationSidePanel ${isVerticallyExpanded ? 'verticallyExpanded' : ''}`,
+    `${styles.textExplanationSidePanel} ${isVerticallyExpanded ? styles.verticallyExpanded : ''}`
   );
   const resizeHandleClass = getClassName('resizeHandle', styles.resizeHandle);
   const contentClass = getClassName('content', styles.content);
 
+  // Merge animation style with panel width style
+  // Disable CSS transitions when animation is active to prevent conflicts
+  const panelStyle: React.CSSProperties = {
+    ...animationStyle,
+    '--panel-width': `${width}px`,
+    transition: 'none', // Disable CSS transitions - animation hook handles it
+  } as React.CSSProperties;
+
   return (
     <div
-      ref={panelRef}
+      ref={elementRef as React.RefObject<HTMLDivElement>}
       className={sidePanelClass}
-      style={{ 
-        '--panel-width': `${width}px`,
-      } as React.CSSProperties }
+      style={panelStyle}
     >
       {/* Resize Handle */}
       <div
@@ -216,7 +360,7 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
 
       {/* Header */}
       <TextExplanationHeader
-        onSlideOut={handleSlideOut}
+        onClose={handleClose}
         onVerticalExpand={handleVerticalExpand}
         onBookmark={onBookmark}
         onRemove={onRemove}
