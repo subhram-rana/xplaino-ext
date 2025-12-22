@@ -1,7 +1,7 @@
 // src/content/components/TextExplanationSidePanel/TextExplanationView.tsx
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ArrowUp, Trash2, Plus, Square, Loader2 } from 'lucide-react';
+import { ArrowUp, Trash2, Plus, Square, Loader2, Check } from 'lucide-react';
 import { Dropdown, type DropdownOption } from '../SidePanel/Dropdown';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import styles from './TextExplanationView.module.css';
@@ -41,6 +41,12 @@ export interface TextExplanationViewProps {
   pendingQuestion?: string;
   /** Whether first chunk has been received from API */
   firstChunkReceived?: boolean;
+  /** Translations array */
+  translations?: Array<{ language: string; translated_content: string }>;
+  /** Handler for translate button click */
+  onTranslate?: (language: string) => void;
+  /** Whether translation is in progress */
+  isTranslating?: boolean;
 }
 
 export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
@@ -60,12 +66,18 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
   isSimplifying = false,
   pendingQuestion: _pendingQuestion,
   firstChunkReceived = false,
+  translations = [],
+  onTranslate,
+  isTranslating = false,
 }) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const translationsContainerRef = useRef<HTMLDivElement>(null);
   const [loadingDotCount, setLoadingDotCount] = useState(1);
   const [inputValue, setInputValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string | undefined>(undefined);
+  const [showSuccessCheckmark, setShowSuccessCheckmark] = useState(false);
+  const previousTranslationsLengthRef = useRef<number>(0);
   const sendButtonRef = useRef<HTMLButtonElement>(null);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -163,7 +175,16 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
   }, [viewMode]);
 
   // Check if translate button should be enabled
-  const isTranslateEnabled = selectedLanguage !== undefined && selectedLanguage !== null && selectedLanguage.trim() !== '';
+  // Button should be enabled if:
+  // 1. A language is selected
+  // 2. Translation for that language doesn't already exist
+  const translationExists = selectedLanguage 
+    ? translations.some(t => t.language === selectedLanguage)
+    : false;
+  const isTranslateEnabled = selectedLanguage !== undefined && 
+                             selectedLanguage !== null && 
+                             selectedLanguage.trim() !== '' && 
+                             !translationExists;
 
   const getClassName = useCallback((baseClass: string) => {
     if (useShadowDom) {
@@ -202,6 +223,38 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [streamingText, chatMessages]);
+
+  // Show success checkmark when translation completes
+  useEffect(() => {
+    // Check if a new translation was just added (length increased and not currently translating)
+    if (!isTranslating && translations.length > previousTranslationsLengthRef.current) {
+      // Show checkmark when translation finishes
+      setShowSuccessCheckmark(true);
+      const timer = setTimeout(() => {
+        setShowSuccessCheckmark(false);
+      }, 2000); // Show for 2 seconds
+      // Update the ref to current length
+      previousTranslationsLengthRef.current = translations.length;
+      return () => clearTimeout(timer);
+    } else if (!isTranslating) {
+      // Update ref even if no new translation (to track current state)
+      previousTranslationsLengthRef.current = translations.length;
+    }
+  }, [isTranslating, translations.length]);
+
+  // Auto-scroll to bottom when new translation is added
+  useEffect(() => {
+    if (translationsContainerRef.current && translations.length > 0) {
+      // Use requestAnimationFrame to ensure DOM has fully updated
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (translationsContainerRef.current) {
+            translationsContainerRef.current.scrollTop = translationsContainerRef.current.scrollHeight;
+          }
+        });
+      });
+    }
+  }, [translations.length]);
 
   // Handle input submission - use ref to avoid dependency on onInputSubmit
   const onInputSubmitRef = React.useRef(onInputSubmit);
@@ -270,11 +323,12 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
   const showQuestions = possibleQuestions.length > 0 && isNewStreamingResponse;
   const hasChatHistory = chatMessages.length > 0;
 
-  // Translation view - show language dropdown and Translate button at top right
+  // Translation view - show language dropdown and Translate button, plus translations
   if (viewMode === 'translation') {
     return (
       <div className={getClassName('textExplanationView')}>
         <div className={getClassName('translationView')}>
+          {/* Translation Controls */}
           <div className={getClassName('translationControls')}>
             <div className={getClassName('languageDropdownWrapper')}>
               <Dropdown
@@ -282,20 +336,53 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
                 value={selectedLanguage}
                 onChange={(value) => setSelectedLanguage(value)}
                 placeholder="Select language"
+                label="Choose target language"
                 useShadowDom={useShadowDom}
               />
             </div>
-            <button
-              className={getClassName('translateButton')}
-              onClick={() => {
-                // TODO: Implement translation functionality
-                console.log('[TextExplanationView] Translate button clicked', { language: selectedLanguage });
-              }}
-              disabled={!isTranslateEnabled}
-            >
-              Translate
-            </button>
+            <div className={getClassName('translateButtonWrapper')}>
+              <button
+                className={getClassName('translateButton')}
+                onClick={() => {
+                  if (selectedLanguage && onTranslate) {
+                    onTranslate(selectedLanguage);
+                  }
+                }}
+                disabled={!isTranslateEnabled || isTranslating}
+              >
+                {isTranslating ? (
+                  <>
+                    <Loader2 size={14} className={getClassName('translateButtonSpinner')} />
+                    Translating...
+                  </>
+                ) : (
+                  'Translate'
+                )}
+              </button>
+              {showSuccessCheckmark && (
+                <Check
+                  size={20}
+                  className={getClassName('successCheckmark')}
+                />
+              )}
+            </div>
           </div>
+
+          {/* Translations Display */}
+          {translations.length > 0 && (
+            <div ref={translationsContainerRef} className={getClassName('translationsContainer')}>
+              {translations.map((translation, index) => (
+                <div key={index} className={getClassName('translationItem')}>
+                  <h3 className={getClassName('translationLanguage')}>{translation.language}</h3>
+                  <div className={getClassName('translationContent')}>
+                    <ReactMarkdown components={markdownComponents}>
+                      {translation.translated_content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );

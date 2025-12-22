@@ -57,6 +57,12 @@ export interface TextExplanationSidePanelProps {
   pendingQuestion?: string;
   /** Whether first chunk has been received from API */
   firstChunkReceived?: boolean;
+  /** Translations array */
+  translations?: Array<{ language: string; translated_content: string }>;
+  /** Handler for translate button click */
+  onTranslate?: (language: string) => void;
+  /** Whether translation is in progress */
+  isTranslating?: boolean;
 }
 
 const MIN_WIDTH = 300;
@@ -88,6 +94,9 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   showHeaderIcons = true,
   pendingQuestion,
   firstChunkReceived = false,
+  translations = [],
+  onTranslate,
+  isTranslating = false,
 }) => {
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
@@ -237,6 +246,9 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
           isSimplifying={isSimplifying}
           pendingQuestion={pendingQuestion}
           firstChunkReceived={firstChunkReceived}
+          translations={translations}
+          onTranslate={onTranslate}
+          isTranslating={isTranslating}
         />
       </div>
 

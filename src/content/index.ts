@@ -37,6 +37,7 @@ import { FAB_COLOR_VARIABLES } from '../constants/colors.css.js';
 // Import services and utilities
 import { SummariseService } from '../api-services/SummariseService';
 import { SimplifyService } from '../api-services/SimplifyService';
+import { TranslateService, getLanguageCode } from '../api-services/TranslateService';
 import { AskService } from '../api-services/AskService';
 import { extractAndStorePageContent, getStoredPageContent } from './utils/pageContentExtractor';
 import { addTextUnderline, removeTextUnderline, pulseTextBackground, type UnderlineState } from './utils/textSelectionUnderline';
@@ -122,11 +123,13 @@ interface TextExplanationState {
   previousSimplifiedTexts: string[]; // Array of previous simplified texts for context
   simplifiedExplanationCount: number; // Count of simplified explanations (1, 2, 3, etc.)
   isSimplifyRequest?: boolean; // Track if current request is a Simplify request (not Ask request)
+  translations: Array<{ language: string; translated_content: string }>; // Array of translations for this selected text
 }
 
 let textExplanationState: TextExplanationState | null = null;
 let textExplanationPanelOpen = false;
 let textExplanationViewMode: 'contextual' | 'translation' = 'contextual';
+let isTranslating = false;
 
 // Chat history for text explanations (keyed by text explanation ID)
 interface TextExplanationChatMessage {
@@ -607,6 +610,7 @@ async function handleExplainClick(
     previousSimplifiedTexts: [],
     simplifiedExplanationCount: 0, // Will be set to 1 after first explanation completes
     isSimplifyRequest: true, // Initial explanation is a simplify request
+    translations: [], // Array of translations for this selected text
   };
 
   // Reset view mode to contextual
@@ -751,6 +755,7 @@ let handleInputSubmitCallback: ((inputText: string) => Promise<void>) | null = n
 let handleViewModeChangeCallback: ((mode: 'contextual' | 'translation') => void) | null = null;
 let handleCloseCallback: (() => void) | null = null;
 let handleSimplifyCallback: (() => Promise<void>) | null = null;
+let handleTranslateCallback: ((language: string) => Promise<void>) | null = null;
 
 // Guard to prevent infinite update loops
 let isUpdatingPanel = false;
@@ -776,6 +781,7 @@ function updateTextExplanationPanel(): void {
   const shouldAllowSimplifyMore = textExplanationState?.shouldAllowSimplifyMore || false;
   const pendingQuestion = textExplanationState?.pendingQuestion;
   const firstChunkReceived = textExplanationState?.firstChunkReceived || false;
+  const translations = textExplanationState?.translations || [];
   
   // Get chat history for current explanation
   const explanationId = textExplanationState?.id || '';
@@ -785,6 +791,8 @@ function updateTextExplanationPanel(): void {
   // Check if simplify is in progress (has abortController, no first chunk yet, and it's actually a Simplify request)
   const isSimplifying = textExplanationState ? 
     (!!textExplanationState.abortController && !textExplanationState.firstChunkReceived && shouldAllowSimplifyMore && textExplanationState.isSimplifyRequest === true) : false;
+  
+  // isTranslating is tracked globally for translation API calls
   
   // Check if content is empty (no chat messages, no streaming text) - hide header icons if empty
   const hasContent = chatMessages.length > 0 || streamingText.trim().length > 0;
@@ -1271,6 +1279,83 @@ function updateTextExplanationPanel(): void {
     };
   }
   
+  if (!handleTranslateCallback) {
+    handleTranslateCallback = async (language: string) => {
+      if (!textExplanationState) return;
+      
+      const selectedText = textExplanationState.selectedText;
+      
+      // Convert language name to ISO code
+      const languageCode = getLanguageCode(language);
+      if (!languageCode) {
+        console.error('[Content Script] Invalid language:', language);
+        return;
+      }
+      
+      // Check if translation already exists for this language
+      const existingTranslation = textExplanationState.translations.find(
+        t => t.language === language
+      );
+      if (existingTranslation) {
+        console.log('[Content Script] Translation already exists for language:', language);
+        return;
+      }
+      
+      // Create abort controller for the translation request
+      const abortController = new AbortController();
+      
+      // Set translating state to true
+      isTranslating = true;
+      
+      // Update panel to show loading state
+      updateTextExplanationPanel();
+      
+      try {
+        await TranslateService.translate(
+          {
+            targetLangugeCode: languageCode,
+            texts: [selectedText],
+          },
+          {
+            onSuccess: (translatedTexts) => {
+              if (!textExplanationState) return;
+              
+              // Add translation to state
+              const translatedText = translatedTexts[0] || '';
+              textExplanationState.translations.push({
+                language: language,
+                translated_content: translatedText,
+              });
+              
+              // Set translating state to false
+              isTranslating = false;
+              
+              updateTextExplanationPanel();
+            },
+            onError: (errorCode, errorMsg) => {
+              console.error('[Content Script] Translation error:', errorCode, errorMsg);
+              // Set translating state to false on error
+              isTranslating = false;
+              updateTextExplanationPanel();
+            },
+            onLoginRequired: () => {
+              // Set translating state to false
+              isTranslating = false;
+              store.set(showLoginModalAtom, true);
+              updateTextExplanationPanel();
+            },
+          },
+          abortController
+        );
+      } catch (error) {
+        console.error('[Content Script] Translation exception:', error);
+        // Set translating state to false on exception
+        isTranslating = false;
+        updateTextExplanationPanel();
+      }
+    };
+  }
+  
   // Create handlers for header actions
   const handleRemoveCallback = () => {
     removeTextExplanation();
@@ -1320,6 +1405,9 @@ function updateTextExplanationPanel(): void {
         showHeaderIcons,
         pendingQuestion,
         firstChunkReceived,
+        translations,
+        onTranslate: handleTranslateCallback,
+        isTranslating,
       })
       )
     );
