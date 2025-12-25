@@ -26,6 +26,7 @@ export class ChromeStorage {
     USER_SETTING_THEME_ON_SITE: 'user_setting_theme_on_site',
     USER_SETTING_NATIVE_LANGUAGE: 'user_setting_native_language',
     UNAUTHENTICATED_USER_ID: 'x_unauthenticated_user_id',
+    PARAGRAPH_BOOKMARK_PREFERENCE_FOLDER_ID: 'paragraph_bookmark_preference_folder_id',
   } as const;
 
   // ============================================
@@ -458,6 +459,28 @@ export class ChromeStorage {
    */
   static async setUnauthenticatedUserId(id: string): Promise<void> {
     return this.set(this.KEYS.UNAUTHENTICATED_USER_ID, id);
+  }
+
+  // --- Paragraph Bookmark Preference Folder ID ---
+  /**
+   * Get the preferred folder ID for paragraph bookmarks
+   */
+  static async getParagraphBookmarkPreferenceFolderId(): Promise<string | null> {
+    return this.get<string>(this.KEYS.PARAGRAPH_BOOKMARK_PREFERENCE_FOLDER_ID);
+  }
+
+  /**
+   * Set the preferred folder ID for paragraph bookmarks
+   */
+  static async setParagraphBookmarkPreferenceFolderId(folderId: string): Promise<void> {
+    return this.set(this.KEYS.PARAGRAPH_BOOKMARK_PREFERENCE_FOLDER_ID, folderId);
+  }
+
+  /**
+   * Remove the preferred folder ID for paragraph bookmarks
+   */
+  static async removeParagraphBookmarkPreferenceFolderId(): Promise<void> {
+    return this.remove(this.KEYS.PARAGRAPH_BOOKMARK_PREFERENCE_FOLDER_ID);
   }
 }
 

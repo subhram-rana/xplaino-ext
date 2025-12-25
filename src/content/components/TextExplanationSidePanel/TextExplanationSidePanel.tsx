@@ -69,6 +69,8 @@ export interface TextExplanationSidePanelProps {
   isTranslating?: boolean;
   /** Callback to register the close handler for external animated close */
   onCloseHandlerReady?: (handler: () => void) => void;
+  /** Whether the text is bookmarked */
+  isBookmarked?: boolean;
 }
 
 const MIN_WIDTH = 300;
@@ -105,6 +107,7 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   onTranslate,
   isTranslating = false,
   onCloseHandlerReady,
+  isBookmarked = false,
 }) => {
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
@@ -368,6 +371,7 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         useShadowDom={useShadowDom}
         isExpanded={isVerticallyExpanded}
         showRightIcons={showHeaderIcons}
+        isBookmarked={isBookmarked}
       />
 
       {/* Content */}

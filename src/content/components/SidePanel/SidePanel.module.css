@@ -26,7 +26,7 @@
   max-width: var(--panel-max-width) !important;
   background: var(--panel-white) !important;
   border-radius: var(--panel-border-radius) 0 0 var(--panel-border-radius) !important;
-  box-shadow: var(--panel-shadow) !important;
+  box-shadow: none !important;
   z-index: 2147483641 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -40,6 +40,7 @@
 
 .sidePanel.open {
   transform: translateX(0) !important;
+  box-shadow: var(--panel-shadow) !important;
 }
 
 .sidePanel.slidingOut {

@@ -1,0 +1,57 @@
+/* src/content/components/SavedParagraphIcon/SavedParagraphIcon.module.css */
+
+.savedParagraphIconContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.xplainoButton,
+.bookmarkButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-white, #FFFFFF);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  padding: 2px;
+  margin: 0;
+}
+
+.xplainoButton {
+  box-shadow: 0 2px 8px rgba(0, 200, 0, 0.3);
+}
+
+.xplainoButton:hover {
+  box-shadow: 0 4px 12px rgba(0, 200, 0, 0.5);
+  transform: scale(1.1);
+}
+
+.xplainoButton:active {
+  transform: scale(0.95);
+}
+
+.bookmarkButton {
+  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.3);
+}
+
+.bookmarkButton:hover {
+  box-shadow: 0 4px 12px rgba(149, 39, 245, 0.5);
+  transform: scale(1.1);
+}
+
+.bookmarkButton:active {
+  transform: scale(0.95);
+}
+
+.iconImage {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+

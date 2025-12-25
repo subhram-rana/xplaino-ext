@@ -1,31 +1,21 @@
-// src/content/components/TextExplanationIcon/TextExplanationIcon.tsx
+// src/content/components/SavedParagraphIcon/SavedParagraphIcon.tsx
 import React, { useState, useCallback } from 'react';
-import styles from './TextExplanationIcon.module.css';
+import { Bookmark } from 'lucide-react';
+import styles from './SavedParagraphIcon.module.css';
 
-export interface TextExplanationIconProps {
+export interface SavedParagraphIconProps {
   /** Position of the icon */
   position: { x: number; y: number };
-  /** Whether to show spinner (true) or green icon (false) */
-  isSpinning: boolean;
-  /** Click handler to toggle panel */
-  onTogglePanel: () => void;
+  /** Click handler for green xplaino icon (kept for backward compatibility but not used) */
+  onXplainoClick?: () => void;
+  /** Click handler for purple bookmark icon */
+  onBookmarkClick: () => void;
   /** Whether component is rendered in Shadow DOM */
   useShadowDom?: boolean;
   /** Ref callback to get icon element */
   iconRef?: (element: HTMLElement | null) => void;
-  /** Whether the panel is currently open */
-  isPanelOpen?: boolean;
   /** Selection range for scroll tracking */
   selectionRange?: Range | null;
-  /** Whether to use fixed positioning (false when inside a container) */
-  useFixedPosition?: boolean;
-}
-
-/**
- * Get the icon URL for the green xplaino icon
- */
-function getGreenIconUrl(): string {
-  return chrome.runtime.getURL('src/assets/icons/xplaino-green-icon.ico');
 }
 
 /**
@@ -51,17 +41,14 @@ function findScrollableParents(element: Node): HTMLElement[] {
   return scrollableParents;
 }
 
-export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
+export const SavedParagraphIcon: React.FC<SavedParagraphIconProps> = ({
   position,
-  isSpinning,
-  onTogglePanel,
+  onBookmarkClick,
   useShadowDom = false,
   iconRef,
-  isPanelOpen = false,
   selectionRange,
-  useFixedPosition = true,
 }) => {
-  const iconElementRef: React.MutableRefObject<HTMLButtonElement | null> = { current: null };
+  const containerElementRef: React.MutableRefObject<HTMLDivElement | null> = { current: null };
   const [isRefSet, setIsRefSet] = useState(false);
   const scrollableParentsRef = React.useRef<HTMLElement[]>([]);
   const rafIdRef = React.useRef<number | null>(null);
@@ -76,7 +63,7 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
 
   // Update position function
   const updatePosition = useCallback(() => {
-    if (!iconElementRef.current || !selectionRange) return;
+    if (!containerElementRef.current || !selectionRange) return;
     
     try {
       // Check if selection range is still valid
@@ -117,11 +104,11 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
       const topmostY = selectionRect.top;
       
       // Update position directly via DOM for immediate update (no React render delay)
-      iconElementRef.current.style.left = `${leftmostX - 30}px`;
-      iconElementRef.current.style.top = `${topmostY}px`;
+      containerElementRef.current.style.left = `${leftmostX - 30}px`;
+      containerElementRef.current.style.top = `${topmostY}px`;
     } catch (error) {
       // Silently handle errors (range might be invalid after DOM changes)
-      console.error('[TextExplanationIcon] Error updating position:', error);
+      console.error('[SavedParagraphIcon] Error updating position:', error);
     }
   }, [selectionRange]);
 
@@ -136,8 +123,8 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
   }, [updatePosition]);
 
   // Callback ref to detect when element is mounted
-  const setIconRef = useCallback((node: HTMLButtonElement | null) => {
-    iconElementRef.current = node;
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    containerElementRef.current = node;
     setIsRefSet(node !== null);
     if (iconRef) {
       iconRef(node);
@@ -153,7 +140,7 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
 
   // Set up scroll listeners when both ref and range are ready
   React.useEffect(() => {
-    if (!selectionRange || !isRefSet || !iconElementRef.current) {
+    if (!selectionRange || !isRefSet || !containerElementRef.current) {
       return;
     }
 
@@ -209,46 +196,37 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
     };
   }, [selectionRange, isRefSet, handleScroll, updatePosition]);
 
-  const iconStyle: React.CSSProperties = useFixedPosition
-    ? {
-        position: 'fixed',
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        zIndex: 2147483647,
-      }
-    : {
-        position: 'relative',
-        left: '0',
-        top: '0',
-      };
-
-  const buttonClassName = `${getClassName('textExplanationIcon')} ${isPanelOpen ? getClassName('panelOpen') : ''}`;
+  const containerStyle: React.CSSProperties = {
+    position: 'fixed',
+    left: `${position.x}px`,
+    top: `${position.y}px`,
+    zIndex: 2147483647,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  };
 
   return (
-    <button
-      ref={setIconRef}
-      className={buttonClassName}
-      style={iconStyle}
-      onClick={(e) => {
-        e.stopPropagation();
-        onTogglePanel();
-      }}
-      aria-label="Toggle text explanation"
+    <div
+      ref={setContainerRef}
+      className={getClassName('savedParagraphIconContainer')}
+      style={containerStyle}
     >
-      {isSpinning ? (
-        <span 
-          className={getClassName('loadingSpinner')}
-        />
-      ) : (
-        <img
-          src={getGreenIconUrl()}
-          alt="Xplaino"
-          className={getClassName('iconImage')}
-        />
-      )}
-    </button>
+      {/* Only show bookmark icon - no green xplaino icon for bookmarked-only text */}
+      <button
+        className={getClassName('bookmarkButton')}
+        onClick={(e) => {
+          e.stopPropagation();
+          onBookmarkClick();
+        }}
+        aria-label="Remove bookmark"
+        title="Remove bookmark"
+      >
+        <Bookmark size={16} fill="#9527F5" color="#9527F5" />
+      </button>
+    </div>
   );
 };
 
-TextExplanationIcon.displayName = 'TextExplanationIcon';
+SavedParagraphIcon.displayName = 'SavedParagraphIcon';
 

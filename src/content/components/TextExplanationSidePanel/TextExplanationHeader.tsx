@@ -64,6 +64,8 @@ export interface TextExplanationHeaderProps {
   isExpanded?: boolean;
   /** Whether to show right-side action icons (view original, bookmark, remove) */
   showRightIcons?: boolean;
+  /** Whether the text is bookmarked */
+  isBookmarked?: boolean;
 }
 
 export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
@@ -75,6 +77,7 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
   useShadowDom = false,
   isExpanded = false,
   showRightIcons = true,
+  isBookmarked = false,
 }) => {
   const getClassName = (baseClass: string) => {
     if (useShadowDom) {
@@ -130,11 +133,11 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
           <button
             className={getClassName('headerIconButton')}
             onClick={onBookmark}
-            aria-label="Bookmark text"
-            title="Bookmark text"
+            aria-label={isBookmarked ? "Remove bookmark" : "Bookmark text"}
+            title={isBookmarked ? "Remove bookmark" : "Bookmark text"}
             type="button"
           >
-            <Bookmark size={18} />
+            <Bookmark size={18} fill={isBookmarked ? "#9527F5" : "none"} color={isBookmarked ? "#9527F5" : "currentColor"} />
           </button>
           <button
             className={getClassName('headerIconButton')}

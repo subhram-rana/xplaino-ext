@@ -9,11 +9,12 @@ export interface UnderlineState {
 }
 
 /**
- * Add a dashed green underline to the selected text
+ * Add a dashed underline to the selected text
  * @param range - The selection range to underline
+ * @param color - The color of the underline (default: green for text explanations)
  * @returns The wrapper element and original range, or null if failed
  */
-export function addTextUnderline(range: Range): UnderlineState | null {
+export function addTextUnderline(range: Range, color: 'green' | 'purple' = 'green'): UnderlineState | null {
   if (!range || range.collapsed) {
     return null;
   }
@@ -26,7 +27,16 @@ export function addTextUnderline(range: Range): UnderlineState | null {
     const wrapper = document.createElement('span');
     wrapper.style.textDecoration = 'underline';
     wrapper.style.textDecorationStyle = 'dashed';
-    wrapper.style.textDecorationColor = 'rgba(0, 200, 0, 0.6)';
+    
+    // Set color based on parameter
+    if (color === 'purple') {
+      // Medium purple color: rgba(149, 39, 245, 0.6) -> rgba(149, 39, 245, 0.8)
+      wrapper.style.textDecorationColor = 'rgba(149, 39, 245, 0.6)';
+    } else {
+      // Green color for text explanations
+      wrapper.style.textDecorationColor = 'rgba(0, 200, 0, 0.6)';
+    }
+    
     wrapper.style.textDecorationThickness = '2px';
     wrapper.style.transition = 'text-decoration-color 0.3s ease';
     // Add padding for visual spacing around the underline
@@ -45,7 +55,11 @@ export function addTextUnderline(range: Range): UnderlineState | null {
     
     // Animate the underline appearance
     requestAnimationFrame(() => {
-      wrapper.style.textDecorationColor = 'rgba(0, 200, 0, 0.8)';
+      if (color === 'purple') {
+        wrapper.style.textDecorationColor = 'rgba(149, 39, 245, 0.8)';
+      } else {
+        wrapper.style.textDecorationColor = 'rgba(0, 200, 0, 0.8)';
+      }
     });
     
     return {

@@ -16,8 +16,8 @@ export interface FooterProps {
 }
 
 const buttons: ButtonItem[] = [
-  { id: 'summary', icon: FileText, label: 'Summary' },
   { id: 'settings', icon: Settings, label: 'Settings' },
+  { id: 'summary', icon: FileText, label: 'Page Summary' },
   { id: 'my', icon: User, label: 'My' },
 ];
 

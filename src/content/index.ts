@@ -16,6 +16,8 @@ import { TextExplanationSidePanel } from './components/TextExplanationSidePanel'
 import { TextExplanationIconContainer } from './components/TextExplanationIcon';
 import { WordExplanationPopover, type TabType } from './components/WordExplanationPopover';
 import { WordAskAISidePanel } from './components/WordAskAISidePanel';
+import { FolderListModal } from './components/FolderListModal';
+import { SavedParagraphIcon } from './components/SavedParagraphIcon';
 
 // Import Shadow DOM utilities
 import {
@@ -36,6 +38,8 @@ import textExplanationSidePanelStyles from './styles/textExplanationSidePanel.sh
 import textExplanationIconStyles from './styles/textExplanationIcon.shadow.css?inline';
 import wordExplanationPopoverStyles from './styles/wordExplanationPopover.shadow.css?inline';
 import wordAskAISidePanelStyles from './styles/wordAskAISidePanel.shadow.css?inline';
+import folderListModalStyles from './styles/folderListModal.shadow.css?inline';
+import savedParagraphIconStyles from './styles/savedParagraphIcon.shadow.css?inline';
 
 // Import color CSS variables
 import { FAB_COLOR_VARIABLES } from '../constants/colors.css.js';
@@ -52,6 +56,9 @@ import { WordSynonymsService } from '../api-services/WordSynonymsService';
 import { WordAntonymsService } from '../api-services/WordAntonymsService';
 import { WordAskService } from '../api-services/WordAskService';
 import { SavedWordsService } from '../api-services/SavedWordsService';
+import { FolderService } from '../api-services/FolderService';
+import { SavedParagraphService } from '../api-services/SavedParagraphService';
+import type { FolderWithSubFoldersResponse } from '../api-services/dto/FolderDTO';
 import { extractAndStorePageContent, getStoredPageContent } from './utils/pageContentExtractor';
 import { addTextUnderline, removeTextUnderline, pulseTextBackground, type UnderlineState } from './utils/textSelectionUnderline';
 import { PageTranslationManager } from './utils/pageTranslationManager';
@@ -98,6 +105,7 @@ const TEXT_EXPLANATION_ICON_HOST_ID = 'xplaino-text-explanation-icon-host';
 const WORD_EXPLANATION_POPOVER_HOST_ID = 'xplaino-word-explanation-popover-host';
 const WORD_ASK_AI_PANEL_HOST_ID = 'xplaino-word-ask-ai-panel-host';
 const TOAST_HOST_ID = 'xplaino-toast-host';
+const FOLDER_LIST_MODAL_HOST_ID = 'xplaino-folder-list-modal-host';
 
 /**
  * Domain status enum (must match src/types/domain.ts)
@@ -137,6 +145,33 @@ let toastMessage: string | null = null;
 let toastType: 'success' | 'error' = 'success';
 let toastClosing: boolean = false;
 let toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+// Folder List Modal state
+let folderListModalRoot: ReactDOM.Root | null = null;
+let folderModalOpen = false;
+let folderModalFolders: FolderWithSubFoldersResponse[] = [];
+let folderModalText = '';
+let folderModalSourceUrl = '';
+let folderModalSaving = false;
+let folderModalCreatingFolder = false;
+let folderModalSelectedFolderId: string | null = null;
+let folderModalExpandedFolders: Set<string> = new Set();
+let folderModalRange: Range | null = null; // Store the selection range for bookmark
+let folderModalRememberChecked: boolean = false; // Track remember folder checkbox state
+
+// Saved Paragraph Icons state
+let savedParagraphIconRoot: ReactDOM.Root | null = null;
+const SAVED_PARAGRAPH_ICON_HOST_ID = 'xplaino-saved-paragraph-icon-host';
+interface SavedParagraphState {
+  id: string;
+  paragraphId: string;
+  selectedText: string;
+  range: Range | null;
+  iconPosition: { x: number; y: number };
+  underlineState: UnderlineState | null;
+  iconRef: React.MutableRefObject<HTMLElement | null>;
+}
+const savedParagraphs = new Map<string, SavedParagraphState>();
 
 // Jotai store for managing atoms outside React
 const store = createStore();
@@ -358,7 +393,7 @@ function injectFAB(): void {
   // Create Shadow DOM host
   const { host, shadow, mountPoint } = createShadowHost({
     id: FAB_HOST_ID,
-    zIndex: 2147483645,
+    zIndex: 2147483640,
   });
 
   // Inject color CSS variables first
@@ -722,7 +757,7 @@ function updateFAB(): void {
           onStopTranslation: handleStopTranslation,
           onToggleView: handleToggleView,
           onClearTranslations: handleClearTranslations,
-          onOptions: () => setSidePanelOpen(true),
+          onOptions: () => setSidePanelOpen(true, 'settings'),
           isSummarising: isSummarising,
           hasSummary: hasSummary,
           canHideActions: canHideFABActions,
@@ -900,6 +935,23 @@ function updateExplanationInMap(
 }
 
 /**
+ * Recursively find if a folder ID exists in the folder tree (including subfolders)
+ */
+function findFolderInTree(folders: FolderWithSubFoldersResponse[], folderId: string): boolean {
+  for (const folder of folders) {
+    if (folder.id === folderId) {
+      return true;
+    }
+    if (folder.subFolders && folder.subFolders.length > 0) {
+      if (findFolderInTree(folder.subFolders, folderId)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Check if a selection is a single word (no spaces, reasonable length)
  */
 function isWordSelection(text: string): boolean {
@@ -916,41 +968,61 @@ async function handleContentActionsBookmarkClick(selectedText: string): Promise<
   console.log('[Content Script] Selected text length:', selectedText?.length);
   
   // Trim the selected text
-  const word = selectedText.trim();
+  const text = selectedText.trim();
   
-  if (!word) {
+  if (!text) {
     console.warn('[Content Script] Empty selection for bookmark');
-    showToast('Please select a word to bookmark', 'error');
+    showToast('Please select text to bookmark', 'error');
     return;
   }
   
-  console.log('[Content Script] Calling SavedWordsService.saveWord with:', {
-    word,
-    sourceUrl: window.location.href,
-  });
+  // Capture the current selection range before it's cleared
+  const selection = window.getSelection();
+  let range: Range | null = null;
+  if (selection && selection.rangeCount > 0) {
+    range = selection.getRangeAt(0).cloneRange();
+  }
+  folderModalRange = range;
   
-  // Save the word (without contextual meaning since we don't have explanation yet)
-  SavedWordsService.saveWord(
+  console.log('[Content Script] Calling FolderService.getAllFolders');
+  
+  // Get folders and show modal
+  FolderService.getAllFolders(
+    'PARAGRAPH',
     {
-      word: word,
-      sourceUrl: window.location.href,
-      contextual_meaning: null, // No contextual meaning available from selection alone
-    },
-    {
-      onSuccess: (response) => {
-        console.log('[Content Script] Word saved successfully from ContentActions with id:', response.id);
-        showToast('Word saved successfully!', 'success');
+      onSuccess: async (response) => {
+        console.log('[Content Script] Folders loaded successfully:', response.folders.length, 'folders');
+        folderModalFolders = response.folders;
+        folderModalText = text;
+        folderModalSourceUrl = window.location.href;
+        
+        // Check for stored preference folder ID
+        const storedFolderId = await ChromeStorage.getParagraphBookmarkPreferenceFolderId();
+        if (storedFolderId && findFolderInTree(response.folders, storedFolderId)) {
+          folderModalSelectedFolderId = storedFolderId;
+          console.log('[Content Script] Auto-selected preferred folder:', storedFolderId);
+        } else {
+          folderModalSelectedFolderId = null;
+          console.log('[Content Script] No valid preferred folder found, clearing selection');
+        }
+        
+        folderModalOpen = true;
+        injectFolderListModal();
+        updateFolderListModal();
       },
-      onError: (_code, message) => {
-        console.error('[Content Script] Failed to save word from ContentActions:', message);
-        showToast(`Failed to save word: ${message}`, 'error');
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to load folders:', errorCode, message);
+        showToast(`Failed to load folders: ${message}`, 'error');
+        folderModalRange = null; // Clear range on error
       },
       onLoginRequired: () => {
-        console.log('[Content Script] Login required to save word from ContentActions');
+        console.log('[Content Script] Login required to load folders');
+        folderModalRange = null; // Clear range on login required
         store.set(showLoginModalAtom, true);
       },
       onSubscriptionRequired: () => {
-        console.log('[Content Script] Subscription required to save word from ContentActions');
+        console.log('[Content Script] Subscription required to load folders');
+        folderModalRange = null; // Clear range on subscription required
         store.set(showSubscriptionModalAtom, true);
       },
     }
@@ -4594,8 +4666,71 @@ function updateTextExplanationPanel(): void {
   };
 
   const handleBookmarkCallback = () => {
-    // TODO: Implement bookmark functionality
-    console.log('[Content Script] Bookmark clicked');
+    if (!activeExplanation) {
+      console.log('[Content Script] No active explanation for bookmark');
+      return;
+    }
+
+    // If already bookmarked, remove bookmark
+    if (activeExplanation.paragraphId) {
+      handleRemoveTextExplanationBookmark(explanationId, activeExplanation.paragraphId);
+      return;
+    }
+
+    // Get the selected text from the active explanation
+    const text = activeExplanation.selectedText?.trim() || '';
+    
+    if (!text) {
+      console.warn('[Content Script] Empty text for bookmark');
+      showToast('No text to bookmark', 'error');
+      return;
+    }
+
+    console.log('[Content Script] Bookmark clicked for text explanation:', text);
+    
+    // Store the range for later use (to add underline and icons after save)
+    if (activeExplanation.range) {
+      folderModalRange = activeExplanation.range.cloneRange();
+    }
+    
+    // Get folders and show modal
+    FolderService.getAllFolders(
+      'PARAGRAPH',
+      {
+        onSuccess: async (response) => {
+          console.log('[Content Script] Folders loaded successfully:', response.folders.length, 'folders');
+          folderModalFolders = response.folders;
+          folderModalText = text;
+          folderModalSourceUrl = window.location.href;
+          
+          // Check for stored preference folder ID
+          const storedFolderId = await ChromeStorage.getParagraphBookmarkPreferenceFolderId();
+          if (storedFolderId && findFolderInTree(response.folders, storedFolderId)) {
+            folderModalSelectedFolderId = storedFolderId;
+            console.log('[Content Script] Auto-selected preferred folder:', storedFolderId);
+          } else {
+            folderModalSelectedFolderId = null;
+            console.log('[Content Script] No valid preferred folder found, clearing selection');
+          }
+          
+          folderModalOpen = true;
+          injectFolderListModal();
+          updateFolderListModal();
+        },
+        onError: (errorCode, message) => {
+          console.error('[Content Script] Failed to load folders:', errorCode, message);
+          showToast(`Failed to load folders: ${message}`, 'error');
+        },
+        onLoginRequired: () => {
+          console.log('[Content Script] Login required to load folders');
+          store.set(showLoginModalAtom, true);
+        },
+        onSubscriptionRequired: () => {
+          console.log('[Content Script] Subscription required to load folders');
+          store.set(showSubscriptionModalAtom, true);
+        },
+      }
+    );
   };
 
   try {
@@ -4629,6 +4764,7 @@ function updateTextExplanationPanel(): void {
         translations,
         onTranslate: handleTranslateCallback,
         isTranslating,
+        isBookmarked: !!activeExplanation.paragraphId,
         onCloseHandlerReady: (handler) => {
           console.log('[index.ts] Close handler registered from TextExplanationSidePanel');
           textExplanationPanelCloseHandler = handler;
@@ -5137,6 +5273,12 @@ function updateTextExplanationIconContainer(): void {
     onTogglePanel: () => toggleTextExplanationPanel(id),
     // Green border logic: only show border if this is the active explanation AND panel is open
     isPanelOpen: id === activeId && panelOpen,
+    isBookmarked: !!state.paragraphId,
+    onBookmarkClick: state.paragraphId ? () => {
+      if (state.paragraphId) {
+        handleRemoveTextExplanationBookmark(id, state.paragraphId);
+      }
+    } : undefined,
     iconRef: (element: HTMLElement | null) => {
       if (state.iconRef) {
         state.iconRef.current = element;
@@ -5589,6 +5731,287 @@ function removeToast(): void {
 }
 
 // =============================================================================
+// FOLDER LIST MODAL INJECTION
+// =============================================================================
+
+/**
+ * Inject Folder List Modal into the page with Shadow DOM
+ */
+function injectFolderListModal(): void {
+  // Check if already injected
+  if (shadowHostExists(FOLDER_LIST_MODAL_HOST_ID)) {
+    return;
+  }
+
+  // Create Shadow DOM host
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: FOLDER_LIST_MODAL_HOST_ID,
+    zIndex: 2147483646, // Below toast
+  });
+
+  // Inject color CSS variables first
+  injectStyles(shadow, FAB_COLOR_VARIABLES);
+  
+  // Inject folder list modal styles
+  injectStyles(shadow, folderListModalStyles);
+
+  // Append to document
+  document.body.appendChild(host);
+
+  // Render React component
+  folderListModalRoot = ReactDOM.createRoot(mountPoint);
+  updateFolderListModal();
+
+  console.log('[Content Script] Folder List Modal injected successfully');
+}
+
+/**
+ * Update folder list modal visibility based on state
+ */
+async function updateFolderListModal(): Promise<void> {
+  if (!folderListModalRoot) {
+    console.warn('[Content Script] folderListModalRoot is null, cannot update modal');
+    return;
+  }
+
+  if (folderModalOpen) {
+    console.log('[Content Script] Rendering folder list modal with', folderModalFolders.length, 'folders');
+    
+    // Check if the selected folder matches the stored preference
+    const storedFolderId = await ChromeStorage.getParagraphBookmarkPreferenceFolderId();
+    const rememberFolderChecked = folderModalSelectedFolderId !== null && 
+                                   folderModalSelectedFolderId === storedFolderId;
+    // Update the tracked checkbox state
+    folderModalRememberChecked = rememberFolderChecked;
+    
+    // Handler for remember folder checkbox change
+    const handleRememberFolderChange = async (checked: boolean) => {
+      folderModalRememberChecked = checked;
+      // Don't save to storage here - wait until Save Text is clicked
+      // This allows user to change checkbox state without immediately saving
+      // Update modal to reflect the change
+      updateFolderListModal();
+    };
+    
+    folderListModalRoot.render(
+      React.createElement(Provider, { store },
+      React.createElement(FolderListModal, {
+        folders: folderModalFolders,
+        onSave: handleFolderModalSave,
+        onClose: closeFolderListModal,
+        useShadowDom: true,
+        isSaving: folderModalSaving,
+        onCreateFolder: handleCreateFolder,
+        isCreatingFolder: folderModalCreatingFolder,
+        initialSelectedFolderId: folderModalSelectedFolderId,
+        initialExpandedFolders: folderModalExpandedFolders,
+        rememberFolderChecked,
+        onRememberFolderChange: handleRememberFolderChange,
+      })
+      )
+    );
+  } else {
+    console.log('[Content Script] Clearing folder list modal');
+    folderListModalRoot.render(React.createElement(React.Fragment));
+  }
+}
+
+/**
+ * Handle save button click in folder modal
+ */
+async function handleFolderModalSave(folderId: string | null): Promise<void> {
+  console.log('[Content Script] Saving text to folder:', folderId);
+  
+  // If "Remember my folder" checkbox is checked, save the folder preference
+  if (folderModalRememberChecked && folderId) {
+    await ChromeStorage.setParagraphBookmarkPreferenceFolderId(folderId);
+    console.log('[Content Script] Saved folder preference on save:', folderId);
+  } else if (!folderModalRememberChecked) {
+    // If checkbox is unchecked, remove the preference
+    await ChromeStorage.removeParagraphBookmarkPreferenceFolderId();
+    console.log('[Content Script] Removed folder preference on save');
+  }
+  
+  // Set saving state
+  folderModalSaving = true;
+  updateFolderListModal();
+  
+  // Save paragraph
+  SavedParagraphService.saveParagraph(
+    {
+      content: folderModalText,
+      source_url: folderModalSourceUrl,
+      folder_id: folderId || undefined,
+    },
+    {
+      onSuccess: (response) => {
+        console.log('[Content Script] Text saved successfully with id:', response.id);
+        showToast('Text saved successfully!', 'success');
+        closeFolderListModal();
+        
+        // Update active explanation to mark it as bookmarked
+        const activeId = store.get(activeTextExplanationIdAtom);
+        if (activeId) {
+          console.log('[Content Script] Updating active explanation with paragraphId:', response.id, 'for explanationId:', activeId);
+          updateExplanationInMap(activeId, (state) => {
+            // Create a new state object to ensure Jotai detects the change
+            return {
+              ...state,
+              paragraphId: response.id,
+            };
+          });
+          
+          // Verify the update
+          const updatedExplanations = store.get(textExplanationsAtom);
+          const updatedState = updatedExplanations.get(activeId);
+          console.log('[Content Script] Updated state paragraphId:', updatedState?.paragraphId);
+          
+          // Update panel and icon container to show bookmark state
+          updateTextExplanationPanel();
+          updateTextExplanationIconContainer();
+        } else {
+          console.warn('[Content Script] No active explanation ID found when saving bookmark');
+        }
+        
+        // Add underline and icons if we have a range
+        if (folderModalRange) {
+          addSavedParagraphIcons(response.id, folderModalText, folderModalRange);
+          folderModalRange = null; // Clear the range after using it
+        }
+      },
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to save text:', errorCode, message);
+        folderModalSaving = false;
+        updateFolderListModal();
+        showToast(`Failed to save text: ${message}`, 'error');
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required to save text');
+        closeFolderListModal();
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required to save text');
+        closeFolderListModal();
+        store.set(showSubscriptionModalAtom, true);
+      },
+    }
+  );
+}
+
+/**
+ * Handle create folder in folder modal
+ */
+async function handleCreateFolder(folderName: string, parentFolderId: string | null): Promise<void> {
+  console.log('[Content Script] Creating folder:', folderName, 'with parent:', parentFolderId);
+  
+  // Set creating state
+  folderModalCreatingFolder = true;
+  updateFolderListModal();
+  
+  // Create folder
+  SavedParagraphService.createParagraphFolder(
+    {
+      name: folderName,
+      parent_folder_id: parentFolderId || undefined,
+    },
+    {
+      onSuccess: (response) => {
+        console.log('[Content Script] Folder created successfully with id:', response.id);
+        
+        // Add new folder to the list
+        const newFolder: FolderWithSubFoldersResponse = {
+          id: response.id,
+          name: response.name,
+          created_at: response.created_at,
+          updated_at: response.updated_at,
+          subFolders: [],
+        };
+        
+        // Add to the appropriate location in the tree
+        if (parentFolderId) {
+          // Find and update the parent folder
+          const updateFolderTree = (folders: FolderWithSubFoldersResponse[]): FolderWithSubFoldersResponse[] => {
+            return folders.map(folder => {
+              if (folder.id === parentFolderId) {
+                // Add to this folder's subFolders
+                return {
+                  ...folder,
+                  subFolders: [...folder.subFolders, newFolder]
+                };
+              } else if (folder.subFolders.length > 0) {
+                // Recursively search in subFolders
+                return {
+                  ...folder,
+                  subFolders: updateFolderTree(folder.subFolders)
+                };
+              }
+              return folder;
+            });
+          };
+          
+          folderModalFolders = updateFolderTree(folderModalFolders);
+          // Ensure parent folder is expanded so the new folder is visible
+          folderModalExpandedFolders = new Set([...folderModalExpandedFolders, parentFolderId]);
+        } else {
+          // Add to root level
+          folderModalFolders = [...folderModalFolders, newFolder];
+        }
+        
+        folderModalCreatingFolder = false;
+        folderModalSelectedFolderId = response.id; // Auto-select the newly created folder
+        
+        updateFolderListModal();
+        showToast('Folder created successfully!', 'success');
+      },
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to create folder:', errorCode, message);
+        folderModalCreatingFolder = false;
+        updateFolderListModal();
+        showToast(`Failed to create folder: ${message}`, 'error');
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required to create folder');
+        closeFolderListModal();
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required to create folder');
+        closeFolderListModal();
+        store.set(showSubscriptionModalAtom, true);
+      },
+    }
+  );
+}
+
+/**
+ * Close folder list modal
+ */
+function closeFolderListModal(): void {
+  folderModalOpen = false;
+  folderModalSaving = false;
+  folderModalCreatingFolder = false;
+  folderModalFolders = [];
+  folderModalText = '';
+  folderModalSourceUrl = '';
+  folderModalSelectedFolderId = null;
+  folderModalExpandedFolders = new Set();
+  folderModalRememberChecked = false; // Reset checkbox state when modal closes
+  // Don't clear folderModalRange here - it's used after modal closes
+  updateFolderListModal();
+}
+
+/**
+ * Remove Folder List Modal from the page
+ */
+// @ts-ignore - Function reserved for future cleanup logic
+function removeFolderListModal(): void {
+  removeShadowHost(FOLDER_LIST_MODAL_HOST_ID, folderListModalRoot);
+  folderListModalRoot = null;
+  console.log('[Content Script] Folder List Modal removed');
+}
+
+// =============================================================================
 // LOGIN MODAL INJECTION
 // =============================================================================
 
@@ -5754,6 +6177,262 @@ async function initContentScript(): Promise<void> {
 
 // Setup global auth listener (runs once at script initialization)
 setupGlobalAuthListener();
+
+// =============================================================================
+// SAVED PARAGRAPH ICONS INJECTION
+// =============================================================================
+
+/**
+ * Add saved paragraph icons and underline after successful save
+ */
+function addSavedParagraphIcons(paragraphId: string, selectedText: string, range: Range): void {
+  console.log('[Content Script] Adding saved paragraph icons for paragraph:', paragraphId);
+  
+  // Calculate icon position
+  const selectionRect = range.getBoundingClientRect();
+  let containingElement: HTMLElement | null = null;
+  let node: Node | null = range.startContainer;
+  
+  while (node && node !== document.body) {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      containingElement = node as HTMLElement;
+      break;
+    }
+    node = node.parentNode;
+  }
+  
+  if (!containingElement) {
+    containingElement = document.body;
+  }
+  
+  const elementRect = containingElement.getBoundingClientRect();
+  const leftmostX = elementRect.left;
+  const topmostY = selectionRect.top;
+  
+  const iconPosition = {
+    x: leftmostX - 30,
+    y: topmostY,
+  };
+  
+  // Add purple dashed underline for bookmarked text
+  const underlineState = addTextUnderline(range, 'purple');
+  
+  // Create saved paragraph state
+  const savedParagraphId = `saved-paragraph-${paragraphId}`;
+  const iconRef: React.MutableRefObject<HTMLElement | null> = { current: null };
+  
+  const savedParagraphState: SavedParagraphState = {
+    id: savedParagraphId,
+    paragraphId,
+    selectedText,
+    range: range.cloneRange(),
+    iconPosition,
+    underlineState,
+    iconRef,
+  };
+  
+  // Add to map
+  savedParagraphs.set(savedParagraphId, savedParagraphState);
+  
+  // Inject icon container if not already injected
+  injectSavedParagraphIconContainer();
+  
+  // Update icon container
+  updateSavedParagraphIconContainer();
+  
+  // Clear text selection
+  window.getSelection()?.removeAllRanges();
+}
+
+/**
+ * Update saved paragraph icon container
+ */
+function updateSavedParagraphIconContainer(): void {
+  if (!savedParagraphIconRoot) return;
+  
+  // If no saved paragraphs, don't render anything
+  if (savedParagraphs.size === 0) {
+    savedParagraphIconRoot.render(React.createElement(React.Fragment));
+    return;
+  }
+  
+  // Create icons for all saved paragraphs
+  const icons = Array.from(savedParagraphs.entries()).map(([, state]) => ({
+    id: state.id,
+    position: state.iconPosition,
+    selectionRange: state.range,
+    onXplainoClick: () => {
+      // Not used anymore - bookmark-only icons don't have xplaino button
+    },
+    onBookmarkClick: () => {
+      handleRemoveSavedParagraph(state.paragraphId, state.id);
+    },
+    iconRef: (element: HTMLElement | null) => {
+      if (state.iconRef) {
+        state.iconRef.current = element;
+      }
+    },
+  }));
+  
+  savedParagraphIconRoot.render(
+    React.createElement(
+      'div',
+      { className: 'savedParagraphIconContainer' },
+      icons.map((icon) =>
+        React.createElement(SavedParagraphIcon, {
+          key: icon.id,
+          position: icon.position,
+          onXplainoClick: icon.onXplainoClick,
+          onBookmarkClick: icon.onBookmarkClick,
+          useShadowDom: true,
+          iconRef: icon.iconRef,
+          selectionRange: icon.selectionRange,
+        })
+      )
+    )
+  );
+}
+
+/**
+ * Inject Saved Paragraph Icon Container into the page with Shadow DOM
+ */
+function injectSavedParagraphIconContainer(): void {
+  if (shadowHostExists(SAVED_PARAGRAPH_ICON_HOST_ID)) {
+    updateSavedParagraphIconContainer();
+    return;
+  }
+
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: SAVED_PARAGRAPH_ICON_HOST_ID,
+    zIndex: 2147483647, // Highest z-index
+  });
+
+  injectStyles(shadow, FAB_COLOR_VARIABLES);
+  injectStyles(shadow, savedParagraphIconStyles);
+
+  document.body.appendChild(host);
+
+  savedParagraphIconRoot = ReactDOM.createRoot(mountPoint);
+  updateSavedParagraphIconContainer();
+
+  console.log('[Content Script] Saved Paragraph Icon Container injected successfully');
+}
+
+/**
+ * Remove Saved Paragraph Icon Container from the page
+ * (Currently unused, but kept for potential cleanup needs)
+ */
+// @ts-expect-error - Function kept for potential future cleanup needs
+function removeSavedParagraphIconContainer(): void {
+  removeShadowHost(SAVED_PARAGRAPH_ICON_HOST_ID, savedParagraphIconRoot);
+  savedParagraphIconRoot = null;
+  console.log('[Content Script] Saved Paragraph Icon Container removed');
+}
+
+/**
+ * Handle remove bookmark from text explanation
+ */
+async function handleRemoveTextExplanationBookmark(explanationId: string, paragraphId: string): Promise<void> {
+  console.log('[Content Script] Removing bookmark from text explanation:', explanationId, paragraphId);
+  
+  // Call remove API
+  SavedParagraphService.removeSavedParagraph(
+    paragraphId,
+    {
+      onSuccess: () => {
+        console.log('[Content Script] Bookmark removed successfully');
+        
+        // Clear paragraphId from explanation state
+        updateExplanationInMap(explanationId, (state) => {
+          state.paragraphId = undefined;
+          return state;
+        });
+        
+        // Update panel and icon container to reflect bookmark removal
+        updateTextExplanationPanel();
+        updateTextExplanationIconContainer();
+        
+        // Also remove from saved paragraphs if it exists there
+        const savedParagraphId = `saved-paragraph-${paragraphId}`;
+        const savedState = savedParagraphs.get(savedParagraphId);
+        if (savedState) {
+          // Remove underline
+          if (savedState.underlineState) {
+            removeTextUnderline(savedState.underlineState);
+          }
+          // Remove from map
+          savedParagraphs.delete(savedParagraphId);
+          // Update saved paragraph icon container
+          updateSavedParagraphIconContainer();
+        }
+        
+        // Show success toast
+        showToast('Bookmark removed successfully!', 'success');
+      },
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to remove bookmark:', errorCode, message);
+        showToast(`Failed to remove bookmark: ${message}`, 'error');
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required to remove bookmark');
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required to remove bookmark');
+        store.set(showSubscriptionModalAtom, true);
+      },
+    }
+  );
+}
+
+/**
+ * Handle remove saved paragraph
+ */
+async function handleRemoveSavedParagraph(paragraphId: string, savedParagraphId: string): Promise<void> {
+  console.log('[Content Script] Removing saved paragraph:', paragraphId);
+  
+  const state = savedParagraphs.get(savedParagraphId);
+  if (!state) {
+    console.warn('[Content Script] Saved paragraph state not found:', savedParagraphId);
+    return;
+  }
+  
+  // Call remove API
+  SavedParagraphService.removeSavedParagraph(
+    paragraphId,
+    {
+      onSuccess: () => {
+        console.log('[Content Script] Saved paragraph removed successfully');
+        
+        // Remove underline
+        if (state.underlineState) {
+          removeTextUnderline(state.underlineState);
+        }
+        
+        // Remove from map
+        savedParagraphs.delete(savedParagraphId);
+        
+        // Update icon container
+        updateSavedParagraphIconContainer();
+        
+        // Show success toast
+        showToast('Saved paragraph removed successfully!', 'success');
+      },
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to remove saved paragraph:', errorCode, message);
+        showToast(`Failed to remove saved paragraph: ${message}`, 'error');
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required to remove saved paragraph');
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required to remove saved paragraph');
+        store.set(showSubscriptionModalAtom, true);
+      },
+    }
+  );
+}
 
 // Subscribe to login and subscription modal visibility to apply blur to background components
 store.sub(showLoginModalAtom, () => {

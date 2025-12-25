@@ -32,7 +32,7 @@
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  z-index: 2147483645 !important;
+  z-index: 2147483640 !important;
 }
 
 .fabParent.slideOut {

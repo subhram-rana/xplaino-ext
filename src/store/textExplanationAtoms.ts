@@ -25,6 +25,7 @@ export interface TextExplanationState {
   simplifiedExplanationCount: number; // Count of simplified explanations (1, 2, 3, etc.)
   isSimplifyRequest?: boolean; // Track if current request is a Simplify request (not Ask request)
   translations: Array<{ language: string; translated_content: string }>; // Array of translations for this selected text
+  paragraphId?: string; // ID of saved paragraph if this text is bookmarked
 }
 
 // ============================================
