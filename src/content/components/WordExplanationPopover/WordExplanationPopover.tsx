@@ -348,7 +348,7 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
       opacity: 1,
       visibility: 'visible',
     }),
-    zIndex: 2147483647,
+    zIndex: 2147483640,
   };
 
   console.log('[WordExplanationPopover] Combined style:', combinedStyle);

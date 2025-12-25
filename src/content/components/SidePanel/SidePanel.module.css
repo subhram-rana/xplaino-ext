@@ -27,7 +27,7 @@
   background: var(--panel-white) !important;
   border-radius: var(--panel-border-radius) 0 0 var(--panel-border-radius) !important;
   box-shadow: var(--panel-shadow) !important;
-  z-index: 2147483647 !important;
+  z-index: 2147483641 !important;
   display: flex !important;
   flex-direction: column !important;
   transform: translateX(100%) !important;

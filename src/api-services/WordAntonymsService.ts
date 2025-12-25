@@ -24,6 +24,7 @@ export interface AntonymsCallbacks {
   onSuccess: (response: AntonymsResponse) => void;
   onError: (errorCode: string, errorMessage: string) => void;
   onSubscriptionRequired?: () => void;
+  onLoginRequired?: () => void;
 }
 
 /**
@@ -83,7 +84,9 @@ export class WordAntonymsService {
             if (!retryResponse.ok) {
               const errorData = await retryResponse.json().catch(() => ({}));
               const errorCode = errorData.error_code || `HTTP_${retryResponse.status}`;
-              const errorMessage = errorData.error_message || errorData.detail || retryResponse.statusText;
+              const errorMessage = errorData.error_message 
+                || (typeof errorData.detail === 'string' ? errorData.detail : errorData.detail?.message)
+                || retryResponse.statusText;
               callbacks.onError(errorCode, errorMessage);
               return;
             }
@@ -104,8 +107,20 @@ export class WordAntonymsService {
         }
         
         // Handle other 401 errors
+        // Check for LOGIN_REQUIRED in error response body
+        if (ApiResponseHandler.checkLoginRequired(errorData, response.status)) {
+          // Call service-specific callback first (to clean up UI state)
+          if (callbacks.onLoginRequired) {
+            callbacks.onLoginRequired();
+          }
+          ApiResponseHandler.handleLoginRequired(undefined, 'WordAntonymsService');
+          return;
+        }
+        
         const errorCode = errorData.error_code || 'UNAUTHORIZED';
-        const errorMessage = errorData.error_message || errorData.detail || 'Unauthorized';
+        const errorMessage = errorData.error_message 
+          || (typeof errorData.detail === 'string' ? errorData.detail : errorData.detail?.message)
+          || 'Unauthorized';
         callbacks.onError(errorCode, errorMessage);
         return;
       }
@@ -115,6 +130,10 @@ export class WordAntonymsService {
         
         // Check for LOGIN_REQUIRED in error response body (regardless of status code)
         if (ApiResponseHandler.checkLoginRequired(errorData, response.status)) {
+          // Call service-specific callback first (to clean up UI state)
+          if (callbacks.onLoginRequired) {
+            callbacks.onLoginRequired();
+          }
           ApiResponseHandler.handleLoginRequired(undefined, 'WordAntonymsService');
           return;
         }
@@ -126,7 +145,9 @@ export class WordAntonymsService {
         }
         
         const errorCode = errorData.error_code || `HTTP_${response.status}`;
-        const errorMessage = errorData.error_message || errorData.detail || response.statusText;
+        const errorMessage = errorData.error_message 
+          || (typeof errorData.detail === 'string' ? errorData.detail : errorData.detail?.message)
+          || response.statusText;
         callbacks.onError(errorCode, errorMessage);
         return;
       }

@@ -24,7 +24,7 @@
   box-shadow: 0 4px 20px rgba(149, 39, 245, 0.3) !important;
   border: none !important;
   padding: 15px !important;
-  z-index: 2147483647 !important;
+  z-index: 2147483640 !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
@@ -422,7 +422,7 @@
 /* Purple Spinner (positioned near word) */
 .purple-spinner-container {
   position: fixed !important;
-  z-index: 2147483647 !important;
+  z-index: 2147483640 !important;
   pointer-events: none !important;
   display: flex !important;
   align-items: center !important;

@@ -769,7 +769,7 @@ function injectSidePanel(): void {
   // Create Shadow DOM host
   const { host, shadow, mountPoint } = createShadowHost({
     id: SIDE_PANEL_HOST_ID,
-    zIndex: 2147483646,
+    zIndex: 2147483641,
   });
 
   // Inject color CSS variables first
@@ -1811,7 +1811,7 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
           removeWordExplanation(wordId);
           
           // Show user-friendly message
-          const displayMessage = code === 'NOT_FOUND' || message.toLowerCase().includes('not found') 
+          const displayMessage = code === 'NOT_FOUND' || (typeof message === 'string' && message.toLowerCase().includes('not found'))
             ? 'Synonyms do not exist for this word'
             : (message || 'Failed to fetch synonyms');
           showToast(displayMessage, 'error');
@@ -1824,6 +1824,14 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
           
           // Show subscription modal
           store.set(showSubscriptionModalAtom, true);
+        },
+        onLoginRequired: () => {
+          console.log('[Content Script] Login required for synonyms - cleaning up UI silently');
+          
+          // Remove word explanation and selection silently (no error toast)
+          removeWordExplanation(wordId);
+          
+          // Login modal will be shown by global handler
         },
       }
     );
@@ -2022,7 +2030,7 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
           removeWordExplanation(wordId);
           
           // Show user-friendly message
-          const displayMessage = code === 'NOT_FOUND' || message.toLowerCase().includes('not found') 
+          const displayMessage = code === 'NOT_FOUND' || (typeof message === 'string' && message.toLowerCase().includes('not found'))
             ? 'Opposite does not exist for this word'
             : (message || 'Failed to fetch antonyms');
           showToast(displayMessage, 'error');
@@ -2035,6 +2043,14 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
           
           // Show subscription modal
           store.set(showSubscriptionModalAtom, true);
+        },
+        onLoginRequired: () => {
+          console.log('[Content Script] Login required for antonyms - cleaning up UI silently');
+          
+          // Remove word explanation and selection silently (no error toast)
+          removeWordExplanation(wordId);
+          
+          // Login modal will be shown by global handler
         },
       }
     );
@@ -2251,7 +2267,7 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
           removeWordExplanation(wordId);
           
           // Show user-friendly message
-          const displayMessage = code === 'NOT_FOUND' || message.toLowerCase().includes('not found') 
+          const displayMessage = code === 'NOT_FOUND' || (typeof message === 'string' && message.toLowerCase().includes('not found'))
             ? 'Translation not available for this word'
             : (message || 'Failed to translate');
           showToast(displayMessage, 'error');
@@ -2453,7 +2469,7 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
           }
           
           // Show user-friendly message
-          const displayMessage = code === 'NOT_FOUND' || message.toLowerCase().includes('not found') 
+          const displayMessage = code === 'NOT_FOUND' || (typeof message === 'string' && message.toLowerCase().includes('not found'))
             ? 'Translation not available'
             : (message || 'Failed to translate');
           showToast(displayMessage, 'error');
@@ -2882,7 +2898,7 @@ async function handleGetSynonyms(wordId: string): Promise<void> {
         updateWordExplanationPopover();
         
         // Show user-friendly message for "Not found" errors
-        const displayMessage = code === 'NOT_FOUND' || message.toLowerCase().includes('not found') 
+        const displayMessage = code === 'NOT_FOUND' || (typeof message === 'string' && message.toLowerCase().includes('not found'))
           ? 'Synonyms do not exist for this word'
           : (message || 'Failed to fetch synonyms');
         showToast(displayMessage, 'error');
@@ -2901,6 +2917,23 @@ async function handleGetSynonyms(wordId: string): Promise<void> {
         store.set(wordExplanationsAtom, map);
         updateWordExplanationPopover();
         store.set(showSubscriptionModalAtom, true);
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required for word synonyms - stopping loading state');
+        const currentState = store.get(wordExplanationsAtom).get(wordId);
+        if (!currentState) return;
+
+        // Stop loading state silently (no error toast)
+        const updated: WordExplanationAtomState = {
+          ...currentState,
+          isLoadingSynonyms: false,
+        };
+        const map = new Map(store.get(wordExplanationsAtom));
+        map.set(wordId, updated);
+        store.set(wordExplanationsAtom, map);
+        updateWordExplanationPopover();
+        
+        // Login modal will be shown by global handler
       },
     }
   );
@@ -2965,7 +2998,7 @@ async function handleGetAntonyms(wordId: string): Promise<void> {
         updateWordExplanationPopover();
         
         // Show user-friendly message for "Not found" errors
-        const displayMessage = code === 'NOT_FOUND' || message.toLowerCase().includes('not found') 
+        const displayMessage = code === 'NOT_FOUND' || (typeof message === 'string' && message.toLowerCase().includes('not found'))
           ? 'Opposite does not exist for this word'
           : (message || 'Failed to fetch antonyms');
         showToast(displayMessage, 'error');
@@ -2984,6 +3017,23 @@ async function handleGetAntonyms(wordId: string): Promise<void> {
         store.set(wordExplanationsAtom, map);
         updateWordExplanationPopover();
         store.set(showSubscriptionModalAtom, true);
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required for word antonyms - stopping loading state');
+        const currentState = store.get(wordExplanationsAtom).get(wordId);
+        if (!currentState) return;
+
+        // Stop loading state silently (no error toast)
+        const updated: WordExplanationAtomState = {
+          ...currentState,
+          isLoadingAntonyms: false,
+        };
+        const map = new Map(store.get(wordExplanationsAtom));
+        map.set(wordId, updated);
+        store.set(wordExplanationsAtom, map);
+        updateWordExplanationPopover();
+        
+        // Login modal will be shown by global handler
       },
     }
   );
@@ -4241,7 +4291,7 @@ function injectTextExplanationPanel(): void {
 
   const { host, shadow, mountPoint } = createShadowHost({
     id: TEXT_EXPLANATION_PANEL_HOST_ID,
-    zIndex: 2147483645, // Below main side panel
+    zIndex: 2147483643, // Below main side panel
   });
 
   // Inject component styles first (they define variables after all:initial)
@@ -4283,7 +4333,10 @@ function injectWordExplanationPopover(): void {
   }
 
   console.log('[Content Script] Creating new word explanation popover shadow host');
-  const hostResult = createShadowHost({ id: WORD_EXPLANATION_POPOVER_HOST_ID });
+  const hostResult = createShadowHost({ 
+    id: WORD_EXPLANATION_POPOVER_HOST_ID,
+    zIndex: 2147483640,
+  });
 
   // Inject styles
   injectStyles(hostResult.shadow, wordExplanationPopoverStyles);
@@ -4610,7 +4663,10 @@ function injectWordAskAISidePanel(): void {
   }
 
   console.log('[Content Script] Creating new Word Ask AI side panel shadow host');
-  const hostResult = createShadowHost({ id: WORD_ASK_AI_PANEL_HOST_ID });
+  const hostResult = createShadowHost({ 
+    id: WORD_ASK_AI_PANEL_HOST_ID,
+    zIndex: 2147483642,
+  });
 
   // Inject styles
   injectStyles(hostResult.shadow, wordAskAISidePanelStyles);
@@ -5214,6 +5270,34 @@ function removeLoginModal(): void {
   console.log('[Content Script] Login Modal removed');
 }
 
+/**
+ * Apply blur effect to background components when login or subscription modal is visible
+ */
+function updateBackgroundBlur(): void {
+  const isLoginModalVisible = store.get(showLoginModalAtom);
+  const isSubscriptionModalVisible = store.get(showSubscriptionModalAtom);
+  const isAnyModalVisible = isLoginModalVisible || isSubscriptionModalVisible;
+
+  const hostIds = [
+    WORD_EXPLANATION_POPOVER_HOST_ID,
+    WORD_ASK_AI_PANEL_HOST_ID,
+    SIDE_PANEL_HOST_ID,
+    TEXT_EXPLANATION_PANEL_HOST_ID,
+  ];
+
+  hostIds.forEach((hostId) => {
+    const host = document.getElementById(hostId);
+    if (host) {
+      if (isAnyModalVisible) {
+        host.style.filter = 'blur(4px)';
+        host.style.transition = 'filter 0.3s ease';
+      } else {
+        host.style.filter = 'none';
+      }
+    }
+  });
+}
+
 // =============================================================================
 // SUBSCRIPTION MODAL INJECTION
 // =============================================================================
@@ -5301,6 +5385,15 @@ async function initContentScript(): Promise<void> {
 
 // Setup global auth listener (runs once at script initialization)
 setupGlobalAuthListener();
+
+// Subscribe to login and subscription modal visibility to apply blur to background components
+store.sub(showLoginModalAtom, () => {
+  updateBackgroundBlur();
+});
+
+store.sub(showSubscriptionModalAtom, () => {
+  updateBackgroundBlur();
+});
 
 /**
  * Listen for storage changes to dynamically enable/disable
