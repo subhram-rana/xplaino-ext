@@ -60,7 +60,7 @@ import { FolderService } from '../api-services/FolderService';
 import { SavedParagraphService } from '../api-services/SavedParagraphService';
 import type { FolderWithSubFoldersResponse } from '../api-services/dto/FolderDTO';
 import { extractAndStorePageContent, getStoredPageContent } from './utils/pageContentExtractor';
-import { addTextUnderline, removeTextUnderline, pulseTextBackground, type UnderlineState } from './utils/textSelectionUnderline';
+import { addTextUnderline, removeTextUnderline, pulseTextBackground, changeUnderlineColor, type UnderlineState } from './utils/textSelectionUnderline';
 import { PageTranslationManager } from './utils/pageTranslationManager';
 import {
   summariseStateAtom,
@@ -132,6 +132,7 @@ let textExplanationPanelRoot: ReactDOM.Root | null = null;
 let textExplanationIconRoot: ReactDOM.Root | null = null;
 let wordExplanationPopoverRoot: ReactDOM.Root | null = null;
 let wordAskAISidePanelRoot: ReactDOM.Root | null = null;
+let wordAskAICloseHandler: (() => void) | null = null;
 let toastRoot: ReactDOM.Root | null = null;
 
 // Modal state
@@ -1524,7 +1525,7 @@ async function handleWordExplain(
           // Format content as markdown (without word, as it's now in the header)
           let formattedContent = meaning;
           if (examples.length > 0) {
-            formattedContent += '\n\n**Examples:**\n';
+            formattedContent += '\n\n#### Examples:\n';
             examples.forEach((example, idx) => {
               formattedContent += `${idx + 1}. ${example}\n`;
             });
@@ -1545,10 +1546,16 @@ async function handleWordExplain(
                 meaning,
                 examples,
                 shouldAllowFetchMoreExamples: true, // Default to true (wordInfo doesn't have this field)
+                activeTab: 'contextual', // Ensure we're on contextual tab
               };
               const atomsMap = new Map(store.get(wordExplanationsAtom));
               atomsMap.set(wordId, updatedAtomState);
               store.set(wordExplanationsAtom, atomsMap);
+            }
+            
+            // Ensure local state's activeTab is also 'contextual'
+            if (state.activeTab !== 'contextual') {
+              state.activeTab = 'contextual';
             }
 
             // Remove spinner
@@ -1562,10 +1569,17 @@ async function handleWordExplain(
               state.wordSpanElement.classList.remove('word-explanation-loading');
               state.wordSpanElement.classList.add('word-explanation-active');
               
+              // Get bookmark state from atom
+              const atomState = store.get(wordExplanationsAtom).get(wordId);
+              const isSaved = atomState?.isSaved || false;
+              
               // Update inline styles to show green background (CSS classes don't work in main DOM)
               state.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
               state.wordSpanElement.style.cursor = 'pointer';
               state.wordSpanElement.style.transition = 'background 0.2s ease';
+              
+              // Apply green styling with border, bookmark icon, and close button
+              applyGreenWordSpanStyling(state.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation with inline styles
               state.wordSpanElement.style.animation = 'none';
@@ -1594,6 +1608,16 @@ async function handleWordExplain(
               state.wordSpanElement.addEventListener('click', () => {
                 toggleWordPopover(wordId);
               });
+
+              // Add double-click handler to remove word explanation and show purple icon
+              state.wordSpanElement.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (state.wordSpanElement) {
+                  showPurpleXplainoIconForWordRemoval(state.wordSpanElement, wordId);
+                }
+                removeWordExplanation(wordId);
+              });
             }
 
             // Open popover
@@ -1616,10 +1640,16 @@ async function handleWordExplain(
                 meaning,
                 examples,
                 shouldAllowFetchMoreExamples: true, // Default to true (wordInfo doesn't have this field)
+                activeTab: 'contextual', // Ensure we're on contextual tab
               };
               const atomsMap = new Map(store.get(wordExplanationsAtom));
               atomsMap.set(wordId, updatedAtomState);
               store.set(wordExplanationsAtom, atomsMap);
+            }
+            
+            // Ensure local state's activeTab is also 'contextual'
+            if (state.activeTab !== 'contextual') {
+              state.activeTab = 'contextual';
             }
             
             updateWordExplanationPopover();
@@ -1845,10 +1875,17 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
               localState.wordSpanElement.classList.remove('word-explanation-loading');
               localState.wordSpanElement.classList.add('word-explanation-active');
               
+              // Get bookmark state from atom
+              const atomState = store.get(wordExplanationsAtom).get(wordId);
+              const isSaved = atomState?.isSaved || false;
+              
               // Update inline styles to show green background
               localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
               localState.wordSpanElement.style.cursor = 'pointer';
               localState.wordSpanElement.style.transition = 'background 0.2s ease';
+              
+              // Apply green styling with border, bookmark icon, and close button
+              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
               localState.wordSpanElement.style.animation = 'none';
@@ -1875,6 +1912,16 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
               // Add click handler to toggle popover
               localState.wordSpanElement.addEventListener('click', () => {
                 toggleWordPopover(wordId);
+              });
+
+              // Add double-click handler to remove word explanation and show purple icon
+              localState.wordSpanElement.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (localState.wordSpanElement) {
+                  showPurpleXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                }
+                removeWordExplanation(wordId);
               });
             }
             
@@ -2064,10 +2111,17 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
               localState.wordSpanElement.classList.remove('word-explanation-loading');
               localState.wordSpanElement.classList.add('word-explanation-active');
               
+              // Get bookmark state from atom
+              const atomState = store.get(wordExplanationsAtom).get(wordId);
+              const isSaved = atomState?.isSaved || false;
+              
               // Update inline styles to show green background
               localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
               localState.wordSpanElement.style.cursor = 'pointer';
               localState.wordSpanElement.style.transition = 'background 0.2s ease';
+              
+              // Apply green styling with border, bookmark icon, and close button
+              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
               localState.wordSpanElement.style.animation = 'none';
@@ -2094,6 +2148,16 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
               // Add click handler to toggle popover
               localState.wordSpanElement.addEventListener('click', () => {
                 toggleWordPopover(wordId);
+              });
+
+              // Add double-click handler to remove word explanation and show purple icon
+              localState.wordSpanElement.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (localState.wordSpanElement) {
+                  showPurpleXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                }
+                removeWordExplanation(wordId);
               });
             }
             
@@ -2301,10 +2365,17 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
               localState.wordSpanElement.classList.remove('word-explanation-loading');
               localState.wordSpanElement.classList.add('word-explanation-active');
               
+              // Get bookmark state from atom
+              const atomState = store.get(wordExplanationsAtom).get(wordId);
+              const isSaved = atomState?.isSaved || false;
+              
               // Update inline styles to show green background
               localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
               localState.wordSpanElement.style.cursor = 'pointer';
               localState.wordSpanElement.style.transition = 'background 0.2s ease';
+              
+              // Apply green styling with border, bookmark icon, and close button
+              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
               localState.wordSpanElement.style.animation = 'none';
@@ -2331,6 +2402,16 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
               // Add click handler to toggle popover
               localState.wordSpanElement.addEventListener('click', () => {
                 toggleWordPopover(wordId);
+              });
+
+              // Add double-click handler to remove word explanation and show purple icon
+              localState.wordSpanElement.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (localState.wordSpanElement) {
+                  showPurpleXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                }
+                removeWordExplanation(wordId);
               });
             }
             
@@ -2516,6 +2597,24 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
           // Stop translating flag
           isTranslating = false;
           
+          // Add green underline to selected text when panel starts opening
+          const currentStateForUnderline = store.get(textExplanationsAtom).get(explanationId);
+          if (currentStateForUnderline && currentStateForUnderline.range) {
+            const underlineState = addTextUnderline(currentStateForUnderline.range, 'green');
+            if (underlineState) {
+              // Update explanation state with underline
+              const mapWithUnderline = new Map(store.get(textExplanationsAtom));
+              const stateWithUnderline = mapWithUnderline.get(explanationId);
+              if (stateWithUnderline) {
+                mapWithUnderline.set(explanationId, {
+                  ...stateWithUnderline,
+                  underlineState,
+                });
+                store.set(textExplanationsAtom, mapWithUnderline);
+              }
+            }
+          }
+          
           // Open side panel with Translation tab
           store.set(textExplanationPanelOpenAtom, true);
           
@@ -2651,7 +2750,7 @@ function createWordSpan(word: string, range: Range): HTMLElement | null {
     span.textContent = word;
     span.style.cssText = `
       background: rgba(149, 39, 245, 0.1);
-      border-radius: 4px;
+      border-radius: 12px;
       padding: 2px 4px;
       cursor: default;
       position: relative;
@@ -2711,6 +2810,200 @@ function createPurpleSpinner(wordSpan: HTMLElement): HTMLElement {
 }
 
 /**
+ * Create bookmark icon element for word span
+ */
+function createBookmarkIcon(): HTMLElement {
+  const bookmarkIcon = document.createElement('div');
+  bookmarkIcon.className = 'word-explanation-bookmark-icon';
+  bookmarkIcon.style.cssText = `
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: 16px;
+    height: 16px;
+    z-index: 1;
+    pointer-events: none;
+  `;
+  
+  // Create SVG bookmark icon
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '16');
+  svg.setAttribute('height', '16');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', '#9527F5');
+  svg.style.cssText = 'width: 100%; height: 100%;';
+  
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z');
+  path.setAttribute('fill', '#9527F5');
+  
+  svg.appendChild(path);
+  bookmarkIcon.appendChild(svg);
+  
+  return bookmarkIcon;
+}
+
+/**
+ * Create reusable green close button component for word span
+ * Size is 3/4 of original (15px instead of 20px)
+ */
+function createWordSpanCloseButton(wordId: string): HTMLElement {
+  const closeButton = document.createElement('button');
+  closeButton.className = 'word-explanation-close-button';
+  closeButton.setAttribute('aria-label', 'Remove word explanation');
+  closeButton.style.cssText = `
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 200, 0, 0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    z-index: 2;
+  `;
+  
+  // Create SVG X icon (9px instead of 12px - 3/4 size)
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '9');
+  svg.setAttribute('height', '9');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'rgba(0, 200, 0, 0.8)');
+  svg.setAttribute('stroke-width', '2.5');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.style.cssText = 'width: 100%; height: 100%;';
+  
+  const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line1.setAttribute('x1', '18');
+  line1.setAttribute('y1', '6');
+  line1.setAttribute('x2', '6');
+  line1.setAttribute('y2', '18');
+  
+  const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line2.setAttribute('x1', '6');
+  line2.setAttribute('y1', '6');
+  line2.setAttribute('x2', '18');
+  line2.setAttribute('y2', '18');
+  
+  svg.appendChild(line1);
+  svg.appendChild(line2);
+  closeButton.appendChild(svg);
+  
+  // Add click handler
+  closeButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    removeWordExplanation(wordId);
+  });
+  
+  return closeButton;
+}
+
+/**
+ * Show purple xplaino icon when word is removed via double-click
+ */
+function showPurpleXplainoIconForWordRemoval(wordSpanElement: HTMLElement, _wordId: string): void {
+  const rect = wordSpanElement.getBoundingClientRect();
+  const iconUrl = chrome.runtime.getURL('src/assets/icons/xplaino-purple-icon.ico');
+  
+  // Create icon container
+  const iconContainer = document.createElement('div');
+  iconContainer.style.cssText = `
+    position: fixed;
+    left: ${rect.left + rect.width / 2 - 14}px;
+    top: ${rect.top + rect.height / 2 - 14}px;
+    width: 28px;
+    height: 28px;
+    z-index: 2147483647;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: word-explanation-icon-fade-out 0.5s ease-out forwards;
+  `;
+  
+  // Create icon image
+  const iconImg = document.createElement('img');
+  iconImg.src = iconUrl;
+  iconImg.style.cssText = `
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  `;
+  
+  iconContainer.appendChild(iconImg);
+  document.body.appendChild(iconContainer);
+  
+  // Remove icon after animation
+  setTimeout(() => {
+    if (iconContainer.parentNode) {
+      iconContainer.remove();
+    }
+  }, 500);
+  
+  // Add fade-out animation if not already in styles
+  if (!document.getElementById('xplaino-word-icon-fade-animation')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'xplaino-word-icon-fade-animation';
+    styleElement.textContent = `
+      @keyframes word-explanation-icon-fade-out {
+        0% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+      }
+    `;
+    document.head.appendChild(styleElement);
+  }
+}
+
+/**
+ * Apply green styling and decorations to word span
+ */
+function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, wordId: string, isSaved: boolean): void {
+  // Ensure position is relative for absolute positioning of icons
+  if (wordSpanElement.style.position !== 'relative' && wordSpanElement.style.position !== 'absolute') {
+    wordSpanElement.style.position = 'relative';
+  }
+  
+  // Add green border and border-radius
+  wordSpanElement.style.border = '1px solid rgba(0, 200, 0, 0.5)';
+  wordSpanElement.style.borderRadius = '12px';
+  
+  // Remove existing bookmark icon and close button if they exist
+  const existingBookmark = wordSpanElement.querySelector('.word-explanation-bookmark-icon');
+  if (existingBookmark) {
+    existingBookmark.remove();
+  }
+  const existingClose = wordSpanElement.querySelector('.word-explanation-close-button');
+  if (existingClose) {
+    existingClose.remove();
+  }
+  
+  // Add bookmark icon if word is saved
+  if (isSaved) {
+    const bookmarkIcon = createBookmarkIcon();
+    wordSpanElement.appendChild(bookmarkIcon);
+  }
+  
+  // Always add close button
+  const closeButton = createWordSpanCloseButton(wordId);
+  wordSpanElement.appendChild(closeButton);
+}
+
+/**
  * Inject word span animation styles into main page DOM
  * (only needs to be done once)
  */
@@ -2748,6 +3041,7 @@ function injectWordSpanStyles(): void {
     
     .word-explanation-loading {
       animation: word-explanation-pulsate-purple 1.5s ease-in-out infinite;
+      border-radius: 12px;
     }
     
     @keyframes spin {
@@ -2862,7 +3156,7 @@ async function handleGetMoreExamples(wordId: string): Promise<void> {
         const localState = wordExplanationsMap.get(wordId);
         if (localState) {
           const examplesText = response.examples.map((ex, i) => `${i + 1}. ${ex}`).join('\n');
-          localState.streamedContent = `**${wordAtomState.meaning}**\n\n**Examples:**\n${examplesText}`;
+          localState.streamedContent = `**${wordAtomState.meaning}**\n\n#### Examples:\n${examplesText}`;
         }
         
         updateWordExplanationPopover();
@@ -2932,17 +3226,29 @@ async function handleGetContextualMeaning(wordId: string): Promise<void> {
     return;
   }
 
-  // Set loading state
+  // Set loading state and ensure we're on contextual tab
   const updatedState: WordExplanationAtomState = {
     ...wordAtomState,
     isLoading: true,
     errorMessage: null,
     streamedContent: '',
     firstEventReceived: false,
+    activeTab: 'contextual', // Ensure we're on contextual tab
   };
   const newMap = new Map(store.get(wordExplanationsAtom));
   newMap.set(wordId, updatedState);
   store.set(wordExplanationsAtom, newMap);
+  
+  // Also update local state's activeTab, isLoading, and streamedContent
+  const localState = wordExplanationsMap.get(wordId);
+  if (localState) {
+    localState.activeTab = 'contextual';
+    localState.isLoading = true;
+    localState.streamedContent = '';
+    localState.firstEventReceived = false;
+    localState.errorMessage = null;
+  }
+  
   updateWordExplanationPopover();
 
   // Create abort controller
@@ -3002,7 +3308,7 @@ async function handleGetContextualMeaning(wordId: string): Promise<void> {
         // Format content as markdown
         let formattedContent = meaning;
         if (examples.length > 0) {
-          formattedContent += '\n\n**Examples:**\n';
+          formattedContent += '\n\n#### Examples:\n';
           examples.forEach((example, idx) => {
             formattedContent += `${idx + 1}. ${example}\n`;
           });
@@ -3021,10 +3327,22 @@ async function handleGetContextualMeaning(wordId: string): Promise<void> {
             isLoading: false,
             firstEventReceived: true,
             shouldAllowFetchMoreExamples: true,
+            activeTab: 'contextual', // Ensure we're on contextual tab
           };
           const map = new Map(store.get(wordExplanationsAtom));
           map.set(wordId, updated);
           store.set(wordExplanationsAtom, map);
+          
+          // Also update local state's streamedContent, activeTab, and isLoading
+          const localState = wordExplanationsMap.get(wordId);
+          if (localState) {
+            localState.streamedContent = formattedContent;
+            localState.activeTab = 'contextual';
+            localState.isLoading = false;
+            localState.firstEventReceived = true;
+            localState.errorMessage = null;
+          }
+          
           updateWordExplanationPopover();
         } else {
           // Subsequent events (streaming updates)
@@ -3033,10 +3351,19 @@ async function handleGetContextualMeaning(wordId: string): Promise<void> {
             meaning,
             examples,
             streamedContent: formattedContent,
+            activeTab: 'contextual', // Ensure we're on contextual tab
           };
           const map = new Map(store.get(wordExplanationsAtom));
           map.set(wordId, updated);
           store.set(wordExplanationsAtom, map);
+          
+          // Also update local state's streamedContent and activeTab
+          const localState = wordExplanationsMap.get(wordId);
+          if (localState) {
+            localState.streamedContent = formattedContent;
+            localState.activeTab = 'contextual';
+          }
+          
           updateWordExplanationPopover();
         }
       },
@@ -3047,14 +3374,34 @@ async function handleGetContextualMeaning(wordId: string): Promise<void> {
         const currentState = store.get(wordExplanationsAtom).get(wordId);
         if (!currentState) return;
 
+        // Abort the ongoing API call
+        if (currentState.abortController) {
+          currentState.abortController.abort();
+        }
+
+        // Reset state to show the button again (no content, not loading, button visible)
         const updated: WordExplanationAtomState = {
           ...currentState,
           isLoading: false,
-          errorMessage: message || 'Failed to fetch explanation',
+          streamedContent: '',
+          firstEventReceived: false,
+          errorMessage: null,
+          abortController: null,
         };
         const map = new Map(store.get(wordExplanationsAtom));
         map.set(wordId, updated);
         store.set(wordExplanationsAtom, map);
+        
+        // Also update local state to reset it
+        const localState = wordExplanationsMap.get(wordId);
+        if (localState) {
+          localState.isLoading = false;
+          localState.streamedContent = '';
+          localState.firstEventReceived = false;
+          localState.errorMessage = null;
+          localState.abortController = null;
+        }
+        
         updateWordExplanationPopover();
         
         showToast(message || 'Failed to fetch explanation', 'error');
@@ -3070,13 +3417,34 @@ async function handleGetContextualMeaning(wordId: string): Promise<void> {
         const currentState = store.get(wordExplanationsAtom).get(wordId);
         if (!currentState) return;
 
+        // Abort the ongoing API call
+        if (currentState.abortController) {
+          currentState.abortController.abort();
+        }
+
+        // Reset state to show the button again
         const updated: WordExplanationAtomState = {
           ...currentState,
           isLoading: false,
+          streamedContent: '',
+          firstEventReceived: false,
+          errorMessage: null,
+          abortController: null,
         };
         const map = new Map(store.get(wordExplanationsAtom));
         map.set(wordId, updated);
         store.set(wordExplanationsAtom, map);
+        
+        // Also update local state to reset it
+        const localState = wordExplanationsMap.get(wordId);
+        if (localState) {
+          localState.isLoading = false;
+          localState.streamedContent = '';
+          localState.firstEventReceived = false;
+          localState.errorMessage = null;
+          localState.abortController = null;
+        }
+        
         updateWordExplanationPopover();
         
         store.set(showSubscriptionModalAtom, true);
@@ -3088,13 +3456,34 @@ async function handleGetContextualMeaning(wordId: string): Promise<void> {
         const currentState = store.get(wordExplanationsAtom).get(wordId);
         if (!currentState) return;
 
+        // Abort the ongoing API call
+        if (currentState.abortController) {
+          currentState.abortController.abort();
+        }
+
+        // Reset state to show the button again
         const updated: WordExplanationAtomState = {
           ...currentState,
           isLoading: false,
+          streamedContent: '',
+          firstEventReceived: false,
+          errorMessage: null,
+          abortController: null,
         };
         const map = new Map(store.get(wordExplanationsAtom));
         map.set(wordId, updated);
         store.set(wordExplanationsAtom, map);
+        
+        // Also update local state to reset it
+        const localState = wordExplanationsMap.get(wordId);
+        if (localState) {
+          localState.isLoading = false;
+          localState.streamedContent = '';
+          localState.firstEventReceived = false;
+          localState.errorMessage = null;
+          localState.abortController = null;
+        }
+        
         updateWordExplanationPopover();
         
         // Login modal will be shown by global handler
@@ -3422,7 +3811,7 @@ async function handleTranslateWord(wordId: string, _languageCode?: string): Prom
 }
 
 /**
- * Handler for "Ask AI" utility button - opens Ask AI side panel
+ * Handler for "Ask AI" utility button - toggles Ask AI side panel
  */
 function handleAskAI(wordId: string): void {
   console.log('[Content Script] handleAskAI called for wordId:', wordId);
@@ -3430,6 +3819,21 @@ function handleAskAI(wordId: string): void {
   const wordAtomState = store.get(wordExplanationsAtom).get(wordId);
   if (!wordAtomState) {
     console.error('[Content Script] No atom state found for wordId:', wordId);
+    return;
+  }
+
+  const isOpen = store.get(wordAskAISidePanelOpenAtom);
+  const currentWordId = store.get(wordAskAISidePanelWordIdAtom);
+  
+  // If already open for this word, close it with animation
+  if (isOpen && currentWordId === wordId) {
+    console.log('[Content Script] Ask AI panel already open for this word, closing with animation');
+    if (wordAskAICloseHandler) {
+      wordAskAICloseHandler();
+    } else {
+      // Fallback: direct close if handler not registered yet
+      handleAskAIClose();
+    }
     return;
   }
 
@@ -4018,6 +4422,9 @@ function updateTextExplanationPanel(): void {
   const hasContent = chatMessages.length > 0 || streamingText.trim().length > 0;
   const showHeaderIcons = hasContent;
   
+  // Calculate if delete icon should be shown (only when there's simplified explanations or translations)
+  const showDeleteIcon = chatMessages.length > 0 || translations.length > 0;
+  
   // Create clear chat handler
   const handleClearChatCallback = () => {
     if (explanationId) {
@@ -4270,14 +4677,24 @@ function updateTextExplanationPanel(): void {
       
       const explanationId = currentActiveExplanation.id;
       const selectedText = currentActiveExplanation.selectedText;
+      
+      // Validate that selectedText is not empty
+      if (!selectedText || selectedText.trim() === '') {
+        console.error('[Content Script] No selected text available for simplify');
+        showToast('Error: No text available for simplify', 'error');
+        return;
+      }
+      
       const previousSimplifiedTexts = currentActiveExplanation.previousSimplifiedTexts || [];
       const textStartIndex = currentActiveExplanation.textStartIndex;
-      const textLength = currentActiveExplanation.textLength;
       const range = currentActiveExplanation.range;
       
       // Extract surrounding context for the text (15 words before + text + 15 words after)
       const contextText = extractSurroundingContextForText(selectedText, range);
       console.log('[Content Script] Extracted context for Simplify More API:', contextText);
+      
+      // Calculate textLength as the length of the contextText being sent to the API
+      const textLength = contextText.length;
       
       // Abort current request if any
       const newAbortController = new AbortController();
@@ -4308,13 +4725,34 @@ function updateTextExplanationPanel(): void {
           ],
           {
             onChunk: (_chunk, accumulated) => {
+              let shouldConvertUnderline = false;
+              let underlineStateToConvert: UnderlineState | null = null;
+              
               updateExplanationInMap(explanationId, (state) => {
                 state.streamingText = accumulated;
                 if (!state.firstChunkReceived) {
                   state.firstChunkReceived = true;
+                  
+                  // Check if this is a bookmark-created explanation with purple underline
+                  if (state.paragraphId && state.underlineState) {
+                    // Check if underline is purple by examining the wrapper element
+                    const wrapper = state.underlineState.wrapperElement;
+                    const currentColor = wrapper.style.textDecorationColor;
+                    if (currentColor.includes('149, 39, 245') || currentColor.includes('9527F5')) {
+                      shouldConvertUnderline = true;
+                      underlineStateToConvert = state.underlineState;
+                    }
+                  }
                 }
                 return state;
               });
+              
+              // Convert purple underline to green if needed
+              if (shouldConvertUnderline && underlineStateToConvert) {
+                console.log('[Content Script] Converting purple underline to green after first Simplify response');
+                changeUnderlineColor(underlineStateToConvert, 'green');
+              }
+              
               updateTextExplanationPanel();
             },
             onComplete: (simplifiedText, shouldAllowSimplifyMore, possibleQuestions) => {
@@ -4546,6 +4984,13 @@ function updateTextExplanationPanel(): void {
       const explanationId = currentActiveExplanation.id;
       const selectedText = currentActiveExplanation.selectedText;
       
+      // Validate that selectedText is not empty
+      if (!selectedText || selectedText.trim() === '') {
+        console.error('[Content Script] No selected text available for translation');
+        showToast('Error: No text available for translation', 'error');
+        return;
+      }
+      
       // Use language from dropdown instead of Chrome storage
       if (!selectedLanguage) {
         console.error('[Content Script] No language selected from dropdown');
@@ -4759,6 +5204,7 @@ function updateTextExplanationPanel(): void {
         onSimplify: handleSimplifyCallback,
         isSimplifying,
         showHeaderIcons,
+        showDeleteIcon,
         pendingQuestion,
         firstChunkReceived,
         translations,
@@ -4904,6 +5350,12 @@ async function handleWordBookmarkClick(wordId: string): Promise<void> {
             updated.set(wordId, { ...currentState, isSaved: false, savedWordId: null, isSavingWord: false });
             store.set(wordExplanationsAtom, updated);
             updateWordExplanationPopover();
+            
+            // Update bookmark icon on word span
+            const localState = wordExplanationsMap.get(wordId);
+            if (localState?.wordSpanElement) {
+              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, false);
+            }
           }
           showToast('Word removed from saved list', 'success');
         },
@@ -4967,6 +5419,12 @@ async function handleWordBookmarkClick(wordId: string): Promise<void> {
             updated.set(wordId, { ...currentState, isSaved: true, savedWordId: response.id, isSavingWord: false });
             store.set(wordExplanationsAtom, updated);
             updateWordExplanationPopover();
+            
+            // Update bookmark icon on word span
+            const localState = wordExplanationsMap.get(wordId);
+            if (localState?.wordSpanElement) {
+              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, true);
+            }
           }
           showToast('Word saved successfully!', 'success');
         },
@@ -5233,6 +5691,10 @@ function updateWordAskAISidePanel(): void {
         onSendMessage: (question) => handleAskAISendMessage(wordId, question),
         onStopRequest: () => handleAskAIStopRequest(wordId),
         onClearChat: () => handleAskAIClearChat(wordId),
+        onCloseHandlerReady: (handler) => {
+          console.log('[index.ts] Close handler registered from WordAskAISidePanel');
+          wordAskAICloseHandler = handler;
+        },
       })
     )
   );
@@ -5847,7 +6309,19 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
       onSuccess: (response) => {
         console.log('[Content Script] Text saved successfully with id:', response.id);
         showToast('Text saved successfully!', 'success');
+        
+        // Preserve folderModalText and folderModalRange before closing modal (which clears them)
+        const savedText = folderModalText;
+        const savedRange = folderModalRange;
+        
         closeFolderListModal();
+        
+        // Add purple underline only after save succeeds
+        let underlineState: UnderlineState | null = null;
+        if (savedRange) {
+          underlineState = addTextUnderline(savedRange, 'purple');
+          console.log('[Content Script] Added purple underline after successful bookmark save');
+        }
         
         // Update active explanation to mark it as bookmarked
         const activeId = store.get(activeTextExplanationIdAtom);
@@ -5869,14 +6343,107 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
           // Update panel and icon container to show bookmark state
           updateTextExplanationPanel();
           updateTextExplanationIconContainer();
+        } else if (savedRange && underlineState) {
+          // Bookmark saved from ContentActions (not from panel) - create text explanation state
+          console.log('[Content Script] Creating text explanation state from bookmark');
+          
+          // Validate that we have the selected text
+          if (!savedText || savedText.trim() === '') {
+            console.error('[Content Script] No text available for bookmark explanation');
+            showToast('Error: No text available', 'error');
+            return;
+          }
+          
+          // Calculate icon position
+          const selectionRect = savedRange.getBoundingClientRect();
+          let containingElement: HTMLElement | null = null;
+          let node: Node | null = savedRange.startContainer;
+          
+          while (node && node !== document.body) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              containingElement = node as HTMLElement;
+              break;
+            }
+            node = node.parentNode;
+          }
+          
+          if (!containingElement) {
+            containingElement = document.body;
+          }
+          
+          const elementRect = containingElement.getBoundingClientRect();
+          const leftmostX = elementRect.left;
+          const topmostY = selectionRect.top;
+          
+          const iconPosition = {
+            x: leftmostX - 30,
+            y: topmostY,
+          };
+          
+          // Calculate textStartIndex and textLength
+          const textStartIndex = calculateTextStartIndex(savedRange);
+          const textLength = savedText.length;
+          
+          // Get current explanations
+          const explanations = store.get(textExplanationsAtom);
+          
+          // Create new explanation state (without API call)
+          const explanationId = `explanation-${Date.now()}`;
+          const iconRef: React.MutableRefObject<HTMLElement | null> = { current: null };
+          
+          const newExplanation: TextExplanationState = {
+            id: explanationId,
+            selectedText: savedText, // Use saved text instead of folderModalText which was cleared
+            range: savedRange.cloneRange(),
+            iconPosition,
+            isSpinning: false, // No spinner since we're not calling API
+            streamingText: '',
+            underlineState: underlineState, // Use the purple underline we created after successful save
+            abortController: null, // No active request, so buttons will be enabled
+            firstChunkReceived: false,
+            iconRef,
+            possibleQuestions: [],
+            textStartIndex,
+            textLength,
+            shouldAllowSimplifyMore: true, // Show Simplify button
+            previousSimplifiedTexts: [],
+            simplifiedExplanationCount: 0,
+            isSimplifyRequest: undefined, // Not a simplify request yet
+            translations: [],
+            paragraphId: response.id, // Mark as bookmarked
+          };
+          
+          // Add to map
+          const newMap = new Map(explanations);
+          newMap.set(explanationId, newExplanation);
+          store.set(textExplanationsAtom, newMap);
+          
+          // Set as active
+          store.set(activeTextExplanationIdAtom, explanationId);
+          
+          // Reset view mode to contextual
+          textExplanationViewMode = 'contextual';
+          
+          // Inject icon container and panel if not already injected
+          injectTextExplanationIconContainer();
+          injectTextExplanationPanel();
+          
+          // Open panel immediately
+          store.set(textExplanationPanelOpenAtom, true);
+          
+          // Update UI
+          updateTextExplanationIconContainer();
+          updateTextExplanationPanel();
+          
+          // Note: savedRange and savedText are local variables, no need to clear folderModalRange here
         } else {
           console.warn('[Content Script] No active explanation ID found when saving bookmark');
-        }
-        
-        // Add underline and icons if we have a range
-        if (folderModalRange) {
-          addSavedParagraphIcons(response.id, folderModalText, folderModalRange);
-          folderModalRange = null; // Clear the range after using it
+          
+          // Add underline and icons if we have a range (fallback for saved paragraphs)
+          if (folderModalRange) {
+            addSavedParagraphIcons(response.id, folderModalText, folderModalRange);
+            folderModalRange = null; // Clear the range after using it
+          }
         }
       },
       onError: (errorCode, message) => {
@@ -5884,6 +6451,7 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
         folderModalSaving = false;
         updateFolderListModal();
         showToast(`Failed to save text: ${message}`, 'error');
+        // No underline to remove since it's only added after successful save
       },
       onLoginRequired: () => {
         console.log('[Content Script] Login required to save text');
@@ -5988,6 +6556,7 @@ async function handleCreateFolder(folderName: string, parentFolderId: string | n
  * Close folder list modal
  */
 function closeFolderListModal(): void {
+  // Note: No underline cleanup needed since underline is only added after successful save
   folderModalOpen = false;
   folderModalSaving = false;
   folderModalCreatingFolder = false;
@@ -5998,6 +6567,7 @@ function closeFolderListModal(): void {
   folderModalExpandedFolders = new Set();
   folderModalRememberChecked = false; // Reset checkbox state when modal closes
   // Don't clear folderModalRange here - it's used after modal closes
+  // Note: folderModalUnderlineState is no longer used since underline is only added after successful save
   updateFolderListModal();
 }
 
@@ -6344,8 +6914,11 @@ async function handleRemoveTextExplanationBookmark(explanationId: string, paragr
         
         // Clear paragraphId from explanation state
         updateExplanationInMap(explanationId, (state) => {
-          state.paragraphId = undefined;
-          return state;
+          // Create a new state object to ensure Jotai detects the change
+          return {
+            ...state,
+            paragraphId: undefined,
+          };
         });
         
         // Update panel and icon container to reflect bookmark removal

@@ -509,69 +509,75 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
           ) : null
         ) : (
           <>
-            <div className={getClassName('utilityButtonWrapper')}>
-              <button 
-                className={`${getClassName('utilityButton')} ${isLoadingSynonyms ? getClassName('utilityButtonDisabled') : ''}`}
-                onClick={handleGetSynonyms}
-                onMouseEnter={() => setActiveTooltip('synonyms')}
-                onMouseLeave={() => setActiveTooltip(null)}
-                aria-label="Get synonyms"
-                disabled={isLoadingSynonyms}
-              >
-                {isLoadingSynonyms ? (
-                  <div className={getClassName('buttonSpinner')} />
-                ) : (
-                  <BookOpen size={20} strokeWidth={2.5} />
+            {synonyms.length === 0 && (
+              <div className={getClassName('utilityButtonWrapper')}>
+                <button 
+                  className={`${getClassName('utilityButton')} ${isLoadingSynonyms ? getClassName('utilityButtonDisabled') : ''}`}
+                  onClick={handleGetSynonyms}
+                  onMouseEnter={() => setActiveTooltip('synonyms')}
+                  onMouseLeave={() => setActiveTooltip(null)}
+                  aria-label="Get synonyms"
+                  disabled={isLoadingSynonyms}
+                >
+                  {isLoadingSynonyms ? (
+                    <div className={getClassName('buttonSpinner')} />
+                  ) : (
+                    <BookOpen size={20} strokeWidth={2.5} />
+                  )}
+                </button>
+                {activeTooltip === 'synonyms' && !isLoadingSynonyms && (
+                  <div className={getClassName('utilityTooltip')}>
+                    Get synonyms
+                  </div>
                 )}
-              </button>
-              {activeTooltip === 'synonyms' && !isLoadingSynonyms && (
-                <div className={getClassName('utilityTooltip')}>
-                  Get synonyms
-                </div>
-              )}
-            </div>
-            <div className={getClassName('utilityButtonWrapper')}>
-              <button 
-                className={`${getClassName('utilityButton')} ${isLoadingAntonyms ? getClassName('utilityButtonDisabled') : ''}`}
-                onClick={handleGetOpposite}
-                onMouseEnter={() => setActiveTooltip('opposite')}
-                onMouseLeave={() => setActiveTooltip(null)}
-                aria-label="Get opposite"
-                disabled={isLoadingAntonyms}
-              >
-                {isLoadingAntonyms ? (
-                  <div className={getClassName('buttonSpinner')} />
-                ) : (
-                  <ArrowLeftRight size={20} strokeWidth={2.5} />
+              </div>
+            )}
+            {antonyms.length === 0 && (
+              <div className={getClassName('utilityButtonWrapper')}>
+                <button 
+                  className={`${getClassName('utilityButton')} ${isLoadingAntonyms ? getClassName('utilityButtonDisabled') : ''}`}
+                  onClick={handleGetOpposite}
+                  onMouseEnter={() => setActiveTooltip('opposite')}
+                  onMouseLeave={() => setActiveTooltip(null)}
+                  aria-label="Get opposite"
+                  disabled={isLoadingAntonyms}
+                >
+                  {isLoadingAntonyms ? (
+                    <div className={getClassName('buttonSpinner')} />
+                  ) : (
+                    <ArrowLeftRight size={20} strokeWidth={2.5} />
+                  )}
+                </button>
+                {activeTooltip === 'opposite' && !isLoadingAntonyms && (
+                  <div className={getClassName('utilityTooltip')}>
+                    Get opposite
+                  </div>
                 )}
-              </button>
-              {activeTooltip === 'opposite' && !isLoadingAntonyms && (
-                <div className={getClassName('utilityTooltip')}>
-                  Get opposite
-                </div>
-              )}
-            </div>
-            <div className={getClassName('utilityButtonWrapper')}>
-              <button 
-                className={`${getClassName('utilityButton')} ${isLoadingTranslation ? getClassName('utilityButtonDisabled') : ''}`}
-                onClick={handleTranslate}
-                onMouseEnter={() => setActiveTooltip('translate')}
-                onMouseLeave={() => setActiveTooltip(null)}
-                aria-label="Translate"
-                disabled={isLoadingTranslation}
-              >
-                {isLoadingTranslation ? (
-                  <div className={getClassName('buttonSpinner')} />
-                ) : (
-                  <Languages size={20} strokeWidth={2.5} />
+              </div>
+            )}
+            {translations.length === 0 && (
+              <div className={getClassName('utilityButtonWrapper')}>
+                <button 
+                  className={`${getClassName('utilityButton')} ${isLoadingTranslation ? getClassName('utilityButtonDisabled') : ''}`}
+                  onClick={handleTranslate}
+                  onMouseEnter={() => setActiveTooltip('translate')}
+                  onMouseLeave={() => setActiveTooltip(null)}
+                  aria-label="Translate"
+                  disabled={isLoadingTranslation}
+                >
+                  {isLoadingTranslation ? (
+                    <div className={getClassName('buttonSpinner')} />
+                  ) : (
+                    <Languages size={20} strokeWidth={2.5} />
+                  )}
+                </button>
+                {activeTooltip === 'translate' && !isLoadingTranslation && (
+                  <div className={getClassName('utilityTooltip')}>
+                    Translate
+                  </div>
                 )}
-              </button>
-              {activeTooltip === 'translate' && !isLoadingTranslation && (
-                <div className={getClassName('utilityTooltip')}>
-                  Translate
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )}
       </div>

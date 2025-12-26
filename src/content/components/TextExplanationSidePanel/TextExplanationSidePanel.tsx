@@ -57,6 +57,8 @@ export interface TextExplanationSidePanelProps {
   isSimplifying?: boolean;
   /** Whether to show header icons (hide when content is empty) */
   showHeaderIcons?: boolean;
+  /** Whether to show the delete icon (only show when there's content) */
+  showDeleteIcon?: boolean;
   /** Pending question that was clicked but API hasn't responded yet */
   pendingQuestion?: string;
   /** Whether first chunk has been received from API */
@@ -101,6 +103,7 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   onSimplify,
   isSimplifying = false,
   showHeaderIcons = true,
+  showDeleteIcon = false,
   pendingQuestion,
   firstChunkReceived = false,
   translations = [],
@@ -372,6 +375,7 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         isExpanded={isVerticallyExpanded}
         showRightIcons={showHeaderIcons}
         isBookmarked={isBookmarked}
+        showDeleteIcon={showDeleteIcon}
       />
 
       {/* Content */}

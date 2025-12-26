@@ -66,6 +66,8 @@ export interface TextExplanationHeaderProps {
   showRightIcons?: boolean;
   /** Whether the text is bookmarked */
   isBookmarked?: boolean;
+  /** Whether to show the delete icon (only show when there's content) */
+  showDeleteIcon?: boolean;
 }
 
 export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
@@ -78,6 +80,7 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
   isExpanded = false,
   showRightIcons = true,
   isBookmarked = false,
+  showDeleteIcon = false,
 }) => {
   const getClassName = (baseClass: string) => {
     if (useShadowDom) {
@@ -121,6 +124,7 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
       {/* Right: Action Icons */}
       {showRightIcons && (
         <div className={getClassName('headerRight')}>
+          {/* Eye button - always show */}
           <button
             className={getClassName('headerIconButton')}
             onClick={onViewOriginal}
@@ -130,6 +134,7 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
           >
             <Eye size={18} />
           </button>
+          {/* Bookmark button - always show */}
           <button
             className={getClassName('headerIconButton')}
             onClick={onBookmark}
@@ -139,15 +144,18 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
           >
             <Bookmark size={18} fill={isBookmarked ? "#9527F5" : "none"} color={isBookmarked ? "#9527F5" : "currentColor"} />
           </button>
-          <button
-            className={getClassName('headerIconButton')}
-            onClick={onRemove}
-            aria-label="Remove explanation"
-            title="Remove explanation"
-            type="button"
-          >
-            <Trash2 size={18} />
-          </button>
+          {/* Delete button - only show when there's content */}
+          {showDeleteIcon && (
+            <button
+              className={getClassName('headerIconButton')}
+              onClick={onRemove}
+              aria-label="Remove explanation"
+              title="Remove explanation"
+              type="button"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
         </div>
       )}
     </div>

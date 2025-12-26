@@ -116,7 +116,7 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
     isUnmountingRef.current = false;
   }
 
-  // Animation hook
+  // Animation hook - merge and shrink animations use 400ms duration
   const {
     elementRef,
     sourceRef: animationSourceRef,
@@ -124,7 +124,7 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
     shrink,
     style: animationStyle,
   } = useEmergeAnimation({
-    duration: 400,
+    duration: 400, // 400ms for merge and shrink animations
     easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
     transformOrigin: 'top right',
   });

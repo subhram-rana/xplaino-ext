@@ -124,6 +124,26 @@ export function findAllUnderlinedElements(): HTMLElement[] {
 }
 
 /**
+ * Change the color of an existing underline
+ * @param underlineState - The underline state containing the wrapper element
+ * @param color - The new color for the underline
+ */
+export function changeUnderlineColor(underlineState: UnderlineState | null, color: 'green' | 'purple'): void {
+  if (!underlineState || !underlineState.wrapperElement) {
+    return;
+  }
+
+  const wrapper = underlineState.wrapperElement;
+  
+  // Update the text decoration color
+  if (color === 'purple') {
+    wrapper.style.textDecorationColor = 'rgba(149, 39, 245, 0.8)';
+  } else {
+    wrapper.style.textDecorationColor = 'rgba(0, 200, 0, 0.8)';
+  }
+}
+
+/**
  * Pulse the background color of the underlined text three times with green color
  * @param underlineState - The underline state containing the wrapper element
  */

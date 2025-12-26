@@ -428,7 +428,7 @@
 /* Word Span Styles */
 .word-explanation-loading {
   background: rgba(149, 39, 245, 0.1) !important;
-  border-radius: 4px !important;
+  border-radius: 2px !important;
   padding: 2px 4px !important;
   animation: pulsate-purple 1.5s ease-in-out infinite !important;
   cursor: default !important;
