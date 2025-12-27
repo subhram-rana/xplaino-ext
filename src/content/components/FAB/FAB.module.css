@@ -193,6 +193,19 @@
   stroke: #cc0000 !important;
 }
 
+/* Bookmarked icon - purple filled */
+.actionButton.bookmarked svg {
+  fill: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary, #9527F5) !important;
+  stroke: var(--color-primary, #9527F5) !important;
+}
+
+.actionButton.bookmarked:hover svg {
+  fill: #7c1ed9 !important;
+  color: #7c1ed9 !important;
+  stroke: #7c1ed9 !important;
+}
+
 /* Spinner stays primary color */
 .actionButton :global(.loadingSpinner) {
   animation: spinSpinner 0.8s linear infinite !important;

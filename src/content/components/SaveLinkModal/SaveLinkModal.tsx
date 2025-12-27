@@ -16,6 +16,8 @@ export interface SaveLinkModalProps {
   useShadowDom?: boolean;
   /** Whether save operation is in progress */
   isSaving?: boolean;
+  /** Modal title/heading */
+  modalTitle?: string;
 }
 
 export const SaveLinkModal: React.FC<SaveLinkModalProps> = ({
@@ -25,6 +27,7 @@ export const SaveLinkModal: React.FC<SaveLinkModalProps> = ({
   initialName,
   useShadowDom = false,
   isSaving = false,
+  modalTitle = 'Save link with summary',
 }) => {
   const [name, setName] = useState(initialName);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +86,7 @@ export const SaveLinkModal: React.FC<SaveLinkModalProps> = ({
     <div className={getClassName('modalBackdrop')} onClick={handleBackdropClick}>
       <div className={getClassName('modalContainer')} onClick={(e) => e.stopPropagation()}>
         <div className={getClassName('modalHeader')}>
-          <h2 className={getClassName('modalTitle')}>Save link with summary</h2>
+          <h2 className={getClassName('modalTitle')}>{modalTitle}</h2>
           <button
             className={getClassName('closeButton')}
             onClick={onClose}

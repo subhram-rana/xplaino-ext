@@ -18,6 +18,8 @@ export interface FABProps {
   onClearTranslations?: () => void;
   /** Callback when Options is clicked */
   onOptions?: () => void;
+  /** Callback when Save URL is clicked */
+  onSaveUrl?: () => void;
   /** Whether component is rendered in Shadow DOM (uses plain class names) */
   useShadowDom?: boolean;
   /** Whether summarise button is loading */
@@ -34,6 +36,8 @@ export interface FABProps {
   translationState?: 'idle' | 'translating' | 'partially-translated' | 'fully-translated';
   /** View mode for translations */
   viewMode?: 'original' | 'translated';
+  /** Whether the current page is bookmarked/saved */
+  isBookmarked?: boolean;
 }
 
 /**
@@ -55,6 +59,7 @@ export const FAB: React.FC<FABProps> = ({
   onToggleView,
   onClearTranslations,
   onOptions,
+  onSaveUrl,
   useShadowDom = false,
   isSummarising = false,
   hasSummary = false,
@@ -63,6 +68,7 @@ export const FAB: React.FC<FABProps> = ({
   isPanelOpen = false,
   translationState = 'idle',
   viewMode = 'translated',
+  isBookmarked = false,
 }) => {
   const [actionsVisible, setActionsVisible] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
@@ -192,6 +198,11 @@ export const FAB: React.FC<FABProps> = ({
     onOptions?.();
   }, [onOptions]);
 
+  const handleSaveUrl = useCallback(() => {
+    console.log('[FAB] Save URL clicked');
+    onSaveUrl?.();
+  }, [onSaveUrl]);
+
   const handleDisableExtensionButtonClick = useCallback(() => {
     setShowDisablePopover((prev) => {
       const newValue = !prev;
@@ -264,6 +275,13 @@ export const FAB: React.FC<FABProps> = ({
             onMouseLeave={handleTranslatePopoverMouseLeave}
           />
         </div>
+        <ActionButton
+          icon="bookmark"
+          tooltip={isBookmarked ? "Remove saved link" : "Save url"}
+          onClick={handleSaveUrl}
+          className={actionButtonClass}
+          isBookmarked={isBookmarked}
+        />
         <ActionButton
           icon="options"
           tooltip="Options"

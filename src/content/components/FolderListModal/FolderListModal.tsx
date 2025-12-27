@@ -8,7 +8,7 @@ export interface FolderListModalProps {
   /** Folders from API response */
   folders: FolderWithSubFoldersResponse[];
   /** Callback when Save Text button is clicked */
-  onSave: (folderId: string | null) => void;
+  onSave: (folderId: string | null, name?: string) => void;
   /** Callback when modal is closed */
   onClose: () => void;
   /** Whether component is rendered in Shadow DOM */
@@ -27,6 +27,14 @@ export interface FolderListModalProps {
   rememberFolderChecked?: boolean;
   /** Callback when remember folder checkbox is toggled */
   onRememberFolderChange?: (checked: boolean) => void;
+  /** Whether to show the name input field */
+  showNameInput?: boolean;
+  /** Initial value for the name input (pre-filled) */
+  initialName?: string;
+  /** Callback when name changes */
+  onNameChange?: (name: string) => void;
+  /** Custom modal title (defaults to "Choose folder") */
+  modalTitle?: string;
 }
 
 interface FolderTreeItemProps {
@@ -117,6 +125,10 @@ export const FolderListModal: React.FC<FolderListModalProps> = ({
   initialExpandedFolders,
   rememberFolderChecked = false,
   onRememberFolderChange,
+  showNameInput = false,
+  initialName = '',
+  onNameChange,
+  modalTitle = 'Choose folder',
 }) => {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(initialSelectedFolderId);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
@@ -124,8 +136,10 @@ export const FolderListModal: React.FC<FolderListModalProps> = ({
   );
   const [showCreateInput, setShowCreateInput] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [name, setName] = useState(initialName);
   const [internalRememberChecked, setInternalRememberChecked] = useState(rememberFolderChecked);
   const createInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Update selected folder when initialSelectedFolderId changes (e.g., after folder creation)
   useEffect(() => {
@@ -145,6 +159,13 @@ export const FolderListModal: React.FC<FolderListModalProps> = ({
   useEffect(() => {
     setInternalRememberChecked(rememberFolderChecked);
   }, [rememberFolderChecked]);
+
+  // Sync name input with initialName prop
+  useEffect(() => {
+    if (initialName !== undefined) {
+      setName(initialName);
+    }
+  }, [initialName]);
 
   // Handle folder selection - enable checkbox if folder is selected
   const handleSelectFolder = useCallback((folderId: string) => {
@@ -171,8 +192,14 @@ export const FolderListModal: React.FC<FolderListModalProps> = ({
   }, []);
 
   const handleSave = useCallback(() => {
-    onSave(selectedFolderId);
-  }, [selectedFolderId, onSave]);
+    onSave(selectedFolderId, showNameInput ? name : undefined);
+  }, [selectedFolderId, showNameInput, name, onSave]);
+
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setName(newName);
+    onNameChange?.(newName);
+  }, [onNameChange]);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -246,10 +273,29 @@ export const FolderListModal: React.FC<FolderListModalProps> = ({
     <div className={getClassName('modalBackdrop')} onClick={handleBackdropClick}>
       <div className={getClassName('modalContainer')} onClick={(e) => e.stopPropagation()}>
         <div className={getClassName('modalHeader')}>
-          <h2 className={getClassName('modalTitle')}>Choose folder</h2>
+          <h2 className={getClassName('modalTitle')}>{modalTitle}</h2>
         </div>
 
         <div className={getClassName('modalContent')} onClick={handleModalContentClick}>
+          {/* Name input field (for link saving) */}
+          {showNameInput && (
+            <div className={getClassName('nameInputContainer')}>
+              <label className={getClassName('nameInputLabel')}>Name</label>
+              <input
+                ref={nameInputRef}
+                type="text"
+                className={getClassName('nameInput')}
+                placeholder="Page name..."
+                value={name}
+                onChange={handleNameChange}
+                disabled={isSaving || isCreatingFolder}
+                maxLength={100}
+              />
+              <div className={getClassName('nameInputCounter')}>
+                {name.length}/100
+              </div>
+            </div>
+          )}
           {/* Create folder input */}
           {showCreateInput && (
             <div className={getClassName('createFolderInput')}>
@@ -288,6 +334,10 @@ export const FolderListModal: React.FC<FolderListModalProps> = ({
             </div>
           ) : (
             <div className={getClassName('folderList')} onClick={handleFolderListClick}>
+              {/* Folder list label */}
+              {folders.length > 0 && !showCreateInput && (
+                <div className={getClassName('folderListLabel')}>Choose folder</div>
+              )}
               {/* Folder tree */}
               {folders.map((folder) => (
                 <FolderTreeItem

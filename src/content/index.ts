@@ -40,7 +40,6 @@ import wordExplanationPopoverStyles from './styles/wordExplanationPopover.shadow
 import wordAskAISidePanelStyles from './styles/wordAskAISidePanel.shadow.css?inline';
 import folderListModalStyles from './styles/folderListModal.shadow.css?inline';
 import savedParagraphIconStyles from './styles/savedParagraphIcon.shadow.css?inline';
-import saveLinkModalStyles from './styles/saveLinkModal.shadow.css?inline';
 
 // Import color CSS variables
 import { FAB_COLOR_VARIABLES } from '../constants/colors.css.js';
@@ -59,6 +58,7 @@ import { WordAskService } from '../api-services/WordAskService';
 import { SavedWordsService } from '../api-services/SavedWordsService';
 import { FolderService } from '../api-services/FolderService';
 import { SavedParagraphService } from '../api-services/SavedParagraphService';
+import { SavedLinkService } from '../api-services/SavedLinkService';
 import type { FolderWithSubFoldersResponse } from '../api-services/dto/FolderDTO';
 import { extractAndStorePageContent, getStoredPageContent } from './utils/pageContentExtractor';
 import { addTextUnderline, removeTextUnderline, pulseTextBackground, changeUnderlineColor, type UnderlineState } from './utils/textSelectionUnderline';
@@ -160,6 +160,19 @@ let folderModalSelectedFolderId: string | null = null;
 let folderModalExpandedFolders: Set<string> = new Set();
 let folderModalRange: Range | null = null; // Store the selection range for bookmark
 let folderModalRememberChecked: boolean = false; // Track remember folder checkbox state
+// Folder modal mode: 'paragraph' for paragraph saving, 'link' for link saving
+let folderModalMode: 'paragraph' | 'link' | null = null;
+// Link-specific state variables
+let folderModalLinkUrl: string = '';
+let folderModalLinkName: string = '';
+let folderModalLinkSummary: string | null = null;
+// Track which source initiated the link save (for updating correct bookmark state)
+let folderModalLinkSource: 'sidepanel' | 'fab' | null = null;
+
+// FAB Saved Link state - tracks if current page is saved
+let fabSavedLinkId: string | null = null;
+// SidePanel Saved Link state - tracks if current page is saved (for SidePanel bookmark icon)
+let sidePanelSavedLinkId: string | null = null;
 
 // Saved Paragraph Icons state
 let savedParagraphIconRoot: ReactDOM.Root | null = null;
@@ -422,6 +435,20 @@ function removeFAB(): void {
   fabRoot = null;
   console.log('[Content Script] FAB removed');
   removeSidePanel();
+}
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+// Reference link pattern: [[[ ref text ]]]
+const REF_LINK_PATTERN = /\[\[\[\s*(.+?)\s*\]\]\]/g;
+
+/**
+ * Filter out reference links ([[[ text ]]]) from summary text
+ */
+function filterReferenceLinks(summary: string): string {
+  return summary.replace(REF_LINK_PATTERN, '').trim();
 }
 
 // =============================================================================
@@ -750,6 +777,9 @@ function updateFAB(): void {
     // Check if any panel is open
     const isAnyPanelOpen = sidePanelOpen || store.get(textExplanationPanelOpenAtom);
     
+    // Check if current page is bookmarked
+    const isBookmarked = fabSavedLinkId !== null;
+    
     fabRoot.render(
       React.createElement(Provider, { store },
         React.createElement(FAB, {
@@ -760,6 +790,7 @@ function updateFAB(): void {
           onToggleView: handleToggleView,
           onClearTranslations: handleClearTranslations,
           onOptions: () => setSidePanelOpen(true, 'settings'),
+          onSaveUrl: handleFabSaveUrlClick,
           isSummarising: isSummarising,
           hasSummary: hasSummary,
           canHideActions: canHideFABActions,
@@ -767,6 +798,7 @@ function updateFAB(): void {
           isPanelOpen: isAnyPanelOpen,
           translationState: pageTranslationState,
           viewMode: pageViewMode,
+          isBookmarked: isBookmarked,
         })
       )
     );
@@ -778,6 +810,80 @@ function updateFAB(): void {
  */
 function updateSidePanel(initialTab?: 'summary' | 'settings' | 'my'): void {
   if (sidePanelRoot) {
+    // Handler for bookmark click from SidePanel
+    const handleSidePanelBookmark = async () => {
+      console.log('[Content Script] SidePanel bookmark clicked');
+      
+      // Get summary from state
+      const summary = store.get(summaryAtom);
+      
+      // Get current URL and page title
+      const currentUrl = window.location.href;
+      const pageTitle = document.title || '';
+      
+      // Truncate page title to 100 characters
+      const truncatedTitle = pageTitle.length > 100 ? pageTitle.substring(0, 100) : pageTitle;
+      
+      // Set modal mode and state
+      folderModalMode = 'link';
+      folderModalLinkSource = 'sidepanel';
+      folderModalLinkUrl = currentUrl.length > 1024 ? currentUrl.substring(0, 1024) : currentUrl;
+      folderModalLinkName = truncatedTitle;
+      folderModalLinkSummary = summary && summary.trim().length > 0 ? summary : null;
+      
+      // Get folders and show modal
+      FolderService.getAllFolders(
+        'LINK',
+        {
+          onSuccess: async (response) => {
+            console.log('[Content Script] Folders loaded successfully for link:', response.folders.length, 'folders');
+            folderModalFolders = response.folders;
+            
+            // Check for stored preference folder ID
+            const storedFolderId = await ChromeStorage.getLinkBookmarkPreferenceFolderId();
+            if (storedFolderId && findFolderInTree(response.folders, storedFolderId)) {
+              folderModalSelectedFolderId = storedFolderId;
+              console.log('[Content Script] Auto-selected preferred link folder:', storedFolderId);
+            } else {
+              folderModalSelectedFolderId = null;
+              console.log('[Content Script] No valid preferred link folder found, clearing selection');
+            }
+            
+            folderModalOpen = true;
+            injectFolderListModal();
+            updateFolderListModal();
+          },
+          onError: (errorCode, message) => {
+            console.error('[Content Script] Failed to load folders for link:', errorCode, message);
+            showToast(`Failed to load folders: ${message}`, 'error');
+            folderModalMode = null;
+            folderModalLinkUrl = '';
+            folderModalLinkName = '';
+            folderModalLinkSummary = null;
+            folderModalLinkSource = null;
+          },
+          onLoginRequired: () => {
+            console.log('[Content Script] Login required to load folders for link');
+            folderModalMode = null;
+            folderModalLinkUrl = '';
+            folderModalLinkName = '';
+            folderModalLinkSummary = null;
+            folderModalLinkSource = null;
+            store.set(showLoginModalAtom, true);
+          },
+          onSubscriptionRequired: () => {
+            console.log('[Content Script] Subscription required to load folders for link');
+            folderModalMode = null;
+            folderModalLinkUrl = '';
+            folderModalLinkName = '';
+            folderModalLinkSummary = null;
+            folderModalLinkSource = null;
+            store.set(showSubscriptionModalAtom, true);
+          },
+        }
+      );
+    };
+    
     sidePanelRoot.render(
       React.createElement(Provider, { store },
         React.createElement(SidePanel, {
@@ -786,6 +892,8 @@ function updateSidePanel(initialTab?: 'summary' | 'settings' | 'my'): void {
           onClose: () => setSidePanelOpen(false),
           initialTab: initialTab,
           onShowToast: showToast,
+          onBookmark: handleSidePanelBookmark,
+          initialSavedLinkId: sidePanelSavedLinkId,
         })
       )
     );
@@ -815,7 +923,6 @@ function injectSidePanel(): void {
   
   // Inject component styles
   injectStyles(shadow, sidePanelStyles);
-  injectStyles(shadow, saveLinkModalStyles);
 
   // Append to document
   document.body.appendChild(host);
@@ -6255,10 +6362,23 @@ async function updateFolderListModal(): Promise<void> {
   }
 
   if (folderModalOpen) {
-    console.log('[Content Script] Rendering folder list modal with', folderModalFolders.length, 'folders');
+    console.log('[Content Script] Rendering folder list modal with', folderModalFolders.length, 'folders, mode:', folderModalMode);
     
-    // Check if the selected folder matches the stored preference
-    const storedFolderId = await ChromeStorage.getParagraphBookmarkPreferenceFolderId();
+    // Determine which save handler and create folder handler to use based on mode
+    const saveHandler = folderModalMode === 'link' 
+      ? handleFolderModalSaveForLink 
+      : handleFolderModalSave;
+    const createFolderHandler = folderModalMode === 'link'
+      ? handleCreateLinkFolder
+      : handleCreateParagraphFolder;
+    
+    // Check if the selected folder matches the stored preference (different for link vs paragraph)
+    let storedFolderId: string | null = null;
+    if (folderModalMode === 'link') {
+      storedFolderId = await ChromeStorage.getLinkBookmarkPreferenceFolderId();
+    } else {
+      storedFolderId = await ChromeStorage.getParagraphBookmarkPreferenceFolderId();
+    }
     const rememberFolderChecked = folderModalSelectedFolderId !== null && 
                                    folderModalSelectedFolderId === storedFolderId;
     // Update the tracked checkbox state
@@ -6267,26 +6387,42 @@ async function updateFolderListModal(): Promise<void> {
     // Handler for remember folder checkbox change
     const handleRememberFolderChange = async (checked: boolean) => {
       folderModalRememberChecked = checked;
-      // Don't save to storage here - wait until Save Text is clicked
+      // Don't save to storage here - wait until Save is clicked
       // This allows user to change checkbox state without immediately saving
       // Update modal to reflect the change
       updateFolderListModal();
     };
     
+    // Handler for name change (only for link mode)
+    const handleNameChange = (name: string) => {
+      folderModalLinkName = name;
+    };
+    
+    // Determine modal title based on mode and summary availability
+    const modalTitle = folderModalMode === 'link' 
+      ? (folderModalLinkSummary && folderModalLinkSummary.trim().length > 0 
+          ? 'Save page url with summary' 
+          : 'Save page url without summary')
+      : 'Choose folder';
+    
     folderListModalRoot.render(
       React.createElement(Provider, { store },
       React.createElement(FolderListModal, {
         folders: folderModalFolders,
-        onSave: handleFolderModalSave,
+        onSave: saveHandler,
         onClose: closeFolderListModal,
         useShadowDom: true,
         isSaving: folderModalSaving,
-        onCreateFolder: handleCreateFolder,
+        onCreateFolder: createFolderHandler,
         isCreatingFolder: folderModalCreatingFolder,
         initialSelectedFolderId: folderModalSelectedFolderId,
         initialExpandedFolders: folderModalExpandedFolders,
         rememberFolderChecked,
         onRememberFolderChange: handleRememberFolderChange,
+        showNameInput: folderModalMode === 'link',
+        initialName: folderModalMode === 'link' ? folderModalLinkName : undefined,
+        onNameChange: folderModalMode === 'link' ? handleNameChange : undefined,
+        modalTitle,
       })
       )
     );
@@ -6553,10 +6689,100 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
 }
 
 /**
- * Handle create folder in folder modal
+ * Handle save button click in folder modal for links
  */
-async function handleCreateFolder(folderName: string, parentFolderId: string | null): Promise<void> {
-  console.log('[Content Script] Creating folder:', folderName, 'with parent:', parentFolderId);
+async function handleFolderModalSaveForLink(folderId: string | null, name?: string): Promise<void> {
+  console.log('[Content Script] Saving link to folder:', folderId, 'with name:', name);
+  
+  // If "Remember my folder" checkbox is checked, save the folder preference
+  if (folderModalRememberChecked && folderId) {
+    await ChromeStorage.setLinkBookmarkPreferenceFolderId(folderId);
+    console.log('[Content Script] Saved link folder preference on save:', folderId);
+  } else if (!folderModalRememberChecked) {
+    // If checkbox is unchecked, remove the preference
+    await ChromeStorage.removeLinkBookmarkPreferenceFolderId();
+    console.log('[Content Script] Removed link folder preference on save');
+  }
+  
+  // Set saving state
+  folderModalSaving = true;
+  updateFolderListModal();
+  
+  // Use name parameter if provided, otherwise fall back to stored name
+  const nameToSave = name || folderModalLinkName;
+  const nameToSaveLimited = nameToSave.length > 50 ? nameToSave.substring(0, 50) : nameToSave;
+  
+  // Filter reference links from summary if available
+  const filteredSummary = folderModalLinkSummary 
+    ? filterReferenceLinks(folderModalLinkSummary) 
+    : undefined;
+  
+  // Save link
+  await SavedLinkService.saveLink(
+    {
+      url: folderModalLinkUrl,
+      name: nameToSaveLimited || undefined,
+      summary: filteredSummary,
+      folder_id: folderId || undefined,
+    },
+    {
+      onSuccess: (response) => {
+        console.log('[Content Script] Link saved successfully with id:', response.id);
+        showToast('Link saved successfully!', 'success');
+        
+        // Update bookmark icon state based on source
+        if (folderModalMode === 'link') {
+          if (folderModalLinkSource === 'fab') {
+            fabSavedLinkId = response.id;
+            updateFAB();
+          } else if (folderModalLinkSource === 'sidepanel') {
+            sidePanelSavedLinkId = response.id;
+            updateSidePanel();
+          }
+        }
+        
+        closeFolderListModal();
+      },
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to save link:', errorCode, message);
+        folderModalSaving = false;
+        let displayMessage = 'Failed to save link';
+        
+        // Handle specific error codes
+        if (errorCode === 'VAL_001') {
+          displayMessage = 'URL is too long';
+        } else if (errorCode === 'VAL_002') {
+          displayMessage = 'Name is too long';
+        } else if (errorCode === 'NOT_FOUND') {
+          displayMessage = 'Folder not found';
+        } else if (errorCode === 'NETWORK_ERROR') {
+          displayMessage = 'Network error. Please check your connection.';
+        } else if (message) {
+          displayMessage = message;
+        }
+        
+        updateFolderListModal();
+        showToast(displayMessage, 'error');
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required to save link');
+        closeFolderListModal();
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required to save link');
+        closeFolderListModal();
+        store.set(showSubscriptionModalAtom, true);
+      },
+    }
+  );
+}
+
+/**
+ * Handle create paragraph folder in folder modal
+ */
+async function handleCreateParagraphFolder(folderName: string, parentFolderId: string | null): Promise<void> {
+  console.log('[Content Script] Creating paragraph folder:', folderName, 'with parent:', parentFolderId);
   
   // Set creating state
   folderModalCreatingFolder = true;
@@ -6638,6 +6864,91 @@ async function handleCreateFolder(folderName: string, parentFolderId: string | n
 }
 
 /**
+ * Handle create link folder in folder modal
+ */
+async function handleCreateLinkFolder(folderName: string, parentFolderId: string | null): Promise<void> {
+  console.log('[Content Script] Creating link folder:', folderName, 'with parent:', parentFolderId);
+  
+  // Set creating state
+  folderModalCreatingFolder = true;
+  updateFolderListModal();
+  
+  // Create folder
+  SavedLinkService.createLinkFolder(
+    {
+      name: folderName,
+      parent_folder_id: parentFolderId || undefined,
+    },
+    {
+      onSuccess: (response) => {
+        console.log('[Content Script] Link folder created successfully with id:', response.id);
+        
+        // Add new folder to the list
+        const newFolder: FolderWithSubFoldersResponse = {
+          id: response.id,
+          name: response.name,
+          created_at: response.created_at,
+          updated_at: response.updated_at,
+          subFolders: [],
+        };
+        
+        // Add to the appropriate location in the tree
+        if (parentFolderId) {
+          // Find and update the parent folder
+          const updateFolderTree = (folders: FolderWithSubFoldersResponse[]): FolderWithSubFoldersResponse[] => {
+            return folders.map(folder => {
+              if (folder.id === parentFolderId) {
+                // Add to this folder's subFolders
+                return {
+                  ...folder,
+                  subFolders: [...folder.subFolders, newFolder]
+                };
+              } else if (folder.subFolders.length > 0) {
+                // Recursively search in subFolders
+                return {
+                  ...folder,
+                  subFolders: updateFolderTree(folder.subFolders)
+                };
+              }
+              return folder;
+            });
+          };
+          
+          folderModalFolders = updateFolderTree(folderModalFolders);
+          // Ensure parent folder is expanded so the new folder is visible
+          folderModalExpandedFolders = new Set([...folderModalExpandedFolders, parentFolderId]);
+        } else {
+          // Add to root level
+          folderModalFolders = [...folderModalFolders, newFolder];
+        }
+        
+        folderModalCreatingFolder = false;
+        folderModalSelectedFolderId = response.id; // Auto-select the newly created folder
+        
+        updateFolderListModal();
+        showToast('Folder created successfully!', 'success');
+      },
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to create link folder:', errorCode, message);
+        folderModalCreatingFolder = false;
+        updateFolderListModal();
+        showToast(`Failed to create folder: ${message}`, 'error');
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required to create link folder');
+        closeFolderListModal();
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required to create link folder');
+        closeFolderListModal();
+        store.set(showSubscriptionModalAtom, true);
+      },
+    }
+  );
+}
+
+/**
  * Close folder list modal
  */
 function closeFolderListModal(): void {
@@ -6651,6 +6962,12 @@ function closeFolderListModal(): void {
   folderModalSelectedFolderId = null;
   folderModalExpandedFolders = new Set();
   folderModalRememberChecked = false; // Reset checkbox state when modal closes
+  // Clear link-specific state
+  folderModalMode = null;
+  folderModalLinkUrl = '';
+  folderModalLinkName = '';
+  folderModalLinkSummary = null;
+  folderModalLinkSource = null;
   // Don't clear folderModalRange here - it's used after modal closes
   // Note: folderModalUnderlineState is no longer used since underline is only added after successful save
   updateFolderListModal();
@@ -6665,6 +6982,139 @@ function removeFolderListModal(): void {
   folderListModalRoot = null;
   console.log('[Content Script] Folder List Modal removed');
 }
+
+// =============================================================================
+// FAB SAVE LINK MODAL INJECTION
+// =============================================================================
+
+/**
+ * Handle FAB Save URL button click
+ */
+async function handleFabSaveUrlClick(): Promise<void> {
+  console.log('[Content Script] FAB Save URL clicked');
+  
+  // If already bookmarked, remove the saved link
+  if (fabSavedLinkId) {
+    await handleFabRemoveLink();
+    return;
+  }
+  
+  // Get summary from state
+  const summary = store.get(summaryAtom);
+  
+  // Get current URL and page title
+  const currentUrl = window.location.href;
+  const pageTitle = document.title || '';
+  
+  // Truncate page title to 100 characters
+  const truncatedTitle = pageTitle.length > 100 ? pageTitle.substring(0, 100) : pageTitle;
+  
+  // Set modal mode and state
+  folderModalMode = 'link';
+  folderModalLinkSource = 'fab';
+  folderModalLinkUrl = currentUrl.length > 1024 ? currentUrl.substring(0, 1024) : currentUrl;
+  folderModalLinkName = truncatedTitle;
+  folderModalLinkSummary = summary && summary.trim().length > 0 ? summary : null;
+  
+  // Get folders and show modal
+  FolderService.getAllFolders(
+    'LINK',
+    {
+      onSuccess: async (response) => {
+        console.log('[Content Script] Folders loaded successfully for FAB link:', response.folders.length, 'folders');
+        folderModalFolders = response.folders;
+        
+        // Check for stored preference folder ID
+        const storedFolderId = await ChromeStorage.getLinkBookmarkPreferenceFolderId();
+        if (storedFolderId && findFolderInTree(response.folders, storedFolderId)) {
+          folderModalSelectedFolderId = storedFolderId;
+          console.log('[Content Script] Auto-selected preferred link folder:', storedFolderId);
+        } else {
+          folderModalSelectedFolderId = null;
+          console.log('[Content Script] No valid preferred link folder found, clearing selection');
+        }
+        
+        folderModalOpen = true;
+        injectFolderListModal();
+        updateFolderListModal();
+      },
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to load folders for FAB link:', errorCode, message);
+        showToast(`Failed to load folders: ${message}`, 'error');
+        folderModalMode = null;
+        folderModalLinkUrl = '';
+        folderModalLinkName = '';
+        folderModalLinkSummary = null;
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required to load folders for FAB link');
+        folderModalMode = null;
+        folderModalLinkUrl = '';
+        folderModalLinkName = '';
+        folderModalLinkSummary = null;
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required to load folders for FAB link');
+        folderModalMode = null;
+        folderModalLinkUrl = '';
+        folderModalLinkName = '';
+        folderModalLinkSummary = null;
+        store.set(showSubscriptionModalAtom, true);
+      },
+    }
+  );
+}
+
+/**
+ * Handle FAB Remove Link
+ */
+async function handleFabRemoveLink(): Promise<void> {
+  if (!fabSavedLinkId) {
+    showToast('No saved link to remove', 'error');
+    return;
+  }
+
+  const linkIdToRemove = fabSavedLinkId;
+
+  await SavedLinkService.removeSavedLink(
+    linkIdToRemove,
+    {
+      onSuccess: () => {
+        console.log('[Content Script] FAB link removed successfully');
+        fabSavedLinkId = null; // Clear saved link ID
+        updateFAB(); // Update FAB to show unfilled bookmark icon
+        showToast('Link removed successfully!', 'success');
+      },
+      onError: (errorCode, errorMessage) => {
+        console.error('[Content Script] Failed to remove FAB link:', errorCode, errorMessage);
+        let displayMessage = 'Failed to remove link';
+        
+        if (errorCode === 'NOT_FOUND') {
+          displayMessage = 'Link not found';
+          // Clear saved link ID if link doesn't exist
+          fabSavedLinkId = null;
+          updateFAB();
+        } else if (errorCode === 'NETWORK_ERROR') {
+          displayMessage = 'Network error. Please check your connection.';
+        } else if (errorMessage) {
+          displayMessage = errorMessage;
+        }
+        
+        showToast(displayMessage, 'error');
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required for removing FAB link');
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required for removing FAB link');
+        showToast('Subscription required to remove links', 'error');
+      },
+    }
+  );
+}
+
 
 // =============================================================================
 // LOGIN MODAL INJECTION

@@ -172,6 +172,19 @@
   stroke: var(--color-primary) !important;
 }
 
+/* Bookmarked icon - purple filled */
+.actionButton.bookmarked svg {
+  fill: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary, #9527F5) !important;
+  stroke: var(--color-primary, #9527F5) !important;
+}
+
+.actionButton.bookmarked:hover svg {
+  fill: #7c1ed9 !important;
+  color: #7c1ed9 !important;
+  stroke: #7c1ed9 !important;
+}
+
 /* Staggered animation for action buttons */
 .actionsContainer.visible .actionButton:nth-child(1) {
   animation: slideIn 0.3s ease forwards !important;

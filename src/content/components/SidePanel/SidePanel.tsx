@@ -36,6 +36,10 @@ export interface SidePanelProps {
   initialTab?: TabType;
   /** Callback to show toast message */
   onShowToast?: (message: string, type?: 'success' | 'error') => void;
+  /** Callback when bookmark is clicked (for folder selection) */
+  onBookmark?: () => void;
+  /** Initial saved link ID (from content script) */
+  initialSavedLinkId?: string | null;
 }
 
 type TabType = 'summary' | 'settings' | 'my';
@@ -51,6 +55,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onLoginRequired,
   initialTab,
   onShowToast,
+  onBookmark,
+  initialSavedLinkId = null,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'summary');
   const [width, setWidth] = useState(DEFAULT_WIDTH);
@@ -59,8 +65,15 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   const [expandedLoaded, setExpandedLoaded] = useState(false);
   const [isSaveLinkModalOpen, setIsSaveLinkModalOpen] = useState(false);
   const [isSavingLink, setIsSavingLink] = useState(false);
-  const [savedLinkId, setSavedLinkId] = useState<string | null>(null);
+  const [savedLinkId, setSavedLinkId] = useState<string | null>(initialSavedLinkId);
   const panelRef = useRef<HTMLDivElement>(null);
+  
+  // Update savedLinkId when initialSavedLinkId changes (from folder modal save)
+  useEffect(() => {
+    if (initialSavedLinkId !== null) {
+      setSavedLinkId(initialSavedLinkId);
+    }
+  }, [initialSavedLinkId]);
   
   // Jotai setter for login modal
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
@@ -224,14 +237,19 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       // If already saved, remove it
       handleRemoveLink();
     } else {
-      // If not saved, show modal to save
-      if (!summary || summary.trim().length === 0) {
-        onShowToast?.('No summary available to save', 'error');
-        return;
+      // If not saved, call the onBookmark callback to show folder modal
+      if (onBookmark) {
+        onBookmark();
+      } else {
+        // Fallback to old behavior if callback not provided
+        if (!summary || summary.trim().length === 0) {
+          onShowToast?.('No summary available to save', 'error');
+          return;
+        }
+        setIsSaveLinkModalOpen(true);
       }
-      setIsSaveLinkModalOpen(true);
     }
-  }, [savedLinkId, summary, onShowToast, handleRemoveLink]);
+  }, [savedLinkId, summary, onShowToast, handleRemoveLink, onBookmark]);
 
   // Handle save from modal
   const handleSaveLink = useCallback(async (name: string) => {

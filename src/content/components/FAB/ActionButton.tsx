@@ -1,6 +1,6 @@
 // src/content/components/FAB/ActionButton.tsx
 import React, { useRef } from 'react';
-import { FileText, Languages, MoreVertical, Power, Loader2, StopCircle } from 'lucide-react';
+import { FileText, Languages, MoreVertical, Power, Loader2, StopCircle, Bookmark } from 'lucide-react';
 import { OnHoverMessage } from '../OnHoverMessage';
 
 export interface ActionButtonProps {
@@ -9,7 +9,7 @@ export interface ActionButtonProps {
   /** Click handler */
   onClick: () => void;
   /** Icon to display */
-  icon: 'summarise' | 'translate' | 'options' | 'disable' | 'stop';
+  icon: 'summarise' | 'translate' | 'options' | 'disable' | 'stop' | 'bookmark';
   /** Additional class name */
   className?: string;
   /** Whether to show loading spinner instead of icon */
@@ -22,6 +22,8 @@ export interface ActionButtonProps {
   hideTooltip?: boolean;
   /** Optional custom text to show instead of icon */
   customText?: string;
+  /** Whether the bookmark icon is filled (saved) */
+  isBookmarked?: boolean;
 }
 
 const iconMap = {
@@ -30,6 +32,7 @@ const iconMap = {
   options: MoreVertical,
   disable: Power,
   stop: StopCircle,
+  bookmark: Bookmark,
 };
 
 export const ActionButton: React.FC<ActionButtonProps> = ({
@@ -42,6 +45,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   children,
   hideTooltip = false,
   customText,
+  isBookmarked = false,
 }) => {
   const IconComponent = iconMap[icon];
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -50,7 +54,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
     <div className="actionButtonWrapper">
       <button
         ref={buttonRef}
-        className={`${className} ${isLoading ? 'isLoading' : ''} ${customText ? 'hasCustomText' : ''} ${disabled ? 'disabled' : ''}`}
+        className={`${className} ${isLoading ? 'isLoading' : ''} ${customText ? 'hasCustomText' : ''} ${disabled ? 'disabled' : ''} ${isBookmarked ? 'bookmarked' : ''}`}
         onClick={disabled ? undefined : onClick}
         disabled={disabled || isLoading}
         aria-label={tooltip}

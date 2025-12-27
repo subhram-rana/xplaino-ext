@@ -26,7 +26,7 @@ export class FolderService {
    * Get all folders for a specific type
    */
   static async getAllFolders(
-    type: 'PAGE' | 'PARAGRAPH',
+    type: 'LINK' | 'PARAGRAPH',
     callbacks: GetAllFoldersCallbacks,
     abortSignal?: AbortSignal
   ): Promise<void> {
