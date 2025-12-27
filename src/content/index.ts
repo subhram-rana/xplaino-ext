@@ -5727,26 +5727,40 @@ function updateTextExplanationIconContainer(): void {
   }
   
   // Create icons for all explanations
-  const icons = Array.from(explanations.entries()).map(([id, state]) => ({
-    id: state.id,
-    position: state.iconPosition,
-    selectionRange: state.range,
-    isSpinning: state.isSpinning,
-    onTogglePanel: () => toggleTextExplanationPanel(id),
-    // Green border logic: only show border if this is the active explanation AND panel is open
-    isPanelOpen: id === activeId && panelOpen,
-    isBookmarked: !!state.paragraphId,
-    onBookmarkClick: state.paragraphId ? () => {
-      if (state.paragraphId) {
-        handleRemoveTextExplanationBookmark(id, state.paragraphId);
-      }
-    } : undefined,
-    iconRef: (element: HTMLElement | null) => {
-      if (state.iconRef) {
-        state.iconRef.current = element;
-      }
-    },
-  }));
+  const icons = Array.from(explanations.entries()).map(([id, state]) => {
+    const iconData = {
+      id: state.id,
+      position: state.iconPosition,
+      selectionRange: state.range,
+      isSpinning: state.isSpinning,
+      onTogglePanel: () => toggleTextExplanationPanel(id),
+      // Green border logic: only show border if this is the active explanation AND panel is open
+      isPanelOpen: id === activeId && panelOpen,
+      isBookmarked: !!state.paragraphId,
+      onBookmarkClick: state.paragraphId ? () => {
+        if (state.paragraphId) {
+          handleRemoveTextExplanationBookmark(id, state.paragraphId);
+        }
+      } : undefined,
+      iconRef: (element: HTMLElement | null) => {
+        if (state.iconRef) {
+          state.iconRef.current = element;
+        }
+      },
+    };
+    
+    // Debug logging for bookmarked icons
+    if (iconData.isBookmarked) {
+      console.log('[Content Script] Creating bookmarked icon:', {
+        id: iconData.id,
+        isSpinning: iconData.isSpinning,
+        position: iconData.position,
+        hasRange: !!iconData.selectionRange,
+      });
+    }
+    
+    return iconData;
+  });
   
   textExplanationIconRoot.render(
     React.createElement(TextExplanationIconContainer, {
@@ -6279,6 +6293,19 @@ async function updateFolderListModal(): Promise<void> {
 }
 
 /**
+ * Check if two ranges are the same (same start/end containers and offsets)
+ */
+function rangesMatch(range1: Range | null, range2: Range | null): boolean {
+  if (!range1 || !range2) return false;
+  return (
+    range1.startContainer === range2.startContainer &&
+    range1.startOffset === range2.startOffset &&
+    range1.endContainer === range2.endContainer &&
+    range1.endOffset === range2.endOffset
+  );
+}
+
+/**
  * Handle save button click in folder modal
  */
 async function handleFolderModalSave(folderId: string | null): Promise<void> {
@@ -6323,10 +6350,15 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
           console.log('[Content Script] Added purple underline after successful bookmark save');
         }
         
-        // Update active explanation to mark it as bookmarked
+        // Check if we should update active explanation or create a new one
         const activeId = store.get(activeTextExplanationIdAtom);
-        if (activeId) {
-          console.log('[Content Script] Updating active explanation with paragraphId:', response.id, 'for explanationId:', activeId);
+        const activeExplanation = activeId ? store.get(activeTextExplanationAtom) : null;
+        
+        // Only update active explanation if the savedRange matches the active explanation's range
+        // This means we're bookmarking from the panel (same text)
+        // If ranges don't match, we're bookmarking a different text from ContentActions, so create new explanation
+        if (activeId && activeExplanation && savedRange && rangesMatch(savedRange, activeExplanation.range)) {
+          console.log('[Content Script] Updating active explanation with paragraphId:', response.id, 'for explanationId:', activeId, '(ranges match - bookmarking from panel)');
           updateExplanationInMap(activeId, (state) => {
             // Create a new state object to ensure Jotai detects the change
             return {
@@ -6335,17 +6367,27 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
             };
           });
           
-          // Verify the update
+          // Verify the update was committed to the atom
           const updatedExplanations = store.get(textExplanationsAtom);
           const updatedState = updatedExplanations.get(activeId);
           console.log('[Content Script] Updated state paragraphId:', updatedState?.paragraphId);
           
+          // Verify the derived atom has the updated state
+          const verifiedActiveExplanation = store.get(activeTextExplanationAtom);
+          if (verifiedActiveExplanation && verifiedActiveExplanation.paragraphId === response.id) {
+            console.log('[Content Script] Confirmed active explanation has updated paragraphId');
+          }
+          
           // Update panel and icon container to show bookmark state
+          // This will read the updated state from activeTextExplanationAtom
           updateTextExplanationPanel();
           updateTextExplanationIconContainer();
         } else if (savedRange && underlineState) {
-          // Bookmark saved from ContentActions (not from panel) - create text explanation state
-          console.log('[Content Script] Creating text explanation state from bookmark');
+          // Bookmark saved from ContentActions (different text) or no active explanation - create new text explanation state
+          // This happens when:
+          // 1. Bookmarking a different text selection from ContentActions (ranges don't match)
+          // 2. No active explanation exists
+          console.log('[Content Script] Creating new text explanation state from bookmark (ranges don\'t match or no active explanation)');
           
           // Validate that we have the selected text
           if (!savedText || savedText.trim() === '') {
@@ -6400,7 +6442,7 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
             streamingText: '',
             underlineState: underlineState, // Use the purple underline we created after successful save
             abortController: null, // No active request, so buttons will be enabled
-            firstChunkReceived: false,
+            firstChunkReceived: true, // Set to true so icon shows as green (not spinner) immediately
             iconRef,
             possibleQuestions: [],
             textStartIndex,
@@ -6428,12 +6470,51 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
           injectTextExplanationIconContainer();
           injectTextExplanationPanel();
           
-          // Open panel immediately
-          store.set(textExplanationPanelOpenAtom, true);
+          // Log the explanation state for debugging
+          console.log('[Content Script] Created new explanation from bookmark:', {
+            id: explanationId,
+            isSpinning: newExplanation.isSpinning,
+            firstChunkReceived: newExplanation.firstChunkReceived,
+            paragraphId: newExplanation.paragraphId,
+            iconPosition: newExplanation.iconPosition,
+            hasRange: !!newExplanation.range,
+          });
           
-          // Update UI
+          // Update icon container first to ensure iconRef is set
           updateTextExplanationIconContainer();
-          updateTextExplanationPanel();
+          
+          // Force a re-render after a short delay to ensure DOM is ready
+          setTimeout(() => {
+            // Verify the explanation is in the atom
+            const explanations = store.get(textExplanationsAtom);
+            const createdExplanation = explanations.get(explanationId);
+            console.log('[Content Script] Verification - explanation in atom:', {
+              exists: !!createdExplanation,
+              isSpinning: createdExplanation?.isSpinning,
+              paragraphId: createdExplanation?.paragraphId,
+            });
+            
+            // Update icon container again to ensure it renders
+            updateTextExplanationIconContainer();
+            
+            // Use requestAnimationFrame to ensure iconRef is set before opening panel
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                // Verify iconRef is set before opening panel
+                if (iconRef.current) {
+                  console.log('[Content Script] IconRef is set, opening panel');
+                } else {
+                  console.warn('[Content Script] IconRef not set yet');
+                }
+                
+                // Open panel
+                store.set(textExplanationPanelOpenAtom, true);
+                
+                // Update panel
+                updateTextExplanationPanel();
+              });
+            });
+          }, 100);
           
           // Note: savedRange and savedText are local variables, no need to clear folderModalRange here
         } else {
@@ -6921,7 +7002,19 @@ async function handleRemoveTextExplanationBookmark(explanationId: string, paragr
           };
         });
         
+        // Verify the update was committed to the atom
+        const updatedExplanations = store.get(textExplanationsAtom);
+        const updatedState = updatedExplanations.get(explanationId);
+        console.log('[Content Script] Updated state paragraphId after removal:', updatedState?.paragraphId);
+        
+        // Verify the derived atom has the updated state
+        const activeExplanation = store.get(activeTextExplanationAtom);
+        if (activeExplanation && activeExplanation.id === explanationId && !activeExplanation.paragraphId) {
+          console.log('[Content Script] Confirmed active explanation has cleared paragraphId');
+        }
+        
         // Update panel and icon container to reflect bookmark removal
+        // This will read the updated state from activeTextExplanationAtom
         updateTextExplanationPanel();
         updateTextExplanationIconContainer();
         

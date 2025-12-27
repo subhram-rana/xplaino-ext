@@ -44,6 +44,11 @@ export const TextExplanationIconContainer: React.FC<TextExplanationIconContainer
       {icons.map((icon) => {
         // If bookmarked, show both icons in a container
         if (icon.isBookmarked) {
+          console.log('[TextExplanationIconContainer] Rendering bookmarked icon container:', {
+            id: icon.id,
+            isSpinning: icon.isSpinning,
+            position: icon.position,
+          });
           return (
             <div
               key={icon.id}
@@ -67,6 +72,7 @@ export const TextExplanationIconContainer: React.FC<TextExplanationIconContainer
                 isPanelOpen={icon.isPanelOpen}
                 selectionRange={icon.selectionRange}
                 useFixedPosition={false}
+                key={`${icon.id}-green`}
               />
               <button
                 className={getClassName('bookmarkButton')}

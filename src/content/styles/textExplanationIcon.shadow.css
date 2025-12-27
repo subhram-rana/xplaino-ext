@@ -119,7 +119,7 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease !important;
   padding: 2px !important;
   margin: 0 !important;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.3) !important;
+  box-shadow: none !important;
 }
 
 .bookmarkButton:hover {

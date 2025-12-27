@@ -296,12 +296,37 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
           position: { left: iconRect.left, top: iconRect.top, right: iconRect.right, bottom: iconRect.bottom }
         });
         (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = iconElement;
+        console.log('[TextExplanationSidePanel] Starting shrink animation...');
+        await shrink();
       } else {
-        console.warn('[TextExplanationSidePanel] No iconRef.current available for shrink animation!');
+        console.warn('[TextExplanationSidePanel] No iconRef.current available for shrink animation! Attempting to find icon element...');
+        // Try to find the icon element from the active explanation's icon container
+        // This is a fallback in case iconRef wasn't set properly
+        const textExplanationIconHost = document.getElementById('xplaino-text-explanation-icon-host');
+        if (textExplanationIconHost?.shadowRoot) {
+          // Try to find the green icon button (not the bookmark button)
+          // Look for the first .textExplanationIcon button in a .bookmarkedIconContainer or standalone
+          const bookmarkedContainer = textExplanationIconHost.shadowRoot.querySelector('.bookmarkedIconContainer');
+          const iconButton = (bookmarkedContainer 
+            ? bookmarkedContainer.querySelector('.textExplanationIcon')
+            : textExplanationIconHost.shadowRoot.querySelector('.textExplanationIcon')) as HTMLElement;
+          if (iconButton) {
+            console.log('[TextExplanationSidePanel] Found icon element in DOM, using it for shrink animation');
+            (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = iconButton;
+            await shrink();
+          } else {
+            console.warn('[TextExplanationSidePanel] Could not find icon element, closing without animation');
+            isAnimatingRef.current = false;
+            onClose?.();
+            return;
+          }
+        } else {
+          console.warn('[TextExplanationSidePanel] Could not find icon container, closing without animation');
+          isAnimatingRef.current = false;
+          onClose?.();
+          return;
+        }
       }
-      
-      console.log('[TextExplanationSidePanel] Starting shrink animation...');
-      await shrink();
       console.log('[TextExplanationSidePanel] Shrink animation completed successfully');
       
       // Call onClose AFTER animation completes, not in finally
