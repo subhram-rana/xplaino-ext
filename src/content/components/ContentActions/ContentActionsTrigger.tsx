@@ -28,6 +28,7 @@ interface SelectionState {
   text: string;
   isWord: boolean;
   position: { x: number; y: number };
+  range?: Range; // Store the range so it persists even if window selection is cleared
 }
 
 /**
@@ -56,6 +57,8 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastMousePosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const popoverOpenRef = useRef(false);
+  const wordSelectionJustMadeRef = useRef(false);
+  const doubleClickJustHappenedRef = useRef(false);
 
   // Track mouse position for text selection
   useEffect(() => {
@@ -119,16 +122,10 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     const text = windowSelection.toString().trim();
     if (!text) return;
 
-    // Check if the selection overlaps with underlined text
+    // Capture the range before it might get cleared
+    let range: Range | undefined = undefined;
     if (windowSelection.rangeCount > 0) {
-      const range = windowSelection.getRangeAt(0);
-      if (isRangeOverlappingUnderlinedText(range)) {
-        // Show error toast and prevent button from appearing
-        onShowToast?.('Can\'t select from already selected text', 'error');
-        // Clear the selection
-        windowSelection.removeAllRanges();
-        return;
-      }
+      range = windowSelection.getRangeAt(0).cloneRange();
     }
 
     const position = getSelectionPosition(true);
@@ -138,10 +135,23 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
       text,
       isWord: true, // Double-click always selects a word
       position,
+      range, // Store the range so it persists
     });
     setIsHovering(false);
     setShowButtonGroup(false);
-  }, [getSelectionPosition, onShowToast]);
+    
+    // Mark that a double-click just happened to prevent handleMouseUp from interfering
+    doubleClickJustHappenedRef.current = true;
+    setTimeout(() => {
+      doubleClickJustHappenedRef.current = false;
+    }, 300); // 300ms should be enough to prevent handleMouseUp from running
+    
+    // Mark that a word selection was just made to prevent handleSelectionChange from clearing it
+    wordSelectionJustMadeRef.current = true;
+    setTimeout(() => {
+      wordSelectionJustMadeRef.current = false;
+    }, 500); // Allow 500ms grace period for word selections
+  }, [getSelectionPosition]);
 
   // Handle mouse up (text selection)
   const handleMouseUp = useCallback((e: MouseEvent) => {
@@ -172,6 +182,11 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
 
     // Small delay to let selection complete
     setTimeout(() => {
+      // If a double-click just happened, skip this handler to avoid interference
+      if (doubleClickJustHappenedRef.current) {
+        return;
+      }
+      
       // Double-check that we're not inside our container (in case selection changed)
       const currentTarget = document.activeElement;
       if (currentTarget && currentTarget instanceof Node && containerRef.current?.contains(currentTarget)) {
@@ -189,8 +204,12 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
       const text = windowSelection.toString().trim();
       if (!text || text.length < 2) return;
 
-      // Check if the selection overlaps with underlined text
-      if (windowSelection.rangeCount > 0) {
+      // Check if this is a word selection (single word, no spaces)
+      const isWord = isWordSelection(text);
+      
+      // Only check overlap for text selections (not word selections)
+      // Word selections should work even inside underlined text
+      if (!isWord && windowSelection.rangeCount > 0) {
         const range = windowSelection.getRangeAt(0);
         if (isRangeOverlappingUnderlinedText(range)) {
           // Show error toast and prevent button from appearing
@@ -212,10 +231,17 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
         return;
       }
 
+      // Capture the range before it might get cleared
+      let range: Range | undefined = undefined;
+      if (windowSelection.rangeCount > 0) {
+        range = windowSelection.getRangeAt(0).cloneRange();
+      }
+
       setSelection({
         text,
         isWord: isWordSelection(text),
         position,
+        range, // Store the range so it persists
       });
       // Only reset UI state if this is a NEW selection (not clicking on existing UI)
       setIsHovering(false);
@@ -227,10 +253,15 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   const handleSelectionChange = useCallback(() => {
     // Small delay to avoid race conditions with other handlers
     setTimeout(() => {
+      // Don't clear if a word selection was just made (prevents icon from disappearing)
+      if (wordSelectionJustMadeRef.current && selection?.isWord) {
+        return;
+      }
+      
       const windowSelection = window.getSelection();
       if (!windowSelection) {
-        // No selection object - clear our state
-        if (selection) {
+        // No selection object - clear our state (unless word selection was just made)
+        if (selection && !wordSelectionJustMadeRef.current) {
           setSelection(null);
         }
         return;
@@ -239,7 +270,8 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
       const text = windowSelection.toString().trim();
       
       // If selection is empty and we have a selection state, clear it
-      if (!text && selection) {
+      // But don't clear if a word selection was just made
+      if (!text && selection && !wordSelectionJustMadeRef.current) {
         setSelection(null);
       }
     }, 10);
@@ -390,13 +422,20 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
       setIsHovering(false);
       
       // Get selection range for positioning and underline
+      // First try to get from window selection, fallback to stored range
+      let range: Range | null = null;
       const windowSelection = window.getSelection();
-      if (!windowSelection || windowSelection.rangeCount === 0) {
+      if (windowSelection && windowSelection.rangeCount > 0) {
+        range = windowSelection.getRangeAt(0);
+      } else if (selection.range) {
+        // Use stored range if window selection is unavailable
+        range = selection.range;
+      }
+      
+      if (!range) {
         onExplain?.(selection.text);
         return;
       }
-      
-      const range = windowSelection.getRangeAt(0);
       
       // Calculate icon position
       // 1. Find containing element
