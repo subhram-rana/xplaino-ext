@@ -38,10 +38,16 @@ export function createShadowHost(options: ShadowHostOptions): ShadowHostResult {
 
 /**
  * Injects CSS styles into a Shadow DOM
+ * @param shadow - Shadow root to inject styles into
+ * @param cssText - CSS text to inject
+ * @param isColorVariables - Whether this is color variables CSS (for easier identification)
  */
-export function injectStyles(shadow: ShadowRoot, cssText: string): HTMLStyleElement {
+export function injectStyles(shadow: ShadowRoot, cssText: string, isColorVariables: boolean = false): HTMLStyleElement {
   const styleElement = document.createElement('style');
   styleElement.textContent = cssText;
+  if (isColorVariables) {
+    styleElement.setAttribute('data-xplaino-color-variables', 'true');
+  }
   shadow.insertBefore(styleElement, shadow.firstChild);
   return styleElement;
 }

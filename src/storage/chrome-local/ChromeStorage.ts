@@ -396,7 +396,14 @@ export class ChromeStorage {
   }
 
   static async setUserSettingGlobalTheme(theme: 'light' | 'dark'): Promise<void> {
-    return this.set(this.KEYS.USER_SETTING_GLOBAL_THEME, theme);
+    console.log('[ChromeStorage] setUserSettingGlobalTheme called with theme:', theme);
+    console.log('[ChromeStorage] Setting key:', this.KEYS.USER_SETTING_GLOBAL_THEME);
+    await this.set(this.KEYS.USER_SETTING_GLOBAL_THEME, theme);
+    console.log('[ChromeStorage] Global theme successfully saved to storage');
+    
+    // Verify the value was saved
+    const verify = await this.get<'light' | 'dark'>(this.KEYS.USER_SETTING_GLOBAL_THEME);
+    console.log('[ChromeStorage] Verification - retrieved global theme from storage:', verify);
   }
 
   // --- User Setting: Page Translation View ---
@@ -430,12 +437,38 @@ export class ChromeStorage {
   }
 
   static async setUserSettingThemeOnSiteForDomain(domain: string, theme: 'light' | 'dark'): Promise<void> {
+    console.log('[ChromeStorage] setUserSettingThemeOnSiteForDomain called with domain:', domain, 'theme:', theme);
+    console.log('[ChromeStorage] Setting key:', this.KEYS.USER_SETTING_THEME_ON_SITE);
+    
     const themeMap = await this.getUserSettingThemeOnSite();
+    console.log('[ChromeStorage] Current theme map:', themeMap);
+    
     const updatedMap = {
       ...themeMap,
       [domain]: theme,
     };
-    return this.set(this.KEYS.USER_SETTING_THEME_ON_SITE, updatedMap);
+    console.log('[ChromeStorage] Updated theme map:', updatedMap);
+    
+    await this.set(this.KEYS.USER_SETTING_THEME_ON_SITE, updatedMap);
+    console.log('[ChromeStorage] Domain theme successfully saved to storage');
+    
+    // Verify the value was saved
+    const verify = await this.getUserSettingThemeOnSiteForDomain(domain);
+    console.log('[ChromeStorage] Verification - retrieved domain theme from storage for', domain, ':', verify);
+  }
+
+  /**
+   * Clear all domain-specific theme settings
+   * This is useful when changing the global theme to ensure it applies everywhere
+   */
+  static async clearAllDomainThemes(): Promise<void> {
+    console.log('[ChromeStorage] Clearing all domain-specific themes');
+    await this.remove(this.KEYS.USER_SETTING_THEME_ON_SITE);
+    console.log('[ChromeStorage] All domain themes cleared');
+    
+    // Verify the clear operation
+    const verify = await this.getUserSettingThemeOnSite();
+    console.log('[ChromeStorage] Verification - theme map after clear:', verify);
   }
 
   // --- User Setting: Native Language ---

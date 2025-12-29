@@ -44,7 +44,8 @@ import savedParagraphIconStyles from './styles/savedParagraphIcon.shadow.css?inl
 import welcomeModalStyles from './styles/welcomeModal.shadow.css?inline';
 
 // Import color CSS variables
-import { ALL_COLOR_VARIABLES } from '../constants/colors.css.js';
+import { ALL_COLOR_VARIABLES, getAllColorVariables } from '../constants/colors.css.js';
+import { getCurrentTheme } from '../constants/theme';
 
 // Import services and utilities
 import { SummariseService } from '../api-services/SummariseService';
@@ -426,7 +427,7 @@ function injectFAB(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject component styles
   injectStyles(shadow, fabStyles);
@@ -945,7 +946,7 @@ function injectSidePanel(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject component styles
   injectStyles(shadow, sidePanelStyles);
@@ -1001,7 +1002,7 @@ function injectContentActions(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject component styles
   injectStyles(shadow, contentActionsStyles);
@@ -6148,7 +6149,7 @@ function injectDisableModal(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject component styles
   injectStyles(shadow, disableNotificationModalStyles);
@@ -6268,7 +6269,7 @@ function injectToast(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject inline toast styles (since we don't have a separate toast shadow CSS)
   const toastStyles = `
@@ -6429,7 +6430,7 @@ function injectBookmarkToast(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject inline bookmark toast styles
   const bookmarkToastStyles = `
@@ -6729,7 +6730,7 @@ function injectFolderListModal(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject folder list modal styles
   injectStyles(shadow, folderListModalStyles);
@@ -7564,7 +7565,7 @@ function injectLoginModal(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject component styles
   injectStyles(shadow, loginModalStyles);
@@ -7643,7 +7644,7 @@ function injectSubscriptionModal(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject component styles
   injectStyles(shadow, subscriptionModalStyles);
@@ -7695,7 +7696,7 @@ function injectWelcomeModal(): void {
   });
 
   // Inject color CSS variables first
-  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
   // Inject component styles
   injectStyles(shadow, welcomeModalStyles);
@@ -8093,6 +8094,175 @@ store.sub(showSubscriptionModalAtom, () => {
   updateBackgroundBlur();
 });
 
+// Debounce timer for theme refresh to prevent duplicate calls
+let themeRefreshTimer: number | null = null;
+
+/**
+ * Check if a style element contains color variables CSS
+ * More specific detection to avoid removing component styles
+ */
+function isColorVariablesStyle(styleElement: HTMLStyleElement): boolean {
+  const content = styleElement.textContent || '';
+  
+  // Check for data attribute first (most reliable)
+  if (styleElement.getAttribute('data-xplaino-color-variables') === 'true') {
+    return true;
+  }
+  
+  // Check for :host selector (color variables use :host)
+  if (content.includes(':host') && content.includes('--color-')) {
+    return true;
+  }
+  
+  // Check for multiple color variable markers (more specific than just --color-primary)
+  const colorVariableMarkers = [
+    '--color-primary:',
+    '--color-bg-primary-theme:',
+    '--color-text-primary-theme:',
+    '--color-bg-secondary-theme:',
+    '--color-border-default-theme:',
+  ];
+  
+  const markerCount = colorVariableMarkers.filter(marker => content.includes(marker)).length;
+  // If it has 3+ color variable markers, it's likely the color variables style
+  // This avoids matching component styles that might reference one or two variables
+  return markerCount >= 3;
+}
+
+/**
+ * Refresh theme CSS variables in all Shadow DOM roots
+ */
+async function refreshThemeInAllShadowRoots(): Promise<void> {
+  console.log('[Content Script] refreshThemeInAllShadowRoots called');
+  
+  // Clear any pending refresh
+  if (themeRefreshTimer !== null) {
+    clearTimeout(themeRefreshTimer);
+    themeRefreshTimer = null;
+  }
+  
+  // Debounce: wait a bit to batch multiple rapid calls
+  return new Promise((resolve) => {
+    themeRefreshTimer = window.setTimeout(async () => {
+      try {
+        // Get current theme
+        const currentTheme = await getCurrentTheme();
+        console.log('[Content Script] Current theme resolved:', currentTheme);
+        
+        // Get theme-specific CSS variables
+        const themeCSS = await getAllColorVariables(currentTheme, true);
+        console.log('[Content Script] Theme CSS generated, length:', themeCSS.length);
+        
+        // List of all host IDs that have color variables injected
+        const hostIds = [
+          FAB_HOST_ID,
+          SIDE_PANEL_HOST_ID,
+          CONTENT_ACTIONS_HOST_ID,
+          TEXT_EXPLANATION_PANEL_HOST_ID,
+          TEXT_EXPLANATION_ICON_HOST_ID,
+          DISABLE_MODAL_HOST_ID,
+          TOAST_HOST_ID,
+          BOOKMARK_TOAST_HOST_ID,
+          FOLDER_LIST_MODAL_HOST_ID,
+          LOGIN_MODAL_HOST_ID,
+          SUBSCRIPTION_MODAL_HOST_ID,
+          WELCOME_MODAL_HOST_ID,
+        ];
+        
+        let updatedCount = 0;
+        
+        // Update theme CSS in all shadow roots
+        for (const hostId of hostIds) {
+          const host = document.getElementById(hostId);
+          if (!host) {
+            console.log('[Content Script] Host not found:', hostId);
+            continue;
+          }
+          
+          if (!host.shadowRoot) {
+            console.log('[Content Script] Shadow root not found for:', hostId);
+            continue;
+          }
+          
+          const shadow = host.shadowRoot;
+          
+          // Log all styles before modification
+          const allStylesBefore = Array.from(shadow.querySelectorAll('style'));
+          console.log(`[Content Script] ${hostId}: Found ${allStylesBefore.length} style elements before refresh`);
+          
+          // Find and remove existing color variable style elements
+          const existingStyles = Array.from(shadow.querySelectorAll('style'));
+          let colorStyleElement: HTMLStyleElement | null = null;
+          let firstComponentStyle: HTMLStyleElement | null = null;
+          
+          for (const style of existingStyles) {
+            if (isColorVariablesStyle(style)) {
+              colorStyleElement = style;
+              console.log(`[Content Script] ${hostId}: Found color variables style to remove`);
+            } else if (!firstComponentStyle) {
+              // First non-color-variables style is likely a component style
+              firstComponentStyle = style;
+            }
+          }
+          
+          // Remove color variables style if found
+          if (colorStyleElement) {
+            colorStyleElement.remove();
+            console.log(`[Content Script] ${hostId}: Removed old theme CSS`);
+          }
+          
+          // Inject new theme CSS in the correct position
+          // CRITICAL: Color variables MUST be injected FIRST, before any component styles
+          // Component styles use `:host { all: initial }` which can cause issues if order is wrong
+          const newStyleElement = document.createElement('style');
+          newStyleElement.setAttribute('data-xplaino-color-variables', 'true');
+          newStyleElement.textContent = themeCSS;
+          
+          // Find the first style element (if any) to insert before it
+          // This ensures color variables are always before component styles
+          const firstStyleElement = shadow.querySelector('style');
+          if (firstStyleElement) {
+            // Insert before first style element (which should be component styles)
+            shadow.insertBefore(newStyleElement, firstStyleElement);
+            console.log(`[Content Script] ${hostId}: Injected new theme CSS before first component style`);
+          } else {
+            // No styles yet, insert at beginning (before mount point)
+            if (shadow.firstChild) {
+              shadow.insertBefore(newStyleElement, shadow.firstChild);
+            } else {
+              shadow.appendChild(newStyleElement);
+            }
+            console.log(`[Content Script] ${hostId}: Injected new theme CSS at beginning (no other styles)`);
+          }
+          
+          updatedCount++;
+          
+          // Log styles after modification
+          const allStylesAfter = Array.from(shadow.querySelectorAll('style'));
+          console.log(`[Content Script] ${hostId}: Now has ${allStylesAfter.length} style elements after refresh`);
+          
+          // Verify the color variables style was injected correctly
+          const injectedStyle = shadow.querySelector('style[data-xplaino-color-variables="true"]');
+          if (injectedStyle) {
+            const hasThemeVars = injectedStyle.textContent?.includes('--color-bg-primary-theme:');
+            console.log(`[Content Script] ${hostId}: Color variables style verified, has theme vars:`, hasThemeVars);
+          } else {
+            console.warn(`[Content Script] ${hostId}: WARNING - Color variables style not found after injection!`);
+          }
+        }
+        
+        console.log('[Content Script] Theme refresh complete. Updated', updatedCount, 'shadow roots');
+        resolve();
+      } catch (error) {
+        console.error('[Content Script] Error refreshing theme:', error);
+        resolve();
+      } finally {
+        themeRefreshTimer = null;
+      }
+    }, 50); // 50ms debounce
+  });
+}
+
 /**
  * Listen for storage changes to dynamically enable/disable
  */
@@ -8111,7 +8281,29 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
       chrome.storage.local.remove('xplaino_show_login_modal');
     }
   }
+  
+  // Listen for theme changes
+  if (areaName === 'local') {
+    const themeKeys = [
+      ChromeStorage.KEYS.USER_SETTING_GLOBAL_THEME,
+      ChromeStorage.KEYS.USER_SETTING_THEME_ON_SITE,
+    ];
+    
+    const themeChanged = themeKeys.some(key => changes[key]);
+    if (themeChanged) {
+      console.log('[Content Script] Theme storage changed detected:', Object.keys(changes));
+      refreshThemeInAllShadowRoots();
+    }
+  }
 });
+
+// Listen for custom theme change event from SettingsView
+// Note: This is redundant with storage listener but provides immediate feedback
+// Debouncing in refreshThemeInAllShadowRoots prevents duplicate work
+window.addEventListener('theme-changed', ((event: CustomEvent) => {
+  console.log('[Content Script] Theme changed event received:', event.detail);
+  refreshThemeInAllShadowRoots();
+}) as EventListener);
 
 // Listen for custom login required event
 window.addEventListener('xplaino:login-required', () => {

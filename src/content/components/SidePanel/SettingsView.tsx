@@ -127,14 +127,47 @@ const Toggle: React.FC<{
   };
 
   const handleGlobalThemeChange = async (theme: 'light' | 'dark') => {
-    setGlobalTheme(theme);
-    await ChromeStorage.setUserSettingGlobalTheme(theme);
+    console.log('[SettingsView] handleGlobalThemeChange called with theme:', theme);
+    try {
+      setGlobalTheme(theme);
+      
+      // Set global theme
+      console.log('[SettingsView] Updating global theme in storage...');
+      await ChromeStorage.setUserSettingGlobalTheme(theme);
+      console.log('[SettingsView] Global theme successfully updated in storage:', theme);
+      
+      // Clear all domain-specific themes so global applies everywhere
+      console.log('[SettingsView] Clearing all domain-specific themes...');
+      await ChromeStorage.clearAllDomainThemes();
+      console.log('[SettingsView] All domain themes cleared, global theme will now apply');
+      
+      // Also update UI state for current domain to match global
+      setDomainTheme(theme);
+      
+      // Trigger storage change event manually to ensure other components pick it up
+      window.dispatchEvent(new CustomEvent('theme-changed', { detail: { type: 'global', theme } }));
+    } catch (error) {
+      console.error('[SettingsView] Error updating global theme:', error);
+    }
   };
 
   const handleDomainThemeChange = async (theme: 'light' | 'dark') => {
-    if (!currentDomain) return;
-    setDomainTheme(theme);
-    await ChromeStorage.setUserSettingThemeOnSiteForDomain(currentDomain, theme);
+    if (!currentDomain) {
+      console.warn('[SettingsView] handleDomainThemeChange called but currentDomain is not set');
+      return;
+    }
+    console.log('[SettingsView] handleDomainThemeChange called with theme:', theme, 'for domain:', currentDomain);
+    try {
+      setDomainTheme(theme);
+      console.log('[SettingsView] Updating domain theme in storage for domain:', currentDomain);
+      await ChromeStorage.setUserSettingThemeOnSiteForDomain(currentDomain, theme);
+      console.log('[SettingsView] Domain theme successfully updated in storage:', theme, 'for domain:', currentDomain);
+      
+      // Trigger storage change event manually to ensure other components pick it up
+      window.dispatchEvent(new CustomEvent('theme-changed', { detail: { type: 'domain', domain: currentDomain, theme } }));
+    } catch (error) {
+      console.error('[SettingsView] Error updating domain theme:', error);
+    }
   };
 
   const handleGlobalToggle = async (checked: boolean) => {
