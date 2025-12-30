@@ -66,6 +66,7 @@ import { SavedWordsService } from '../api-services/SavedWordsService';
 import { FolderService } from '../api-services/FolderService';
 import { SavedParagraphService } from '../api-services/SavedParagraphService';
 import { SavedLinkService } from '../api-services/SavedLinkService';
+import { SavedImageService } from '../api-services/SavedImageService';
 import type { FolderWithSubFoldersResponse } from '../api-services/dto/FolderDTO';
 import { extractAndStorePageContent, getStoredPageContent } from './utils/pageContentExtractor';
 import { addTextUnderline, removeTextUnderline, pulseTextBackground, changeUnderlineColor, type UnderlineState } from './utils/textSelectionUnderline';
@@ -173,7 +174,7 @@ let toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
 // Bookmark toast state
 let bookmarkToastUrl: string | null = null;
 let bookmarkToastClosing: boolean = false;
-let bookmarkToastType: 'word' | 'paragraph' | 'link' | null = null;
+let bookmarkToastType: 'word' | 'paragraph' | 'link' | 'image' | null = null;
 let bookmarkToastRoot: ReactDOM.Root | null = null;
 
 // Folder List Modal state
@@ -189,8 +190,8 @@ let folderModalExpandedFolders: Set<string> = new Set();
 let folderModalRange: Range | null = null; // Store the selection range for bookmark
 let folderModalRememberChecked: boolean = false; // Track remember folder checkbox state
 let folderModalRememberCheckedInitialized: boolean = false; // Track if checkbox state has been initialized
-// Folder modal mode: 'paragraph' for paragraph saving, 'link' for link saving, 'word' for word saving
-let folderModalMode: 'paragraph' | 'link' | 'word' | null = null;
+// Folder modal mode: 'paragraph' for paragraph saving, 'link' for link saving, 'word' for word saving, 'image' for image saving
+let folderModalMode: 'paragraph' | 'link' | 'word' | 'image' | null = null;
 // Link-specific state variables
 let folderModalLinkUrl: string = '';
 let folderModalLinkName: string = '';
@@ -201,6 +202,9 @@ let folderModalLinkSource: 'sidepanel' | 'fab' | null = null;
 let folderModalWord: string | null = null;
 let folderModalWordContextualMeaning: string | null = null;
 let folderModalWordId: string | null = null;
+// Image-specific state variables
+let folderModalImageElement: HTMLImageElement | null = null;
+let folderModalImageFile: File | Blob | null = null;
 
 // FAB Saved Link state - tracks if current page is saved
 let fabSavedLinkId: string | null = null;
@@ -4541,6 +4545,69 @@ async function toggleTextExplanationPanel(explanationId: string): Promise<void> 
   }
 }
 
+/**
+ * Toggle image explanation panel open/closed for a specific explanation
+ * If clicking same explanation ID: toggle panel (close if open, open if closed)
+ * If clicking different ID: close current panel, set new active ID, open new panel
+ */
+async function toggleImageExplanationPanel(explanationId: string): Promise<void> {
+  const activeId = store.get(activeImageExplanationIdAtom);
+  const panelOpen = store.get(imageExplanationPanelOpenAtom);
+  
+  if (explanationId === activeId) {
+    // Same explanation: toggle panel
+    if (panelOpen) {
+      // Closing - close panel
+      console.log('[Content Script] Closing image explanation panel from icon toggle');
+      store.set(imageExplanationPanelOpenAtom, false);
+      updateImageExplanationPanel();
+      updateImageExplanationIconContainer();
+    } else {
+      // Opening - close side panel first if it's open
+      if (sidePanelOpen) {
+        console.log('[Content Script] Closing side panel before opening image explanation panel');
+        setSidePanelOpen(false);
+        // Wait for slide animation to complete (300ms duration)
+        await new Promise(resolve => setTimeout(resolve, 350));
+      }
+      
+      // Ensure panel is injected before opening
+      injectImageExplanationPanel();
+      
+      store.set(activeImageExplanationIdAtom, explanationId);
+      store.set(imageExplanationPanelOpenAtom, true);
+      updateImageExplanationPanel();
+      updateImageExplanationIconContainer();
+    }
+  } else {
+    // Different explanation: close current, switch to new, open panel
+    if (activeId) {
+      // Abort any in-progress request for previous active explanation
+      const explanations = store.get(imageExplanationsAtom);
+      const previousExplanation = explanations.get(activeId);
+      if (previousExplanation?.abortController) {
+        previousExplanation.abortController.abort();
+      }
+    }
+    
+    // Close side panel first if it's open
+    if (sidePanelOpen) {
+      console.log('[Content Script] Closing side panel before opening image explanation panel');
+      setSidePanelOpen(false);
+      // Wait for slide animation to complete (300ms duration)
+      await new Promise(resolve => setTimeout(resolve, 350));
+    }
+    
+    // Ensure panel is injected before opening
+    injectImageExplanationPanel();
+    
+    store.set(activeImageExplanationIdAtom, explanationId);
+    store.set(imageExplanationPanelOpenAtom, true);
+    updateImageExplanationPanel();
+    updateImageExplanationIconContainer();
+  }
+}
+
 // Stable callback functions to prevent infinite re-renders
 let handleQuestionClickCallback: ((question: string) => Promise<void>) | null = null;
 let handleInputSubmitCallback: ((inputText: string) => Promise<void>) | null = null;
@@ -5575,34 +5642,92 @@ function updateImageExplanationIconContainer(): void {
     })),
   });
   
-  const icons = Array.from(explanations.values()).map((explanation) => ({
-    id: explanation.id,
-    position: explanation.iconPosition,
-    isSpinning: explanation.isSpinning,
-    onClick: () => {
-      // If already has content, toggle panel
-      if (explanation.firstChunkReceived) {
-        const currentOpen = store.get(imageExplanationPanelOpenAtom);
-        store.set(imageExplanationPanelOpenAtom, !currentOpen);
-        if (!currentOpen) {
-          store.set(activeImageExplanationIdAtom, explanation.id);
-        } else {
-          store.set(activeImageExplanationIdAtom, null);
-        }
-        updateImageExplanationPanel();
-        updateImageExplanationIconContainer();
-      } else {
-        // If not yet simplified, trigger simplify API
-        handleImageIconClick(explanation.imageElement);
+  const icons = Array.from(explanations.values()).map((explanation) => {
+    // Create bookmark click handler for this explanation
+    const handleBookmarkClick = () => {
+      if (!explanation.savedImageId) {
+        console.warn('[Content Script] No savedImageId for bookmark click');
+        return;
       }
-    },
-    onMouseEnter: () => handleIconMouseEnter(explanation.id),
-    onMouseLeave: () => handleIconMouseLeave(explanation.id),
-    iconRef: explanation.iconRef,
-    isPanelOpen: activeId === explanation.id && store.get(imageExplanationPanelOpenAtom),
-    imageElement: explanation.imageElement,
-    firstChunkReceived: explanation.firstChunkReceived,
-  }));
+      
+      // Call delete API
+      SavedImageService.deleteSavedImage(
+        explanation.savedImageId,
+        {
+          onSuccess: () => {
+            console.log('[Content Script] Image bookmark deleted successfully');
+            
+            // Update explanation state to clear savedImageId
+            const updateExplanationInMap = (id: string, updater: (state: ImageExplanationState) => ImageExplanationState) => {
+              const map = new Map(store.get(imageExplanationsAtom));
+              const current = map.get(id);
+              if (current) {
+                map.set(id, updater(current));
+                store.set(imageExplanationsAtom, map);
+              }
+            };
+            
+            updateExplanationInMap(explanation.id, (state) => ({
+              ...state,
+              savedImageId: null,
+            }));
+            
+            // Update icon container to hide bookmark icon
+            updateImageExplanationIconContainer();
+            
+            // Update panel if it's currently open for this explanation
+            if (activeId === explanation.id) {
+              updateImageExplanationPanel();
+            }
+            
+            showToast('Bookmark removed successfully!', 'success');
+          },
+          onError: (errorCode, message) => {
+            console.error('[Content Script] Failed to delete image bookmark:', errorCode, message);
+            let displayMessage = 'Failed to remove bookmark';
+            
+            if (errorCode === 'NOT_FOUND') {
+              displayMessage = 'Bookmark not found';
+            } else if (errorCode === 'NETWORK_ERROR') {
+              displayMessage = 'Network error. Please check your connection.';
+            } else if (message) {
+              displayMessage = message;
+            }
+            
+            showToast(displayMessage, 'error');
+          },
+          onLoginRequired: () => {
+            console.log('[Content Script] Login required to delete image bookmark');
+            store.set(showLoginModalAtom, true);
+          },
+          onSubscriptionRequired: () => {
+            console.log('[Content Script] Subscription required to delete image bookmark');
+            store.set(showSubscriptionModalAtom, true);
+          },
+        }
+      );
+    };
+    
+    return {
+      id: explanation.id,
+      position: explanation.iconPosition,
+      isSpinning: explanation.isSpinning,
+      onClick: () => {
+        // Call handleImageIconClick which will toggle if content exists, or make API call if not
+        handleImageIconClick(explanation.imageElement).catch((error) => {
+          console.error('[Content Script] Error handling image icon click:', error);
+        });
+      },
+      onMouseEnter: () => handleIconMouseEnter(explanation.id),
+      onMouseLeave: () => handleIconMouseLeave(explanation.id),
+      iconRef: explanation.iconRef,
+      isPanelOpen: activeId === explanation.id && store.get(imageExplanationPanelOpenAtom),
+      imageElement: explanation.imageElement,
+      firstChunkReceived: explanation.firstChunkReceived,
+      isBookmarked: !!explanation.savedImageId,
+      onBookmarkClick: explanation.savedImageId ? handleBookmarkClick : undefined,
+    };
+  });
   
   // If no icons, render empty fragment
   if (icons.length === 0) {
@@ -5637,6 +5762,8 @@ function updateImageExplanationIconContainer(): void {
             onMouseEnter: icon.onMouseEnter,
             onMouseLeave: icon.onMouseLeave,
             firstChunkReceived: icon.firstChunkReceived,
+            isBookmarked: icon.isBookmarked,
+            onBookmarkClick: icon.onBookmarkClick,
           })
         )
       )
@@ -5730,9 +5857,10 @@ function handleImageHover(imageElement: HTMLImageElement): void {
     shouldAllowSimplifyMore: false,
     previousSimplifiedTexts: [],
     simplifiedExplanationCount: 0,
-    chatMessages: [],
-    messageQuestions: {},
-  };
+      chatMessages: [],
+      messageQuestions: {},
+      savedImageId: null,
+    };
   
   // Add to explanations map
   const explanations = new Map(store.get(imageExplanationsAtom));
@@ -5880,7 +6008,7 @@ function handleIconMouseLeave(explanationId: string): void {
 }
 
 /**
- * Handle image icon click - trigger simplify API
+ * Handle image icon click - trigger simplify API or toggle panel
  */
 async function handleImageIconClick(imageElement: HTMLImageElement): Promise<void> {
   console.log('[Content Script] Image icon clicked');
@@ -5905,6 +6033,19 @@ async function handleImageIconClick(imageElement: HTMLImageElement): Promise<voi
     imageHideTimeouts.delete(imageElement);
   }
   
+  // Check if explanation already exists and has content (chatMessages or streamingText)
+  const hasContent = (explanation.chatMessages && explanation.chatMessages.length > 0) || 
+                     (explanation.streamingText && explanation.streamingText.trim().length > 0) ||
+                     explanation.firstChunkReceived;
+  
+  if (hasContent) {
+    // Explanation already has content, just toggle the panel
+    console.log('[Content Script] Explanation already has content, toggling panel');
+    await toggleImageExplanationPanel(explanationId);
+    return;
+  }
+  
+  // Explanation doesn't have content yet, proceed with API call
   // Convert image to file
   let imageFile: File | null = null;
   try {
@@ -6070,7 +6211,24 @@ async function handleImageIconClick(imageElement: HTMLImageElement): Promise<voi
           showToast(`Error: ${errorMessage}`, 'error');
         },
         onLoginRequired: () => {
+          // Stop spinner animation when login is required
+          updateExplanationInMap(explanationId, (state) => ({
+            ...state,
+            isSpinning: false,
+            abortController: null,
+          }));
+          updateImageExplanationIconContainer();
           store.set(showLoginModalAtom, true);
+        },
+        onSubscriptionRequired: () => {
+          // Stop spinner animation when subscription is required
+          updateExplanationInMap(explanationId, (state) => ({
+            ...state,
+            isSpinning: false,
+            abortController: null,
+          }));
+          updateImageExplanationIconContainer();
+          store.set(showSubscriptionModalAtom, true);
         },
       },
       store.get(imageExplanationsAtom).get(explanationId)?.abortController || undefined
@@ -6441,6 +6599,169 @@ function updateImageExplanationPanel(): void {
     removeImageExplanation(explanationId);
   };
 
+  const handleImageClearChatCallback = () => {
+    if (explanationId) {
+      const updateExplanationInMap = (id: string, updater: (state: ImageExplanationState) => ImageExplanationState) => {
+        const map = new Map(store.get(imageExplanationsAtom));
+        const current = map.get(id);
+        if (current) {
+          map.set(id, updater(current));
+          store.set(imageExplanationsAtom, map);
+        }
+      };
+
+      updateExplanationInMap(explanationId, (state) => {
+        // Clear abortController and abort any ongoing requests
+        if (state.abortController) {
+          state.abortController.abort();
+        }
+
+        return {
+          ...state,
+          chatMessages: [],
+          messageQuestions: {},
+          streamingText: '',
+          possibleQuestions: [],
+          abortController: null,
+          firstChunkReceived: false,
+          // Clear simplified explanation state so Simplify button starts fresh
+          previousSimplifiedTexts: [],
+          simplifiedExplanationCount: 0,
+          // Reset shouldAllowSimplifyMore - if we cleared chat, we should allow simplifying the original image again
+          shouldAllowSimplifyMore: true,
+          isSimplifyRequest: false,
+        };
+      });
+
+      updateImageExplanationPanel();
+    }
+  };
+
+  const handleImageBookmarkCallback = () => {
+    if (!activeExplanation) {
+      console.log('[Content Script] No active explanation for bookmark');
+      return;
+    }
+
+    // If already bookmarked, delete the bookmark
+    if (activeExplanation.savedImageId) {
+      console.log('[Content Script] Deleting image bookmark:', activeExplanation.savedImageId);
+      
+      SavedImageService.deleteSavedImage(
+        activeExplanation.savedImageId,
+        {
+          onSuccess: () => {
+            console.log('[Content Script] Image bookmark deleted successfully');
+            
+            // Update explanation state to clear savedImageId
+            const updateExplanationInMap = (id: string, updater: (state: ImageExplanationState) => ImageExplanationState) => {
+              const map = new Map(store.get(imageExplanationsAtom));
+              const current = map.get(id);
+              if (current) {
+                map.set(id, updater(current));
+                store.set(imageExplanationsAtom, map);
+              }
+            };
+            
+            updateExplanationInMap(explanationId, (state) => ({
+              ...state,
+              savedImageId: null,
+            }));
+            
+            // Update icon container to hide bookmark icon
+            updateImageExplanationIconContainer();
+            
+            // Update panel to show unfilled bookmark
+            updateImageExplanationPanel();
+            
+            showToast('Bookmark removed successfully!', 'success');
+          },
+          onError: (errorCode, message) => {
+            console.error('[Content Script] Failed to delete image bookmark:', errorCode, message);
+            let displayMessage = 'Failed to remove bookmark';
+            
+            if (errorCode === 'NOT_FOUND') {
+              displayMessage = 'Bookmark not found';
+            } else if (errorCode === 'NETWORK_ERROR') {
+              displayMessage = 'Network error. Please check your connection.';
+            } else if (message) {
+              displayMessage = message;
+            }
+            
+            showToast(displayMessage, 'error');
+          },
+          onLoginRequired: () => {
+            console.log('[Content Script] Login required to delete image bookmark');
+            store.set(showLoginModalAtom, true);
+          },
+          onSubscriptionRequired: () => {
+            console.log('[Content Script] Subscription required to delete image bookmark');
+            store.set(showSubscriptionModalAtom, true);
+          },
+        }
+      );
+      return;
+    }
+
+    // If not bookmarked, open folder modal to save
+    console.log('[Content Script] Bookmark clicked for image explanation');
+    
+    // Store image data in modal state
+    folderModalImageElement = activeExplanation.imageElement;
+    folderModalImageFile = activeExplanation.imageFile;
+    
+    // Set mode to image
+    folderModalMode = 'image';
+    
+    // Get folders and show modal
+    FolderService.getAllFolders(
+      {
+        onSuccess: async (response) => {
+          console.log('[Content Script] Folders loaded successfully for image:', response.folders.length, 'folders');
+          folderModalFolders = response.folders;
+          
+          // Check for stored preference folder ID and auto-select/expand if found
+          const storedFolderId = await ChromeStorage.getImageBookmarkPreferenceFolderId();
+          console.log('[Content Script] Retrieved stored image folder ID from storage:', storedFolderId);
+          if (storedFolderId) {
+            const ancestorPath = findFolderAndGetAncestorPath(response.folders, storedFolderId);
+            if (ancestorPath !== null) {
+              folderModalSelectedFolderId = storedFolderId;
+              // Expand all ancestor folders to show the hierarchical path
+              folderModalExpandedFolders = new Set(ancestorPath);
+              console.log('[Content Script] Auto-selected preferred image folder:', storedFolderId, 'with ancestors:', ancestorPath);
+            } else {
+              folderModalSelectedFolderId = null;
+              folderModalExpandedFolders = new Set();
+              console.log('[Content Script] Stored image folder ID not found in tree, clearing selection. Stored ID:', storedFolderId, 'Available folders:', response.folders);
+            }
+          } else {
+            folderModalSelectedFolderId = null;
+            folderModalExpandedFolders = new Set();
+            console.log('[Content Script] No stored image folder preference found');
+          }
+          
+          folderModalRememberCheckedInitialized = false; // Reset flag when modal opens
+          folderModalOpen = true;
+          injectFolderListModal();
+          updateFolderListModal();
+        },
+        onError: (errorCode, message) => {
+          console.error('[Content Script] Failed to load folders for image:', errorCode, message);
+          showToast(`Failed to load folders: ${message}`, 'error');
+        },
+        onLoginRequired: () => {
+          console.log('[Content Script] Login required to load folders for image');
+          store.set(showLoginModalAtom, true);
+        },
+        onSubscriptionRequired: () => {
+          console.log('[Content Script] Subscription required to load folders for image');
+          store.set(showSubscriptionModalAtom, true);
+        },
+      }
+    );
+  };
+
   const handleImageViewOriginalCallback = () => {
     if (!activeExplanation) {
       console.log('[Content Script] No image explanation state available for view original');
@@ -6467,6 +6788,7 @@ function updateImageExplanationPanel(): void {
           onInputSubmit: handleImageInputSubmitCallback,
           chatMessages,
           messageQuestions,
+          onClearChat: handleImageClearChatCallback,
           onStopRequest: () => {
             const exp = store.get(imageExplanationsAtom).get(explanationId);
             if (!exp) return;
@@ -6528,6 +6850,8 @@ function updateImageExplanationPanel(): void {
           showDeleteIcon,
           onRemove: handleImageRemoveCallback,
           onViewOriginal: handleImageViewOriginalCallback,
+          onBookmark: handleImageBookmarkCallback,
+          isBookmarked: !!activeExplanation.savedImageId,
           hideFooter: true,
           firstChunkReceived,
           onCloseHandlerReady: () => {
@@ -7696,7 +8020,7 @@ function removeToast(): void {
 /**
  * Show bookmark toast with link to saved bookmarks page
  */
-async function showBookmarkToast(type: 'word' | 'paragraph' | 'link', urlPath: string): Promise<void> {
+async function showBookmarkToast(type: 'word' | 'paragraph' | 'link' | 'image', urlPath: string): Promise<void> {
   // Check if user has disabled this toast
   let shouldShow = false;
   if (type === 'word') {
@@ -7705,6 +8029,9 @@ async function showBookmarkToast(type: 'word' | 'paragraph' | 'link', urlPath: s
     shouldShow = !(await ChromeStorage.getDontShowTextBookmarkSavedLinkToast());
   } else if (type === 'link') {
     shouldShow = !(await ChromeStorage.getDontShowLinkBookmarkSavedLinkToast());
+  } else if (type === 'image') {
+    // For now, always show image bookmark toast (can add preference later)
+    shouldShow = true;
   }
 
   if (!shouldShow) {
@@ -7881,6 +8208,8 @@ function updateBookmarkToast(): void {
         await ChromeStorage.setDontShowTextBookmarkSavedLinkToast(true);
       } else if (bookmarkToastType === 'link') {
         await ChromeStorage.setDontShowLinkBookmarkSavedLinkToast(true);
+      } else if (bookmarkToastType === 'image') {
+        // For now, just close the toast (can add preference storage later)
       }
       
       bookmarkToastClosing = true;
@@ -8069,17 +8398,21 @@ async function updateFolderListModal(): Promise<void> {
       ? handleFolderModalSaveForLink 
       : folderModalMode === 'word'
       ? handleFolderModalSaveForWord
+      : folderModalMode === 'image'
+      ? handleFolderModalSaveForImage
       : handleFolderModalSave;
     const createFolderHandler = folderModalMode === 'link'
       ? handleCreateLinkFolder
-      : handleCreateParagraphFolder; // Use paragraph folder handler for both paragraph and word modes
+      : handleCreateParagraphFolder; // Use paragraph folder handler for both paragraph, word, and image modes
     
-    // Check if the selected folder matches the stored preference (different for link, paragraph, and word)
+    // Check if the selected folder matches the stored preference (different for link, paragraph, word, and image)
     let storedFolderId: string | null = null;
     if (folderModalMode === 'link') {
       storedFolderId = await ChromeStorage.getLinkBookmarkPreferenceFolderId();
     } else if (folderModalMode === 'word') {
       storedFolderId = await ChromeStorage.getWordBookmarkPreferenceFolderId();
+    } else if (folderModalMode === 'image') {
+      storedFolderId = await ChromeStorage.getImageBookmarkPreferenceFolderId();
     } else {
       storedFolderId = await ChromeStorage.getParagraphBookmarkPreferenceFolderId();
     }
@@ -8505,6 +8838,166 @@ async function handleFolderModalSaveForLink(folderId: string | null, name?: stri
 }
 
 /**
+ * Convert File or Blob to data URL
+ */
+function fileToDataUrl(file: File | Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Handle save button click in folder modal for images
+ */
+async function handleFolderModalSaveForImage(folderId: string | null): Promise<void> {
+  console.log('[Content Script] Saving image to folder:', folderId);
+  
+  if (!folderModalImageElement) {
+    console.error('[Content Script] Missing image element for saving');
+    showToast('Error: Missing image data', 'error');
+    return;
+  }
+  
+  // Set saving state
+  folderModalSaving = true;
+  updateFolderListModal();
+  
+  // Get image URL - prefer element src, fallback to converting file to data URL
+  let imageUrl: string;
+  if (folderModalImageElement.src && folderModalImageElement.src.startsWith('http')) {
+    // Use the image element's src if it's a valid URL
+    imageUrl = folderModalImageElement.src;
+  } else if (folderModalImageFile) {
+    // Convert File/Blob to data URL
+    try {
+      imageUrl = await fileToDataUrl(folderModalImageFile);
+    } catch (error) {
+      console.error('[Content Script] Failed to convert image to data URL:', error);
+      folderModalSaving = false;
+      updateFolderListModal();
+      showToast('Error: Failed to process image', 'error');
+      return;
+    }
+  } else {
+    // Fallback: try to get src from element
+    imageUrl = folderModalImageElement.src || '';
+    if (!imageUrl) {
+      console.error('[Content Script] No image URL available');
+      folderModalSaving = false;
+      updateFolderListModal();
+      showToast('Error: No image URL available', 'error');
+      return;
+    }
+  }
+  
+  // Save image
+  await SavedImageService.saveImage(
+    {
+      sourceUrl: window.location.href,
+      imageUrl: imageUrl,
+      folderId: folderId || undefined,
+      name: undefined, // Can be enhanced later to allow custom names
+    },
+    {
+      onSuccess: async (response) => {
+        console.log('[Content Script] Image saved successfully with id:', response.id);
+        console.log('[Content Script] Checkbox state:', folderModalRememberChecked, 'Folder ID:', folderId);
+        
+        // Find the explanation for this image and update it with savedImageId
+        const explanations = store.get(imageExplanationsAtom);
+        const explanation = Array.from(explanations.values()).find(
+          (exp) => exp.imageElement === folderModalImageElement
+        );
+        
+        if (explanation) {
+          const updateExplanationInMap = (id: string, updater: (state: ImageExplanationState) => ImageExplanationState) => {
+            const map = new Map(store.get(imageExplanationsAtom));
+            const current = map.get(id);
+            if (current) {
+              map.set(id, updater(current));
+              store.set(imageExplanationsAtom, map);
+            }
+          };
+          
+          updateExplanationInMap(explanation.id, (state) => ({
+            ...state,
+            savedImageId: response.id,
+          }));
+          
+          // Update icon container to show bookmark icon
+          updateImageExplanationIconContainer();
+          
+          // Update panel if it's currently open for this explanation
+          const activeId = store.get(activeImageExplanationIdAtom);
+          if (activeId === explanation.id) {
+            updateImageExplanationPanel();
+          }
+        }
+        
+        // If "Remember my folder" checkbox is checked, save the folder preference after successful save
+        if (folderModalRememberChecked && folderId) {
+          await ChromeStorage.setImageBookmarkPreferenceFolderId(folderId);
+          console.log('[Content Script] Saved image folder preference on save:', folderId);
+          // Verify it was saved
+          const verify = await ChromeStorage.getImageBookmarkPreferenceFolderId();
+          console.log('[Content Script] Verified saved image folder ID:', verify);
+        } else if (!folderModalRememberChecked) {
+          // If checkbox is unchecked, remove the preference after successful save
+          await ChromeStorage.removeImageBookmarkPreferenceFolderId();
+          console.log('[Content Script] Removed image folder preference on save');
+        }
+        
+        showToast('Image saved successfully!', 'success');
+        showBookmarkToast('image', '/user/saved-images');
+        
+        closeFolderListModal();
+      },
+      onError: (errorCode, message) => {
+        console.error('[Content Script] Failed to save image:', errorCode, message);
+        folderModalSaving = false;
+        updateFolderListModal();
+        
+        let displayMessage = 'Failed to save image';
+        
+        // Handle specific error codes
+        if (errorCode === 'VAL_001') {
+          displayMessage = 'Image URL is too long';
+        } else if (errorCode === 'VAL_002') {
+          displayMessage = 'Source URL is too long';
+        } else if (errorCode === 'VAL_003') {
+          displayMessage = 'Name is too long';
+        } else if (errorCode === 'NOT_FOUND') {
+          displayMessage = 'Folder not found';
+        } else if (errorCode === 'NETWORK_ERROR') {
+          displayMessage = 'Network error. Please check your connection.';
+        } else if (message) {
+          displayMessage = message;
+        }
+        
+        showToast(displayMessage, 'error');
+      },
+      onLoginRequired: () => {
+        console.log('[Content Script] Login required to save image');
+        folderModalSaving = false;
+        updateFolderListModal();
+        closeFolderListModal();
+        store.set(showLoginModalAtom, true);
+      },
+      onSubscriptionRequired: () => {
+        console.log('[Content Script] Subscription required to save image');
+        folderModalSaving = false;
+        updateFolderListModal();
+        closeFolderListModal();
+        store.set(showSubscriptionModalAtom, true);
+      },
+    }
+  );
+}
+
+/**
  * Handle save button click in folder modal for words
  */
 async function handleFolderModalSaveForWord(folderId: string | null): Promise<void> {
@@ -8850,6 +9343,9 @@ function closeFolderListModal(): void {
   folderModalWord = null;
   folderModalWordContextualMeaning = null;
   folderModalWordId = null;
+  // Clear image-specific state
+  folderModalImageElement = null;
+  folderModalImageFile = null;
   // Don't clear folderModalRange here - it's used after modal closes
   // Note: folderModalUnderlineState is no longer used since underline is only added after successful save
   updateFolderListModal();

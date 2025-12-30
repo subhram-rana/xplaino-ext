@@ -21,6 +21,7 @@ export interface ImageExplanationState {
   isSimplifyRequest?: boolean;
   chatMessages: Array<{ role: 'user' | 'assistant'; content: string }>;
   messageQuestions: Record<number, string[]>;
+  savedImageId: string | null; // ID of saved image if bookmarked
 }
 
 // ============================================

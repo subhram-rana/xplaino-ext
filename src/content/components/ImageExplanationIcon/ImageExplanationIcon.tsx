@@ -23,6 +23,10 @@ export interface ImageExplanationIconProps {
   onMouseLeave?: () => void;
   /** Whether first chunk has been received (shows green icon instead of purple) */
   firstChunkReceived?: boolean;
+  /** Whether the image is bookmarked */
+  isBookmarked?: boolean;
+  /** Click handler for bookmark icon */
+  onBookmarkClick?: () => void;
 }
 
 /**
@@ -73,8 +77,11 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
   onMouseEnter,
   onMouseLeave,
   firstChunkReceived = false,
+  isBookmarked = false,
+  onBookmarkClick,
 }) => {
   const iconElementRef = useRef<HTMLButtonElement | null>(null);
+  const bookmarkElementRef = useRef<HTMLButtonElement | null>(null);
   const scrollableParentsRef = useRef<HTMLElement[]>([]);
   const rafIdRef = useRef<number | null>(null);
 
@@ -108,11 +115,17 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
       // Update position directly via DOM for immediate update
       iconElementRef.current.style.left = `${iconX}px`;
       iconElementRef.current.style.top = `${iconY}px`;
+      
+      // Update bookmark icon position if it exists
+      if (bookmarkElementRef.current && isBookmarked) {
+        bookmarkElementRef.current.style.left = `${iconX}px`;
+        bookmarkElementRef.current.style.top = `${iconY + 28}px`; // 28px below main icon
+      }
     } catch (error) {
       // Silently handle errors (image might be removed from DOM)
       console.error('[ImageExplanationIcon] Error updating position:', error);
     }
-  }, [imageElement]);
+  }, [imageElement, isBookmarked]);
 
   // Handle scroll event
   const handleScroll = useCallback(() => {
@@ -210,37 +223,82 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
 
   const buttonClassName = `${getClassName('imageExplanationIcon')} ${isPanelOpen ? getClassName('panelOpen') : ''} ${firstChunkReceived ? getClassName('greenIcon') : ''}`;
 
+  // Bookmark icon position (below the main icon) - will be updated dynamically
+  const bookmarkStyle: React.CSSProperties = {
+    position: 'fixed',
+    left: `${position.x}px`, // Same horizontal position as main icon (initial, will be updated)
+    top: `${position.y + 28}px`, // 28px below the main icon (initial, will be updated)
+    zIndex: 2147483647,
+    width: '20px',
+    height: '20px',
+    padding: '2px',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    pointerEvents: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
   return (
-    <button
-      ref={setIconRef}
-      className={buttonClassName}
-      style={iconStyle}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      onMouseEnter={(e) => {
-        e.stopPropagation();
-        onMouseEnter?.();
-      }}
-      onMouseLeave={(e) => {
-        e.stopPropagation();
-        onMouseLeave?.();
-      }}
-      aria-label="Simplify image"
-    >
-      {isSpinning ? (
-        <span 
-          className={getClassName('loadingSpinner')}
-        />
-      ) : (
-        <img
-          src={firstChunkReceived ? getGreenIconUrl() : getPurpleIconUrl()}
-          alt="Xplaino"
-          className={getClassName('iconImage')}
-        />
+    <>
+      <button
+        ref={setIconRef}
+        className={buttonClassName}
+        style={iconStyle}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+        onMouseEnter={(e) => {
+          e.stopPropagation();
+          onMouseEnter?.();
+        }}
+        onMouseLeave={(e) => {
+          e.stopPropagation();
+          onMouseLeave?.();
+        }}
+        aria-label="Simplify image"
+      >
+        {isSpinning ? (
+          <span 
+            className={getClassName('loadingSpinner')}
+          />
+        ) : (
+          <img
+            src={firstChunkReceived ? getGreenIconUrl() : getPurpleIconUrl()}
+            alt="Xplaino"
+            className={getClassName('iconImage')}
+          />
+        )}
+      </button>
+      {isBookmarked && onBookmarkClick && (
+        <button
+          ref={bookmarkElementRef}
+          style={bookmarkStyle}
+          onClick={(e) => {
+            e.stopPropagation();
+            onBookmarkClick();
+          }}
+          aria-label="Remove bookmark"
+          title="Remove bookmark"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="#9333ea"
+            stroke="#9333ea"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
       )}
-    </button>
+    </>
   );
 };
 
