@@ -9985,11 +9985,35 @@ async function initYouTubeWatchPage(): Promise<void> {
 // =============================================================================
 
 /**
+ * Handle xplaino_text query parameter for auto-search
+ */
+function handleXplainoTextSearch(): void {
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchText = urlParams.get('xplaino_text');
+  
+  if (searchText) {
+    // Wait for DOM to be ready, then search
+    setTimeout(() => {
+      // window.find() is a non-standard but widely supported API
+      const found = (window as any).find(searchText, false, false, false, false, false);
+      if (found) {
+        console.log(`[Content Script] Found and highlighted: "${searchText}"`);
+      } else {
+        console.log(`[Content Script] Text not found: "${searchText}"`);
+      }
+    }, 100);
+  }
+}
+
+/**
  * Main content script logic
  */
 async function initContentScript(): Promise<void> {
   // Initialize auth state before any component injection
   await initializeAuthState();
+  
+  // Handle xplaino_text query parameter for auto-search
+  handleXplainoTextSearch();
   
   // Handle YouTube pages separately
   if (isYouTubePage()) {
@@ -10611,6 +10635,7 @@ if (isYouTubePage()) {
     if (window.location.href !== lastUrl) {
       lastUrl = window.location.href;
       initContentScript();
+      handleXplainoTextSearch();
     }
   });
   
@@ -10624,6 +10649,7 @@ if (isYouTubePage()) {
       if (window.location.href !== lastUrl) {
         lastUrl = window.location.href;
         initContentScript();
+        handleXplainoTextSearch();
       }
     }, 100);
   };
@@ -10634,6 +10660,7 @@ if (isYouTubePage()) {
       if (window.location.href !== lastUrl) {
         lastUrl = window.location.href;
         initContentScript();
+        handleXplainoTextSearch();
       }
     }, 100);
   };
@@ -10646,6 +10673,7 @@ if (isYouTubePage()) {
   document.addEventListener('yt-navigate-finish', () => {
     setTimeout(() => {
       initContentScript();
+      handleXplainoTextSearch();
     }, 500);
   });
 }
