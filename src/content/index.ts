@@ -8043,6 +8043,7 @@ function updateToast(): void {
             boxShadow: '0 4px 12px rgba(149, 39, 245, 0.15)',
             animation: toastClosing ? 'slideOut 0.3s ease-in forwards' : 'slideIn 0.3s ease-out',
             whiteSpace: 'nowrap',
+            maxWidth: '400px',
           }
         },
         toastMessage
