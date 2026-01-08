@@ -46,6 +46,8 @@ import folderListModalStyles from './styles/folderListModal.shadow.css?inline';
 import savedParagraphIconStyles from './styles/savedParagraphIcon.shadow.css?inline';
 import welcomeModalStyles from './styles/welcomeModal.shadow.css?inline';
 import youtubeAskAIButtonStyles from './styles/youtubeAskAIButton.shadow.css?inline';
+import highlightedCouponStyles from './styles/highlightedCoupon.shadow.css?inline';
+import minimalCouponButtonStyles from './styles/minimalCouponButton.shadow.css?inline';
 
 // Import color CSS variables
 import { ALL_COLOR_VARIABLES, getAllColorVariables } from '../constants/colors.css.js';
@@ -69,6 +71,7 @@ import { FolderService } from '../api-services/FolderService';
 import { SavedParagraphService } from '../api-services/SavedParagraphService';
 import { SavedLinkService } from '../api-services/SavedLinkService';
 import { SavedImageService } from '../api-services/SavedImageService';
+import { UserSettingsService } from '../api-services/UserSettingsService';
 import type { FolderWithSubFoldersResponse } from '../api-services/dto/FolderDTO';
 import { extractAndStorePageContent, getStoredPageContent } from './utils/pageContentExtractor';
 import { addTextUnderline, removeTextUnderline, pulseTextBackground, changeUnderlineColor, type UnderlineState } from './utils/textSelectionUnderline';
@@ -1007,6 +1010,10 @@ function injectSidePanel(): void {
   
   // Inject component styles
   injectStyles(shadow, sidePanelStyles);
+  
+  // Inject highlighted coupon styles
+  injectStyles(shadow, highlightedCouponStyles);
+  injectStyles(shadow, minimalCouponButtonStyles);
 
   // Append to document
   document.body.appendChild(host);
@@ -5541,6 +5548,9 @@ function injectTextExplanationPanel(): void {
   injectStyles(shadow, textExplanationSidePanelStyles);
   // Then inject color variables to override/ensure they're set
   injectStyles(shadow, ALL_COLOR_VARIABLES);
+  // Inject highlighted coupon styles
+  injectStyles(shadow, highlightedCouponStyles);
+  injectStyles(shadow, minimalCouponButtonStyles);
 
   document.body.appendChild(host);
 
@@ -6926,6 +6936,9 @@ function injectImageExplanationPanel(): void {
   injectStyles(shadow, textExplanationSidePanelStyles);
   // Then inject color variables to override/ensure they're set
   injectStyles(shadow, ALL_COLOR_VARIABLES);
+  // Inject highlighted coupon styles
+  injectStyles(shadow, highlightedCouponStyles);
+  injectStyles(shadow, minimalCouponButtonStyles);
   
   document.body.appendChild(host);
   console.log('[Content Script] Image explanation panel host appended to body');
@@ -7402,6 +7415,9 @@ function injectWordAskAISidePanel(): void {
 
   // Inject styles
   injectStyles(hostResult.shadow, wordAskAISidePanelStyles);
+  // Inject highlighted coupon styles
+  injectStyles(hostResult.shadow, highlightedCouponStyles);
+  injectStyles(hostResult.shadow, minimalCouponButtonStyles);
 
   // Append host to document body
   document.body.appendChild(hostResult.host);
@@ -10012,6 +10028,11 @@ async function initContentScript(): Promise<void> {
   // Initialize auth state before any component injection
   await initializeAuthState();
   
+  // Sync user account settings from backend API (on each URL load)
+  // This also ensures extension settings exist with default value
+  await UserSettingsService.syncUserAccountSettings();
+  await ChromeStorage.ensureUserExtensionSettings();
+  
   // Handle xplaino_text query parameter for auto-search
   handleXplainoTextSearch();
   
@@ -10568,11 +10589,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   // Listen for theme changes
   if (areaName === 'local') {
     const themeKeys = [
-      ChromeStorage.KEYS.USER_SETTING_GLOBAL_THEME,
-      ChromeStorage.KEYS.USER_SETTING_THEME_ON_SITE,
+      ChromeStorage.KEYS.USER_SETTING_GLOBAL_THEME, // Legacy - kept for backwards compatibility
+      ChromeStorage.KEYS.USER_SETTING_THEME_ON_SITE, // Legacy - kept for backwards compatibility
+      'xplaino-user-account-settings', // New account settings
+      'xplaino-user-extension-settings', // New extension settings
     ];
     
-    const themeChanged = themeKeys.some(key => changes[key]);
+    const themeChanged = themeKeys.some((key) => changes[key]);
     if (themeChanged) {
       console.log('[Content Script] Theme storage changed detected:', Object.keys(changes));
       refreshThemeInAllShadowRoots();

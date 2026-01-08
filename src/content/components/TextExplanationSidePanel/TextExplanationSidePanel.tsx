@@ -6,6 +6,7 @@ import styles from './TextExplanationSidePanel.module.css';
 import { TextExplanationHeader } from './TextExplanationHeader';
 import { TextExplanationFooter } from './TextExplanationFooter';
 import { TextExplanationView } from './TextExplanationView';
+import { HighlightedCoupon } from '../HighlightedCoupon';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { showLoginModalAtom } from '@/store/uiAtoms';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
@@ -405,6 +406,9 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         isBookmarked={isBookmarked}
         showDeleteIcon={showDeleteIcon}
       />
+
+      {/* Highlighted Coupon */}
+      <HighlightedCoupon useShadowDom={useShadowDom} />
 
       {/* Content */}
       <div className={contentClass}>

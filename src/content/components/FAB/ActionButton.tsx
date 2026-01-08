@@ -1,6 +1,6 @@
 // src/content/components/FAB/ActionButton.tsx
 import React, { useRef } from 'react';
-import { FileText, Languages, MoreVertical, Power, Loader2, StopCircle, Bookmark, Globe, LayoutDashboard } from 'lucide-react';
+import { FileText, Languages, MoreVertical, Power, Loader2, StopCircle, Bookmark, Globe, LayoutDashboard, Settings } from 'lucide-react';
 import { OnHoverMessage } from '../OnHoverMessage';
 
 export interface ActionButtonProps {
@@ -9,7 +9,7 @@ export interface ActionButtonProps {
   /** Click handler */
   onClick: () => void;
   /** Icon to display */
-  icon: 'summarise' | 'translate' | 'options' | 'disable' | 'stop' | 'bookmark' | 'globe' | 'dashboard';
+  icon: 'summarise' | 'translate' | 'options' | 'settings' | 'disable' | 'stop' | 'bookmark' | 'globe' | 'dashboard';
   /** Additional class name */
   className?: string;
   /** Whether to show loading spinner instead of icon */
@@ -30,6 +30,7 @@ const iconMap = {
   summarise: FileText,
   translate: Languages,
   options: MoreVertical,
+  settings: Settings,
   disable: Power,
   stop: StopCircle,
   bookmark: Bookmark,

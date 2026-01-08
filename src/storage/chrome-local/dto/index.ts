@@ -7,4 +7,6 @@
 
 export type { DomainSettingsDTO } from './DomainSettingsDTO';
 export type { UserSettingsDTO } from './UserSettingsDTO';
+export type { UserAccountSettingsDTO } from './UserAccountSettingsDTO';
+export type { ExtensionSettingsDTO } from './ExtensionSettingsDTO';
 

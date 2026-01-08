@@ -289,8 +289,8 @@ export const FAB: React.FC<FABProps> = ({
           isBookmarked={isBookmarked}
         />
         <ActionButton
-          icon="options"
-          tooltip="Options"
+          icon="settings"
+          tooltip="Settings"
           onClick={handleOptions}
           className={actionButtonClass}
         />

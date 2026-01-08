@@ -7,6 +7,7 @@ import { Footer } from './Footer';
 import { SummaryView } from './SummaryView';
 import { SettingsView } from './SettingsView';
 import { SaveLinkModal } from '../SaveLinkModal/SaveLinkModal';
+import { HighlightedCoupon } from '../HighlightedCoupon';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { showLoginModalAtom } from '@/store/uiAtoms';
 import { summaryAtom, summariseStateAtom } from '@/store/summaryAtoms';
@@ -362,6 +363,9 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         showBookmark={showBookmark}
         isBookmarked={isBookmarked}
       />
+
+      {/* Highlighted Coupon */}
+      <HighlightedCoupon useShadowDom={useShadowDom} />
 
       {/* Content */}
       <div className={contentClass}>

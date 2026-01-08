@@ -1,6 +1,11 @@
 // src/storage/chrome-local/ChromeStorage.ts
 
-import type { DomainSettingsDTO, UserSettingsDTO } from './dto';
+import type {
+  DomainSettingsDTO,
+  UserSettingsDTO,
+  UserAccountSettingsDTO,
+  ExtensionSettingsDTO,
+} from './dto';
 import type { DomainStatus } from '@/types/domain';
 
 /**
@@ -261,6 +266,21 @@ export class ChromeStorage {
       },
     };
     return this.setUserSettings(updatedSettings);
+  }
+
+  /**
+   * Get whether highlighted coupon is dismissed
+   */
+  static async getHighlightedCouponDismissed(couponId: string): Promise<boolean> {
+    const dismissed = await this.get<boolean>(`highlighted_coupon_dismissed_${couponId}`);
+    return dismissed ?? false;
+  }
+
+  /**
+   * Set whether highlighted coupon is dismissed
+   */
+  static async setHighlightedCouponDismissed(couponId: string, dismissed: boolean): Promise<void> {
+    return this.set(`highlighted_coupon_dismissed_${couponId}`, dismissed);
   }
 
   // --- Disable Modal Preference ---
@@ -707,6 +727,97 @@ export class ChromeStorage {
    */
   static async setDontShowWelcomeModal(dontShow: boolean): Promise<void> {
     return this.set(this.KEYS.DONT_SHOW_WELCOME_MODAL, dontShow);
+  }
+
+  // ============================================
+  // USER ACCOUNT SETTINGS (from backend API)
+  // ============================================
+
+  /**
+   * Get user account settings from backend API response
+   * Stored under xplaino-user-account-settings
+   */
+  static async getUserAccountSettings(): Promise<UserAccountSettingsDTO | null> {
+    return this.get<UserAccountSettingsDTO>('xplaino-user-account-settings');
+  }
+
+  /**
+   * Set user account settings (from backend API response)
+   */
+  static async setUserAccountSettings(settings: UserAccountSettingsDTO): Promise<void> {
+    return this.set('xplaino-user-account-settings', settings);
+  }
+
+  // ============================================
+  // EXTENSION SETTINGS (extension-only settings)
+  // ============================================
+
+  /**
+   * Get extension settings used for per-domain theme overrides
+   * Returns default { domainThemes: {} } if not present
+   */
+  static async getUserExtensionSettings(): Promise<ExtensionSettingsDTO> {
+    const settings = await this.get<ExtensionSettingsDTO>('xplaino-user-extension-settings');
+    if (!settings) {
+      return { domainThemes: {} };
+    }
+    return settings;
+  }
+
+  /**
+   * Set extension settings used for per-domain theme overrides
+   */
+  static async setUserExtensionSettings(settings: ExtensionSettingsDTO): Promise<void> {
+    return this.set('xplaino-user-extension-settings', settings);
+  }
+
+  /**
+   * Get theme for a specific domain from extension settings
+   * Returns null if domain has no override (should use account settings)
+   */
+  static async getUserExtensionDomainTheme(domain: string): Promise<'LIGHT' | 'DARK' | null> {
+    const settings = await this.getUserExtensionSettings();
+    return settings.domainThemes[domain] ?? null;
+  }
+
+  /**
+   * Set theme for a specific domain in extension settings
+   * Creates the extension settings object if it doesn't exist
+   */
+  static async setUserExtensionDomainTheme(domain: string, theme: 'LIGHT' | 'DARK'): Promise<void> {
+    const settings = await this.getUserExtensionSettings();
+    const updatedSettings: ExtensionSettingsDTO = {
+      domainThemes: {
+        ...settings.domainThemes,
+        [domain]: theme,
+      },
+    };
+    return this.setUserExtensionSettings(updatedSettings);
+  }
+
+  /**
+   * Remove theme override for a specific domain
+   * This allows the domain to fall back to account settings
+   */
+  static async removeUserExtensionDomainTheme(domain: string): Promise<void> {
+    const settings = await this.getUserExtensionSettings();
+    const updatedDomainThemes = { ...settings.domainThemes };
+    delete updatedDomainThemes[domain];
+    const updatedSettings: ExtensionSettingsDTO = {
+      domainThemes: updatedDomainThemes,
+    };
+    return this.setUserExtensionSettings(updatedSettings);
+  }
+
+  /**
+   * Ensure extension settings exist with default value
+   * Called on page load to initialize if needed
+   */
+  static async ensureUserExtensionSettings(): Promise<void> {
+    const existing = await this.get<ExtensionSettingsDTO>('xplaino-user-extension-settings');
+    if (!existing) {
+      await this.setUserExtensionSettings({ domainThemes: {} });
+    }
   }
 }
 

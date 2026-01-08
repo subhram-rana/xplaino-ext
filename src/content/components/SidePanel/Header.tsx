@@ -8,6 +8,7 @@ import { userAuthInfoAtom } from '@/store/uiAtoms';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { ENV } from '@/config/env';
 import { COLORS } from '@/constants/colors';
+import { MinimalCouponButton } from '../HighlightedCoupon';
 
 // Custom expand icon - arrows pointing away from center (up and down)
 const ExpandVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
@@ -258,6 +259,8 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </>
         )}
+        {/* Minimal Coupon Button */}
+        <MinimalCouponButton useShadowDom={useShadowDom} />
       </div>
 
       {/* Right: Bookmark (summary tab) or Login/Profile (other tabs) */}

@@ -1,12 +1,12 @@
 // src/content/components/SidePanel/SettingsView.tsx
 import React, { useEffect, useState, useCallback } from 'react';
-import { Sun, Moon, Layers, RefreshCw } from 'lucide-react';
+import { Settings, LayoutDashboard } from 'lucide-react';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { DomainStatus } from '@/types/domain';
 import { extractDomain } from '@/utils/domain';
 import { Dropdown } from './Dropdown';
 import { showDisableModal } from '@/content/index';
-import { IconTabGroup, IconTab } from '@/components/ui/IconTabGroup';
+import { ENV } from '@/config/env';
 import styles from './SettingsView.module.css';
 
 export interface SettingsViewProps {
@@ -22,16 +22,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
     return styles[baseClass as keyof typeof styles] || baseClass;
   }, [useShadowDom]);
 
-// Inline Toggle component for content script
-const Toggle: React.FC<{
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}> = ({ checked, onChange }) => {
-  return (
-    <div
+  // Inline Toggle component for content script
+  const Toggle: React.FC<{
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+  }> = ({ checked, onChange }) => {
+    return (
+      <div
         className={getClassName('toggleContainer')}
-      onClick={() => onChange(!checked)}
-    >
+        onClick={() => onChange(!checked)}
+      >
         <div className={`${getClassName('toggleTrack')} ${checked ? getClassName('checked') : ''}`}>
           <div className={`${getClassName('toggleThumb')} ${checked ? getClassName('thumbChecked') : ''}`} />
         </div>
@@ -39,30 +39,7 @@ const Toggle: React.FC<{
     );
   };
 
-  // Theme Toggle component - using IconTabGroup
-  const ThemeToggle: React.FC<{
-    value: 'light' | 'dark';
-    onChange: (value: 'light' | 'dark') => void;
-  }> = ({ value, onChange }) => {
-    const themeTabs: IconTab[] = [
-      { id: 'light', icon: Sun, label: 'Light theme' },
-      { id: 'dark', icon: Moon, label: 'Dark theme' },
-    ];
-
-    return (
-      <IconTabGroup
-        tabs={themeTabs}
-        activeTabId={value}
-        onTabChange={(tabId) => onChange(tabId as 'light' | 'dark')}
-        useShadowDom={useShadowDom}
-        iconSize={18}
-      />
-    );
-  };
-  const [language, setLanguage] = useState<string>('None');
-  const [translationView, setTranslationView] = useState<'append' | 'replace'>('append');
-  const [globalTheme, setGlobalTheme] = useState<'light' | 'dark'>('light');
-  const [domainTheme, setDomainTheme] = useState<'light' | 'dark'>('light');
+  const [themeSelection, setThemeSelection] = useState<'account' | 'LIGHT' | 'DARK'>('account');
   const [globalDisabled, setGlobalDisabled] = useState<boolean>(false);
   const [domainStatus, setDomainStatus] = useState<DomainStatus | null>(null);
   const [currentDomain, setCurrentDomain] = useState<string>('');
@@ -78,31 +55,20 @@ const Toggle: React.FC<{
       const domain = extractDomain(window.location.href);
       setCurrentDomain(domain);
 
-      // Load all settings
-      const [
-        lang,
-        transView,
-        gTheme,
-        dTheme,
-        gDisabled,
-        dStatus,
-      ] = await Promise.all([
-        ChromeStorage.getUserSettingNativeLanguage(),
-        ChromeStorage.getUserSettingPageTranslationView(),
-        ChromeStorage.getUserSettingGlobalTheme(),
-        domain ? ChromeStorage.getUserSettingThemeOnSiteForDomain(domain) : null,
+      // Load extension settings and domain status
+      const [extDomainTheme, gDisabled, dStatus] = await Promise.all([
+        domain ? ChromeStorage.getUserExtensionDomainTheme(domain) : null,
         ChromeStorage.getGlobalDisabled(),
         domain ? ChromeStorage.getDomainStatus(domain) : null,
       ]);
 
-      if (lang) {
-        setLanguage(lang);
+      // Determine initial theme selection
+      if (extDomainTheme) {
+        setThemeSelection(extDomainTheme); // 'LIGHT' or 'DARK'
       } else {
-        setLanguage('None');
+        setThemeSelection('account'); // 'As per account settings'
       }
-      if (transView) setTranslationView(transView);
-      if (gTheme) setGlobalTheme(gTheme);
-      if (dTheme) setDomainTheme(dTheme);
+
       setGlobalDisabled(gDisabled);
       if (dStatus) setDomainStatus(dStatus);
     } catch (error) {
@@ -112,61 +78,31 @@ const Toggle: React.FC<{
     }
   };
 
-  const handleLanguageChange = async (value: string) => {
-    setLanguage(value);
-    try {
-      await ChromeStorage.setUserSettingNativeLanguage(value);
-    } catch (error) {
-      console.error('Error saving language to Chrome storage:', error);
-    }
-  };
-
-  const handleTranslationViewChange = async (view: 'append' | 'replace') => {
-    setTranslationView(view);
-    await ChromeStorage.setUserSettingPageTranslationView(view);
-  };
-
-  const handleGlobalThemeChange = async (theme: 'light' | 'dark') => {
-    console.log('[SettingsView] handleGlobalThemeChange called with theme:', theme);
-    try {
-      setGlobalTheme(theme);
-      
-      // Set global theme
-      console.log('[SettingsView] Updating global theme in storage...');
-      await ChromeStorage.setUserSettingGlobalTheme(theme);
-      console.log('[SettingsView] Global theme successfully updated in storage:', theme);
-      
-      // Clear all domain-specific themes so global applies everywhere
-      console.log('[SettingsView] Clearing all domain-specific themes...');
-      await ChromeStorage.clearAllDomainThemes();
-      console.log('[SettingsView] All domain themes cleared, global theme will now apply');
-      
-      // Also update UI state for current domain to match global
-      setDomainTheme(theme);
-      
-      // Trigger storage change event manually to ensure other components pick it up
-      window.dispatchEvent(new CustomEvent('theme-changed', { detail: { type: 'global', theme } }));
-    } catch (error) {
-      console.error('[SettingsView] Error updating global theme:', error);
-    }
-  };
-
-  const handleDomainThemeChange = async (theme: 'light' | 'dark') => {
+  const handleThemeChange = async (value: string) => {
     if (!currentDomain) {
-      console.warn('[SettingsView] handleDomainThemeChange called but currentDomain is not set');
+      console.warn('[SettingsView] handleThemeChange called but currentDomain is not set');
       return;
     }
-    console.log('[SettingsView] handleDomainThemeChange called with theme:', theme, 'for domain:', currentDomain);
+
     try {
-      setDomainTheme(theme);
-      console.log('[SettingsView] Updating domain theme in storage for domain:', currentDomain);
-      await ChromeStorage.setUserSettingThemeOnSiteForDomain(currentDomain, theme);
-      console.log('[SettingsView] Domain theme successfully updated in storage:', theme, 'for domain:', currentDomain);
-      
-      // Trigger storage change event manually to ensure other components pick it up
-      window.dispatchEvent(new CustomEvent('theme-changed', { detail: { type: 'domain', domain: currentDomain, theme } }));
+      if (value === 'account') {
+        // Remove domain override - will use account settings
+        await ChromeStorage.removeUserExtensionDomainTheme(currentDomain);
+        setThemeSelection('account');
+        console.log('[SettingsView] Removed domain theme override, using account settings');
+      } else if (value === 'LIGHT' || value === 'DARK') {
+        // Set domain-specific theme
+        await ChromeStorage.setUserExtensionDomainTheme(currentDomain, value);
+        setThemeSelection(value);
+        console.log('[SettingsView] Set domain theme:', value, 'for domain:', currentDomain);
+      }
+
+      // Trigger theme change event to refresh UI
+      window.dispatchEvent(new CustomEvent('theme-changed', { 
+        detail: { type: 'extension', domain: currentDomain } 
+      }));
     } catch (error) {
-      console.error('[SettingsView] Error updating domain theme:', error);
+      console.error('[SettingsView] Error updating theme:', error);
     }
   };
 
@@ -190,102 +126,21 @@ const Toggle: React.FC<{
     }
   };
 
-  // Comprehensive languages list from comp project
-  const languageOptions = [
-    { value: 'None', label: 'None' },
-    { value: 'English', label: 'English' },
-    { value: 'Español', label: 'Español' },
-    { value: 'Français', label: 'Français' },
-    { value: 'Deutsch', label: 'Deutsch' },
-    { value: 'Italiano', label: 'Italiano' },
-    { value: 'Português', label: 'Português' },
-    { value: 'Русский', label: 'Русский' },
-    { value: '中文', label: '中文' },
-    { value: '日本語', label: '日本語' },
-    { value: '한국어', label: '한국어' },
-    { value: 'العربية', label: 'العربية' },
-    { value: 'हिन्दी', label: 'हिन्दी' },
-    { value: 'Nederlands', label: 'Nederlands' },
-    { value: 'Türkçe', label: 'Türkçe' },
-    { value: 'Polski', label: 'Polski' },
-    { value: 'Svenska', label: 'Svenska' },
-    { value: 'Norsk', label: 'Norsk' },
-    { value: 'Dansk', label: 'Dansk' },
-    { value: 'Suomi', label: 'Suomi' },
-    { value: 'Ελληνικά', label: 'Ελληνικά' },
-    { value: 'Čeština', label: 'Čeština' },
-    { value: 'Magyar', label: 'Magyar' },
-    { value: 'Română', label: 'Română' },
-    { value: 'Български', label: 'Български' },
-    { value: 'Hrvatski', label: 'Hrvatski' },
-    { value: 'Srpski', label: 'Srpski' },
-    { value: 'Slovenčina', label: 'Slovenčina' },
-    { value: 'Slovenščina', label: 'Slovenščina' },
-    { value: 'Українська', label: 'Українська' },
-    { value: 'עברית', label: 'עברית' },
-    { value: 'فارسی', label: 'فارسی' },
-    { value: 'اردو', label: 'اردو' },
-    { value: 'বাংলা', label: 'বাংলা' },
-    { value: 'தமிழ்', label: 'தமிழ்' },
-    { value: 'తెలుగు', label: 'తెలుగు' },
-    { value: 'मराठी', label: 'मराठी' },
-    { value: 'ગુજરાતી', label: 'ગુજરાતી' },
-    { value: 'ಕನ್ನಡ', label: 'ಕನ್ನಡ' },
-    { value: 'മലയാളം', label: 'മലയാളം' },
-    { value: 'ਪੰਜਾਬੀ', label: 'ਪੰਜਾਬੀ' },
-    { value: 'ଓଡ଼ିଆ', label: 'ଓଡ଼ିଆ' },
-    { value: 'नेपाली', label: 'नेपाली' },
-    { value: 'සිංහල', label: 'සිංහල' },
-    { value: 'ไทย', label: 'ไทย' },
-    { value: 'Tiếng Việt', label: 'Tiếng Việt' },
-    { value: 'Bahasa Indonesia', label: 'Bahasa Indonesia' },
-    { value: 'Bahasa Melayu', label: 'Bahasa Melayu' },
-    { value: 'Filipino', label: 'Filipino' },
-    { value: 'Tagalog', label: 'Tagalog' },
-    { value: 'မြန်မာ', label: 'မြန်မာ' },
-    { value: 'ភាសាខ្មែរ', label: 'ភាសាខ្មែរ' },
-    { value: 'Lao', label: 'Lao' },
-    { value: 'Монгол', label: 'Монгол' },
-    { value: 'ქართული', label: 'ქართული' },
-    { value: 'Հայերեն', label: 'Հայերեն' },
-    { value: 'Azərbaycan', label: 'Azərbaycan' },
-    { value: 'Қазақ', label: 'Қазақ' },
-    { value: 'Oʻzbek', label: 'Oʻzbek' },
-    { value: 'Кыргызча', label: 'Кыргызча' },
-    { value: 'Türkmen', label: 'Türkmen' },
-    { value: 'Afrikaans', label: 'Afrikaans' },
-    { value: 'Kiswahili', label: 'Kiswahili' },
-    { value: 'Yorùbá', label: 'Yorùbá' },
-    { value: 'Hausa', label: 'Hausa' },
-    { value: 'Igbo', label: 'Igbo' },
-    { value: 'Zulu', label: 'Zulu' },
-    { value: 'Xhosa', label: 'Xhosa' },
-    { value: 'Amharic', label: 'Amharic' },
-    { value: 'አማርኛ', label: 'አማርኛ' },
-    { value: 'Somali', label: 'Somali' },
-    { value: 'Kinyarwanda', label: 'Kinyarwanda' },
-    { value: 'Luganda', label: 'Luganda' },
-    { value: 'Shona', label: 'Shona' },
-    { value: 'Malagasy', label: 'Malagasy' },
-    { value: 'Maltese', label: 'Maltese' },
-    { value: 'Íslenska', label: 'Íslenska' },
-    { value: 'Gaeilge', label: 'Gaeilge' },
-    { value: 'Cymraeg', label: 'Cymraeg' },
-    { value: 'Brezhoneg', label: 'Brezhoneg' },
-    { value: 'Català', label: 'Català' },
-    { value: 'Galego', label: 'Galego' },
-    { value: 'Euskara', label: 'Euskara' },
-    { value: 'Latviešu', label: 'Latviešu' },
-    { value: 'Lietuvių', label: 'Lietuvių' },
-    { value: 'Eesti', label: 'Eesti' },
-    { value: 'Shqip', label: 'Shqip' },
-    { value: 'Македонски', label: 'Македонски' },
-    { value: 'Bosanski', label: 'Bosanski' },
-    { value: 'Esperanto', label: 'Esperanto' },
-    { value: 'Interlingua', label: 'Interlingua' },
-    { value: 'Lingua Latina', label: 'Lingua Latina' },
-    { value: 'Klingon', label: 'Klingon' },
-    { value: 'Toki Pona', label: 'Toki Pona' },
+  const handleAccountSettingsClick = () => {
+    const accountSettingsUrl = `${ENV.XPLAINO_WEBSITE_BASE_URL}/user/account/settings`;
+    window.open(accountSettingsUrl, '_blank');
+  };
+
+  const handleDashboardClick = () => {
+    const dashboardUrl = `${ENV.XPLAINO_WEBSITE_BASE_URL}/user/dashboard`;
+    window.open(dashboardUrl, '_blank');
+  };
+
+  // Theme dropdown options
+  const themeOptions = [
+    { value: 'account', label: 'As per account settings' },
+    { value: 'LIGHT', label: 'Light' },
+    { value: 'DARK', label: 'Dark' },
   ];
 
   if (loading) {
@@ -298,83 +153,90 @@ const Toggle: React.FC<{
 
   return (
     <div className={getClassName('settingsView')}>
-      {/* Language Section */}
+      {/* Account Settings Section */}
       <div className={getClassName('section')}>
         <div className={getClassName('sectionHeader')}>
           <div className={getClassName('sectionAccent')} />
-          <h3 className={getClassName('sectionTitle')}>Language</h3>
+          <h3 className={getClassName('sectionTitle')}>Account settings</h3>
           <div className={getClassName('sectionHeaderLine')} />
         </div>
         <div className={getClassName('sectionContent')}>
           <div className={getClassName('settingItem')}>
             <div className={getClassName('languageSettingRow')}>
-              <label className={getClassName('settingLabel')}>My native language</label>
-              <Dropdown
-                options={languageOptions}
-                value={language}
-                onChange={handleLanguageChange}
-                placeholder="Select language"
-                useShadowDom={useShadowDom}
-              />
+              <span className={getClassName('settingLabel')}>Manage your account level settings</span>
+              <button
+                onClick={handleAccountSettingsClick}
+                type="button"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'inherit',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                }}
+              >
+                <Settings size={16} />
+                <span>Open settings</span>
+              </button>
             </div>
           </div>
           <div className={getClassName('settingItem')}>
-            <div className={getClassName('translationViewRow')}>
-              <label className={getClassName('settingLabel')}>Page translation view</label>
-              <IconTabGroup
-                tabs={[
-                  { id: 'append', icon: Layers, label: 'Show me both' },
-                  { id: 'replace', icon: RefreshCw, label: 'Replace existing content' },
-                ]}
-                activeTabId={translationView}
-                onTabChange={(tabId) => handleTranslationViewChange(tabId as 'append' | 'replace')}
-                useShadowDom={useShadowDom}
-                iconSize={16}
-              />
+            <div className={getClassName('languageSettingRow')}>
+              <span className={getClassName('settingLabel')}>My Dashboard</span>
+              <button
+                onClick={handleDashboardClick}
+                type="button"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'inherit',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                }}
+              >
+                <LayoutDashboard size={16} />
+                <span>My Dashboard</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Theme Section */}
+      {/* Extension Settings Section */}
       <div className={getClassName('section')}>
         <div className={getClassName('sectionHeader')}>
           <div className={getClassName('sectionAccent')} />
-          <h3 className={getClassName('sectionTitle')}>Theme</h3>
+          <h3 className={getClassName('sectionTitle')}>Extension settings</h3>
           <div className={getClassName('sectionHeaderLine')} />
         </div>
         <div className={getClassName('sectionContent')}>
-          <div className={getClassName('settingItem')}>
-            <div className={getClassName('themeToggleRow')}>
-              <label className={getClassName('settingLabel')}>Global theme</label>
-              <ThemeToggle
-                value={globalTheme}
-                onChange={handleGlobalThemeChange}
-              />
-            </div>
-          </div>
+          {/* Theme Dropdown */}
           {currentDomain && (
             <div className={getClassName('settingItem')}>
-              <div className={getClassName('themeToggleRow')}>
-                <label className={getClassName('settingLabel')}>Theme on this site</label>
-                <ThemeToggle
-                  value={domainTheme}
-                  onChange={handleDomainThemeChange}
+              <div className={getClassName('languageSettingRow')}>
+                <label className={getClassName('settingLabel')}>Theme</label>
+                <Dropdown
+                  options={themeOptions}
+                  value={themeSelection}
+                  onChange={handleThemeChange}
+                  placeholder="Select theme"
+                  useShadowDom={useShadowDom}
                 />
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Enable Section */}
-      <div className={getClassName('section')}>
-        <div className={getClassName('sectionHeader')}>
-          <div className={getClassName('sectionAccent')} />
-          <h3 className={getClassName('sectionTitle')}>Enable extension</h3>
-          <div className={getClassName('sectionHeaderLine')} />
-        </div>
-        <div className={getClassName('sectionContent')}>
+          {/* Enable Globally Toggle */}
           <div className={getClassName('settingItem')}>
             <div className={getClassName('toggleSetting')}>
               <label className={getClassName('settingLabel')}>Enable globally</label>
@@ -384,6 +246,8 @@ const Toggle: React.FC<{
               />
             </div>
           </div>
+
+          {/* Enable on Domain Toggle */}
           {currentDomain && !globalDisabled && domainStatus !== DomainStatus.INVALID && (
             <div className={getClassName('settingItem')}>
               <div className={getClassName('toggleSetting')}>
@@ -404,4 +268,3 @@ const Toggle: React.FC<{
 };
 
 SettingsView.displayName = 'SettingsView';
-

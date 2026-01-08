@@ -59,8 +59,15 @@ export const THEMES: Record<Theme, Record<ThemeColorToken, string>> = {
 } as const;
 
 /**
- * Get the current theme based on domain-specific or global settings
- * Priority: domain-specific theme > global theme > 'light' default
+ * Map backend theme enum ('LIGHT' | 'DARK') to frontend theme type ('light' | 'dark')
+ */
+function mapBackendThemeToFrontend(backendTheme: 'LIGHT' | 'DARK'): Theme {
+  return backendTheme === 'LIGHT' ? 'light' : 'dark';
+}
+
+/**
+ * Get the current theme based on extension domain overrides or account settings
+ * Priority: extension domain theme > account theme > 'light' default
  * @returns Promise resolving to the current theme
  */
 export async function getCurrentTheme(): Promise<Theme> {
@@ -72,29 +79,31 @@ export async function getCurrentTheme(): Promise<Theme> {
         const domain = extractDomain(window.location.href);
         console.log('[Theme] Extracted domain:', domain);
         
-        // Try to get domain-specific theme first
-        const domainTheme = await ChromeStorage.getUserSettingThemeOnSiteForDomain(domain);
-        console.log('[Theme] Domain theme from storage:', domainTheme);
-        if (domainTheme) {
-          console.log('[Theme] Applying domain theme:', domainTheme, 'for domain:', domain);
-          return domainTheme;
+        // First, check extension settings for domain-specific override
+        const extensionDomainTheme = await ChromeStorage.getUserExtensionDomainTheme(domain);
+        console.log('[Theme] Extension domain theme from storage:', extensionDomainTheme);
+        if (extensionDomainTheme) {
+          const frontendTheme = mapBackendThemeToFrontend(extensionDomainTheme);
+          console.log('[Theme] Applying extension domain theme:', frontendTheme, 'for domain:', domain);
+          return frontendTheme;
         }
-        console.log('[Theme] No domain-specific theme found, falling back to global theme');
+        console.log('[Theme] No extension domain theme found, falling back to account settings');
       } catch (error) {
-        // If domain extraction fails, fall through to global theme
-        console.warn('[Theme] Failed to extract domain, falling back to global theme:', error);
+        // If domain extraction fails, fall through to account theme
+        console.warn('[Theme] Failed to extract domain, falling back to account theme:', error);
       }
     } else {
       console.log('[Theme] Not in browser context, skipping domain check');
     }
     
-    // Fall back to global theme
-    console.log('[Theme] Fetching global theme from storage...');
-    const globalTheme = await ChromeStorage.getUserSettingGlobalTheme();
-    console.log('[Theme] Global theme from storage:', globalTheme);
-    if (globalTheme) {
-      console.log('[Theme] Applying global theme:', globalTheme);
-      return globalTheme;
+    // Fall back to account settings theme
+    console.log('[Theme] Fetching account theme from storage...');
+    const accountSettings = await ChromeStorage.getUserAccountSettings();
+    console.log('[Theme] Account settings from storage:', accountSettings);
+    if (accountSettings?.settings?.theme) {
+      const frontendTheme = mapBackendThemeToFrontend(accountSettings.settings.theme);
+      console.log('[Theme] Applying account theme:', frontendTheme);
+      return frontendTheme;
     }
     
     // Default to 'light' if nothing is found
