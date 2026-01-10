@@ -3,11 +3,11 @@
 
 .buttonGroup {
   /* CSS Variables */
-  --color-primary: var(--color-primary, #9527F5);
-  --color-primary-light: var(--color-primary-light, #BF7EFA);
-  --color-primary-medium: var(--color-primary-dark, #8607f5);
+  --color-primary: var(--color-primary, #0d8070);
+  --color-primary-light: var(--color-primary-light, #14a08a);
+  --color-primary-medium: var(--color-primary-dark, #0a5f54);
   --color-white: var(--color-white, #FFFFFF);
-  --color-primary-hover-bg: var(--color-primary-opacity-10, rgba(149, 39, 245, 0.1));
+  --color-primary-hover-bg: var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1));
   --color-gray-600: var(--color-gray-600, #718096);
 
   display: flex;

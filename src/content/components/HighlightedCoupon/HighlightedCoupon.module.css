@@ -13,15 +13,15 @@
 /* Coupon Container - Main card with flashy effects - Compact */
 .couponContainer {
   position: relative !important;
-  background: linear-gradient(135deg, #9527F5 0%, #FF6B9D 50%, #FFC107 100%) !important;
+  background: linear-gradient(135deg, #0d8070 0%, #FF6B9D 50%, #FFC107 100%) !important;
   background-size: 300% 300% !important;
   animation: gradientShift 4s linear infinite, pulse 2s ease-in-out infinite !important;
   border-radius: 12px !important;
   padding: 12px 16px !important;
   box-shadow: 
-    0 0 30px rgba(149, 39, 245, 0.6),
-    0 0 60px rgba(255, 107, 157, 0.4),
-    inset 0 0 20px rgba(255, 255, 255, 0.2) !important;
+    0 0 30px var(--color-primary-opacity-60, rgba(13, 128, 112, 0.6)),
+    0 0 60px var(--color-gradient-pink-opacity-40, rgba(255, 107, 157, 0.4)),
+    inset 0 0 20px var(--color-white-opacity-20, rgba(255, 255, 255, 0.2)) !important;
   border: 2px solid rgba(255, 255, 255, 0.3) !important;
   overflow: hidden !important;
   position: relative !important;
@@ -85,15 +85,15 @@
 @keyframes pulse {
   0%, 100% {
     box-shadow: 
-      0 0 30px rgba(149, 39, 245, 0.6),
-      0 0 60px rgba(255, 107, 157, 0.4),
-      inset 0 0 20px rgba(255, 255, 255, 0.2) !important;
+      0 0 30px var(--color-primary-opacity-60, rgba(13, 128, 112, 0.6)),
+      0 0 60px var(--color-gradient-pink-opacity-40, rgba(255, 107, 157, 0.4)),
+      inset 0 0 20px var(--color-white-opacity-20, rgba(255, 255, 255, 0.2)) !important;
   }
   50% {
     box-shadow: 
-      0 0 50px rgba(149, 39, 245, 0.9),
-      0 0 90px rgba(255, 107, 157, 0.6),
-      inset 0 0 30px rgba(255, 255, 255, 0.3) !important;
+      0 0 50px var(--color-primary-opacity-90, rgba(13, 128, 112, 0.9)),
+      0 0 90px var(--color-gradient-pink-opacity-60, rgba(255, 107, 157, 0.6)),
+      inset 0 0 30px var(--color-white-opacity-30, rgba(255, 255, 255, 0.3)) !important;
   }
 }
 
@@ -276,7 +276,7 @@
 /* Get Deal Button */
 .getDealButton {
   background: rgba(255, 255, 255, 0.95) !important;
-  color: #9527F5 !important;
+  color: var(--color-primary, #0d8070) !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   padding: 6px 16px !important;

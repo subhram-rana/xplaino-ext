@@ -114,9 +114,9 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
       --color-bg-gray-50: ${COLORS.BACKGROUND_GRAY_50} !important;
       --color-bg-gray-100: ${COLORS.BACKGROUND_GRAY_100} !important;
       --color-bg-gray-200: ${COLORS.BACKGROUND_GRAY_200} !important;
-      --color-bg-purple-tint-1: ${COLORS.BACKGROUND_PURPLE_TINT_1} !important;
-      --color-bg-purple-tint-2: ${COLORS.BACKGROUND_PURPLE_TINT_2} !important;
-      --color-bg-purple-tint-3: ${COLORS.BACKGROUND_PURPLE_TINT_3} !important;
+      --color-bg-green-tint-1: ${COLORS.BACKGROUND_GREEN_TINT_1} !important;
+      --color-bg-green-tint-2: ${COLORS.BACKGROUND_GREEN_TINT_2} !important;
+      --color-bg-green-tint-3: ${COLORS.BACKGROUND_GREEN_TINT_3} !important;
       
       /* ============================================
          TEXT COLORS
@@ -343,9 +343,9 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
       --color-bg-gray-50: ${COLORS.BACKGROUND_GRAY_50} !important;
       --color-bg-gray-100: ${COLORS.BACKGROUND_GRAY_100} !important;
       --color-bg-gray-200: ${COLORS.BACKGROUND_GRAY_200} !important;
-      --color-bg-purple-tint-1: ${COLORS.BACKGROUND_PURPLE_TINT_1} !important;
-      --color-bg-purple-tint-2: ${COLORS.BACKGROUND_PURPLE_TINT_2} !important;
-      --color-bg-purple-tint-3: ${COLORS.BACKGROUND_PURPLE_TINT_3} !important;
+      --color-bg-green-tint-1: ${COLORS.BACKGROUND_GREEN_TINT_1} !important;
+      --color-bg-green-tint-2: ${COLORS.BACKGROUND_GREEN_TINT_2} !important;
+      --color-bg-green-tint-3: ${COLORS.BACKGROUND_GREEN_TINT_3} !important;
       
       /* ============================================
          TEXT COLORS

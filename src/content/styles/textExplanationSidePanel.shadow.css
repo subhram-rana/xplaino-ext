@@ -11,9 +11,9 @@
  * But we define them here as fallbacks and to ensure they're available
  */
 :host {
-  --color-primary: #9527F5 !important;
-  --color-primary-light: #BF7EFA !important;
-  --color-primary-dark: #8607f5 !important;
+  --color-primary: #0d8070 !important;
+  --color-primary-light: #14a08a !important;
+  --color-primary-dark: #0a5f54 !important;
   --color-white: #FFFFFF !important;
   --color-error: #EF4444 !important;
   --color-text: #1A202C !important;
@@ -153,14 +153,14 @@
 /* Bookmarked state - allow fill to be set */
 .headerIconButton.bookmarked svg {
   fill: var(--color-primary) !important;
-  color: #9527F5 !important;
-  stroke: #9527F5 !important;
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
 }
 
 .headerIconButton.bookmarked:hover svg {
-  fill: #7c1ed9 !important;
-  color: #7c1ed9 !important;
-  stroke: #7c1ed9 !important;
+  fill: var(--color-primary-dark) !important;
+  color: var(--color-primary-dark) !important;
+  stroke: var(--color-primary-dark) !important;
 }
 
 /* Header Center - Branding */
@@ -338,7 +338,7 @@
   padding: 16px !important;
   background: var(--color-white) !important;
   scrollbar-width: thin !important;
-  scrollbar-color: var(--color-primary-light, #B66DFF) transparent !important;
+  scrollbar-color: var(--color-primary-light, #027a4f) transparent !important;
 }
 
 .chatContainer::-webkit-scrollbar {
@@ -350,7 +350,7 @@
 }
 
 .chatContainer::-webkit-scrollbar-thumb {
-  background-color: var(--color-primary-light, #B66DFF) !important;
+  background-color: var(--color-primary-light, #027a4f) !important;
   border-radius: 3px !important;
 }
 
@@ -364,7 +364,7 @@
 .loadingDots {
   font-size: 24px !important;
   font-family: var(--font-family-primary) !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary, #0d8070) !important;
   letter-spacing: 4px !important;
 }
 
@@ -441,7 +441,7 @@
   border-radius: 4px !important;
   font-family: 'Courier New', monospace !important;
   font-size: 13px !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary, #0d8070) !important;
 }
 
 /* Suggested Questions */
@@ -485,15 +485,15 @@
 }
 
 .questionItem:hover .questionIcon {
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary, #0d8070) !important;
 }
 
 .questionItem:hover .questionText {
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary, #0d8070) !important;
 }
 
 .questionIcon {
-  color: var(--color-primary-light, #B66DFF) !important;
+  color: var(--color-primary-light, #14a08a) !important;
   flex-shrink: 0 !important;
   transition: color 0.2s ease !important;
 }
@@ -518,7 +518,7 @@
   padding: 8px 16px !important;
   border: none !important;
   border-radius: 8px !important;
-  background: var(--color-primary, #9527F5) !important;
+  background: var(--color-primary, #0d8070) !important;
   color: var(--color-white, #FFFFFF) !important;
   font-size: 13px !important;
   font-weight: 600 !important;
@@ -533,7 +533,7 @@
 }
 
 .simplifyButton:hover:not(:disabled) {
-  background: var(--color-primary-dark, #8607F5) !important;
+  background: var(--color-primary-dark, #0a5f54) !important;
 }
 
 .simplifyButton:active:not(:disabled) {
@@ -593,7 +593,7 @@
 }
 
 .input:focus {
-  border-color: var(--color-primary, #9527F5) !important;
+  border-color: var(--color-primary, #0d8070) !important;
 }
 
 /* Send Button */
@@ -601,7 +601,7 @@
   width: 36px !important;
   height: 36px !important;
   border-radius: 50% !important;
-  background: var(--color-primary, #9527F5) !important;
+  background: var(--color-primary, #0d8070) !important;
   border: none !important;
   color: var(--color-white, #FFFFFF) !important;
   font-family: var(--font-family-primary) !important;
@@ -615,7 +615,7 @@
 }
 
 .sendButton:hover:not(:disabled) {
-  background: var(--color-primary-dark, #8607F5) !important;
+  background: var(--color-primary-dark, #0a5f54) !important;
   transform: scale(1.05) !important;
 }
 
@@ -672,7 +672,7 @@
   border-radius: 50% !important;
   background: transparent !important;
   border: none !important;
-  color: var(--color-primary-light, #B66DFF) !important;
+  color: var(--color-primary-light, #14a08a) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
@@ -730,7 +730,7 @@
   padding: 12px 24px !important;
   border: none !important;
   border-radius: 8px !important;
-  background: var(--color-primary, #9527F5) !important;
+  background: var(--color-primary, #0d8070) !important;
   color: var(--color-white, #FFFFFF) !important;
   font-size: 14px !important;
   font-weight: 600 !important;
@@ -746,7 +746,7 @@
 }
 
 .translateButton:hover:not(:disabled) {
-  background: var(--color-primary-dark, #8607F5) !important;
+  background: var(--color-primary-dark, #0a5f54) !important;
   box-shadow: 0 4px 12px var(--color-primary-opacity-40) !important;
 }
 
@@ -801,7 +801,7 @@
   gap: 24px !important;
   padding-top: 8px !important;
   scrollbar-width: thin !important;
-  scrollbar-color: var(--color-primary-light, #B66DFF) transparent !important;
+  scrollbar-color: var(--color-primary-light, #027a4f) transparent !important;
 }
 
 .translationsContainer::-webkit-scrollbar {
@@ -813,7 +813,7 @@
 }
 
 .translationsContainer::-webkit-scrollbar-thumb {
-  background-color: var(--color-primary-light, #B66DFF) !important;
+  background-color: var(--color-primary-light, #027a4f) !important;
   border-radius: 3px !important;
 }
 
@@ -879,11 +879,11 @@
 }
 
 .dropdownButton:hover {
-  border-color: var(--color-primary, #9527F5) !important;
+  border-color: var(--color-primary, #0d8070) !important;
 }
 
 .dropdownButton.open {
-  border-color: var(--color-primary, #9527F5) !important;
+  border-color: var(--color-primary, #0d8070) !important;
   box-shadow: 0 0 0 3px var(--color-primary-opacity-10) !important;
 }
 
@@ -939,8 +939,8 @@
 }
 
 .dropdownItem.selected {
-  background: rgba(149, 39, 245, 0.15) !important;
-  color: var(--color-primary, #9527F5) !important;
+  background: var(--color-primary-opacity-15) !important;
+  color: var(--color-primary, #0d8070) !important;
   font-weight: 500 !important;
 }
 
@@ -1073,13 +1073,13 @@
   color: #1A202C !important;
   align-self: flex-start !important;
   border-bottom-left-radius: 4px !important;
-  box-shadow: 0 1px 2px rgba(149, 39, 245, 0.05) !important;
+  box-shadow: 0 1px 2px var(--color-primary-opacity-5) !important;
 }
 
 /* Blinking cursor for streaming */
 .cursor {
   animation: blink 1s step-end infinite !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary, #0d8070) !important;
   font-weight: bold !important;
 }
 

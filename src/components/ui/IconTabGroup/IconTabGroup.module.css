@@ -3,11 +3,11 @@
 
 .tabGroup {
   /* CSS Variables */
-  --color-primary: #9527F5;
-  --color-primary-light: #BF7EFA;
-  --color-primary-medium: #8607f5;
+  --color-primary: #0d8070;
+  --color-primary-light: #14a08a;
+  --color-primary-medium: #0a5f54;
   --color-white: #FFFFFF;
-  --color-primary-hover-bg: rgba(149, 39, 245, 0.1);
+  --color-primary-hover-bg: rgba(13, 128, 112, 0.1);
 
   display: flex;
   align-items: center;
@@ -123,7 +123,7 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.25);
+  box-shadow: 0 2px 8px rgba(13, 128, 112, 0.25);
   pointer-events: none;
   z-index: 1000;
 }

@@ -8,7 +8,7 @@
 /* CSS Variables for theming - values set from color constants */
 :host {
   /* Colors from src/constants/colors.ts */
-  --color-primary: var(--color-primary, #9527F5) !important;
+  --color-primary: var(--color-primary, #0d8070) !important;
   --color-primary-light: var(--color-primary-light, #BF7EFA) !important;
   --color-primary-dark: var(--color-primary-dark, #8607f5) !important;
   --color-white: var(--color-white, #FFFFFF) !important;
@@ -195,15 +195,15 @@
 
 /* Bookmarked icon - purple filled */
 .actionButton.bookmarked svg {
-  fill: var(--color-primary, #9527F5) !important;
-  color: var(--color-primary, #9527F5) !important;
-  stroke: var(--color-primary, #9527F5) !important;
+  fill: var(--color-primary, #0d8070) !important;
+  color: var(--color-primary, #0d8070) !important;
+  stroke: var(--color-primary, #0d8070) !important;
 }
 
 .actionButton.bookmarked:hover svg {
-  fill: #7c1ed9 !important;
-  color: #7c1ed9 !important;
-  stroke: #7c1ed9 !important;
+  fill: var(--color-primary-hover-dark, #0a5f54) !important;
+  color: var(--color-primary-hover-dark, #0a5f54) !important;
+  stroke: var(--color-primary-hover-dark, #0a5f54) !important;
 }
 
 /* Spinner stays primary color */

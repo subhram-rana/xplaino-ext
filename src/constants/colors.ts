@@ -3,16 +3,16 @@
 
 export const COLORS = {
   // ============================================
-  // PRIMARY COLORS (Purple theme - from xplaino-web)
+  // PRIMARY COLORS (Teal theme - #0d8070)
   // ============================================
-  PRIMARY: '#9527F5',           // Main purple
-  PRIMARY_LIGHT: '#BF7EFA',     // Medium purple
-  PRIMARY_LIGHT_ALT: '#B66DFF', // Alternative light purple variant
-  PRIMARY_VERY_LIGHT: '#eaddf8', // Very light purple
-  PRIMARY_DARK: '#8607f5',      // Darker purple
-  PRIMARY_HOVER: '#BF7EFA',     // Hover state purple
-  PRIMARY_HOVER_DARK: '#7c1ed9', // Dark hover state
-  PRIMARY_HOVER_ALT: '#7d1fd4',  // Alternative hover variant
+  PRIMARY: '#0d8070',           // Main teal (rgb(13, 128, 112))
+  PRIMARY_LIGHT: '#14a08a',     // Lighter teal (lighter variant)
+  PRIMARY_LIGHT_ALT: '#1fb89a', // Alternative light teal
+  PRIMARY_VERY_LIGHT: '#e0f2ef', // Very light teal tint
+  PRIMARY_DARK: '#0a5f54',      // Darker teal
+  PRIMARY_HOVER: '#14a08a',     // Hover state teal
+  PRIMARY_HOVER_DARK: '#0a5f54', // Dark hover state
+  PRIMARY_HOVER_ALT: '#0d8070',  // Alternative hover variant
 
   // ============================================
   // SECONDARY COLORS (Green theme - from xplaino-web)
@@ -83,9 +83,9 @@ export const COLORS = {
   BACKGROUND_GRAY_50: '#F9FAFB',
   BACKGROUND_GRAY_100: '#F3F4F6',
   BACKGROUND_GRAY_200: '#E5E7EB',
-  BACKGROUND_PURPLE_TINT_1: '#ede9fe', // Purple-tinted background
-  BACKGROUND_PURPLE_TINT_2: '#ddd6fe', // Purple-tinted background variant
-  BACKGROUND_PURPLE_TINT_3: '#f3e8ff', // Purple-tinted background variant
+  BACKGROUND_GREEN_TINT_1: '#e0f2ef', // Teal-tinted background
+  BACKGROUND_GREEN_TINT_2: '#c8e8e0', // Teal-tinted background variant
+  BACKGROUND_GREEN_TINT_3: '#f0f9f7', // Teal-tinted background variant
 
   // ============================================
   // TEXT COLORS
@@ -118,22 +118,22 @@ export const COLORS = {
   // ============================================
   // PRIMARY COLOR OPACITY VARIANTS (for shadows, backgrounds, borders)
   // ============================================
-  PRIMARY_OPACITY_5: 'rgba(149, 39, 245, 0.05)',
-  PRIMARY_OPACITY_8: 'rgba(149, 39, 245, 0.08)',
-  PRIMARY_OPACITY_10: 'rgba(149, 39, 245, 0.1)',
-  PRIMARY_OPACITY_15: 'rgba(149, 39, 245, 0.15)',
-  PRIMARY_OPACITY_18: 'rgba(149, 39, 245, 0.18)',
-  PRIMARY_OPACITY_20: 'rgba(149, 39, 245, 0.2)',
-  PRIMARY_OPACITY_25: 'rgba(149, 39, 245, 0.25)',
-  PRIMARY_OPACITY_30: 'rgba(149, 39, 245, 0.3)',
-  PRIMARY_OPACITY_35: 'rgba(149, 39, 245, 0.35)',
-  PRIMARY_OPACITY_40: 'rgba(149, 39, 245, 0.4)',
-  PRIMARY_OPACITY_45: 'rgba(149, 39, 245, 0.45)',
-  PRIMARY_OPACITY_50: 'rgba(149, 39, 245, 0.5)',
-  PRIMARY_OPACITY_60: 'rgba(149, 39, 245, 0.6)',
-  PRIMARY_OPACITY_70: 'rgba(149, 39, 245, 0.7)',
-  PRIMARY_OPACITY_80: 'rgba(149, 39, 245, 0.8)',
-  PRIMARY_OPACITY_90: 'rgba(149, 39, 245, 0.9)',
+  PRIMARY_OPACITY_5: 'rgba(13, 128, 112, 0.05)',
+  PRIMARY_OPACITY_8: 'rgba(13, 128, 112, 0.08)',
+  PRIMARY_OPACITY_10: 'rgba(13, 128, 112, 0.1)',
+  PRIMARY_OPACITY_15: 'rgba(13, 128, 112, 0.15)',
+  PRIMARY_OPACITY_18: 'rgba(13, 128, 112, 0.18)',
+  PRIMARY_OPACITY_20: 'rgba(13, 128, 112, 0.2)',
+  PRIMARY_OPACITY_25: 'rgba(13, 128, 112, 0.25)',
+  PRIMARY_OPACITY_30: 'rgba(13, 128, 112, 0.3)',
+  PRIMARY_OPACITY_35: 'rgba(13, 128, 112, 0.35)',
+  PRIMARY_OPACITY_40: 'rgba(13, 128, 112, 0.4)',
+  PRIMARY_OPACITY_45: 'rgba(13, 128, 112, 0.45)',
+  PRIMARY_OPACITY_50: 'rgba(13, 128, 112, 0.5)',
+  PRIMARY_OPACITY_60: 'rgba(13, 128, 112, 0.6)',
+  PRIMARY_OPACITY_70: 'rgba(13, 128, 112, 0.7)',
+  PRIMARY_OPACITY_80: 'rgba(13, 128, 112, 0.8)',
+  PRIMARY_OPACITY_90: 'rgba(13, 128, 112, 0.9)',
 
   // ============================================
   // SECONDARY/SUCCESS COLOR OPACITY VARIANTS

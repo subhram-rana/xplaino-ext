@@ -11,7 +11,7 @@
   max-width: 400px !important;
   background: var(--color-white) !important;
   border-radius: 30px !important;
-  box-shadow: 0 4px 20px var(--color-primary-opacity-30) !important;
+  box-shadow: 0 2px 8px 2px var(--color-primary-opacity-15) !important;
   border: none !important;
   padding: 15px !important;
   z-index: 2147483640 !important;
@@ -345,7 +345,7 @@
   justify-content: center !important;
   gap: 8px !important;
   padding: 12px 24px !important;
-  background: var(--color-primary, #9527F5) !important;
+  background: var(--color-primary, #0d8070) !important;
   color: white !important;
   border: none !important;
   border-radius: 8px !important;

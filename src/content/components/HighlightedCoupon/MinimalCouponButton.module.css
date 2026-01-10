@@ -3,7 +3,7 @@
 /* Minimal flashy animated coupon button for header */
 
 .minimalCouponButton {
-  background: linear-gradient(135deg, #9527F5 0%, #FF6B9D 50%, #FFC107 100%) !important;
+  background: linear-gradient(135deg, #0d8070 0%, #FF6B9D 50%, #FFC107 100%) !important;
   background-size: 300% 300% !important;
   animation: gradientShift 4s linear infinite, pulse 2s ease-in-out infinite !important;
   border: 2px solid rgba(255, 255, 255, 0.3) !important;
@@ -11,9 +11,9 @@
   padding: 6px 12px !important;
   cursor: pointer !important;
   box-shadow: 
-    0 0 15px rgba(149, 39, 245, 0.5),
-    0 0 30px rgba(255, 107, 157, 0.3),
-    inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+    0 0 15px var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)),
+    0 0 30px var(--color-gradient-pink-opacity-30, rgba(255, 107, 157, 0.3)),
+    inset 0 0 10px var(--color-white-opacity-20, rgba(255, 255, 255, 0.2)) !important;
   transition: all 0.2s ease !important;
   position: relative !important;
   overflow: hidden !important;
@@ -23,9 +23,9 @@
 .minimalCouponButton:hover {
   transform: translateY(-1px) scale(1.02) !important;
   box-shadow: 
-    0 0 20px rgba(149, 39, 245, 0.7),
-    0 0 40px rgba(255, 107, 157, 0.4),
-    inset 0 0 15px rgba(255, 255, 255, 0.3) !important;
+    0 0 20px var(--color-primary-opacity-70, rgba(13, 128, 112, 0.7)),
+    0 0 40px var(--color-gradient-pink-opacity-40, rgba(255, 107, 157, 0.4)),
+    inset 0 0 15px var(--color-white-opacity-30, rgba(255, 255, 255, 0.3)) !important;
 }
 
 .minimalCouponButton:active {
@@ -55,15 +55,15 @@
 @keyframes pulse {
   0%, 100% {
     box-shadow: 
-      0 0 15px rgba(149, 39, 245, 0.5),
-      0 0 30px rgba(255, 107, 157, 0.3),
-      inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+      0 0 15px var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)),
+      0 0 30px var(--color-gradient-pink-opacity-30, rgba(255, 107, 157, 0.3)),
+      inset 0 0 10px var(--color-white-opacity-20, rgba(255, 255, 255, 0.2)) !important;
   }
   50% {
     box-shadow: 
-      0 0 25px rgba(149, 39, 245, 0.8),
-      0 0 50px rgba(255, 107, 157, 0.5),
-      inset 0 0 15px rgba(255, 255, 255, 0.3) !important;
+      0 0 25px var(--color-primary-opacity-80, rgba(13, 128, 112, 0.8)),
+      0 0 50px var(--color-gradient-pink-opacity-50, rgba(255, 107, 157, 0.5)),
+      inset 0 0 15px var(--color-white-opacity-30, rgba(255, 255, 255, 0.3)) !important;
   }
 }
 

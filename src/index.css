@@ -2,11 +2,11 @@
 
 /* ALL properties use !important for style isolation */
 :root {
-  /* Purple color variants (from xplaino-web) */
-  --very-light-purple: #eaddf8 !important;
-  --medium-purple: #BF7EFA !important;
-  --purple: #9527F5 !important;
-  --darker-purple: #8607f5 !important;
+  /* Teal color variants (theme color) */
+  --very-light-green: #e0f2ef !important;
+  --medium-green-theme: #14a08a !important;
+  --green-theme: #0d8070 !important;
+  --darker-green-theme: #0a5f54 !important;
 
   /* Green color variants (from xplaino-web) */
   --light-green: #D1FAE5 !important;

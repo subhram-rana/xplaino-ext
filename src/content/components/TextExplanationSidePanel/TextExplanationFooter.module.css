@@ -1,7 +1,7 @@
 /* src/content/components/TextExplanationSidePanel/TextExplanationFooter.module.css */
 
 .footer {
-  background: rgba(149, 39, 245, 0.05);
+  background: var(--color-primary-opacity-5, rgba(13, 128, 112, 0.05));
   padding: 0;
   padding-top: 20px;
   padding-bottom: 20px;

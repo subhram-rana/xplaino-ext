@@ -4,18 +4,18 @@
 
 .header {
   /* CSS Variables defined on component */
-  --color-primary: #9527F5 !important;
-  --color-primary-light: #BF7EFA !important;
-  --color-primary-medium: #8607f5 !important;
+  --color-primary: #0d8070 !important;
+  --color-primary-light: #14a08a !important;
+  --color-primary-medium: #0a5f54 !important;
   --color-white: #FFFFFF !important;
   --color-gray-600: #718096 !important;
-  --color-primary-hover-bg: rgba(149, 39, 245, 0.1) !important;
+  --color-primary-hover-bg: rgba(13, 128, 112, 0.1) !important;
   
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   padding: 8px 12px !important;
-  background: rgba(149, 39, 245, 0.05) !important;
+  background: rgba(13, 128, 112, 0.05) !important;
   height: 48px !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
@@ -70,15 +70,15 @@
 
 /* Bookmarked state - allow fill to be set */
 .headerIconButton.bookmarked svg {
-  fill: #9527F5 !important;
-  color: #9527F5 !important;
-  stroke: #9527F5 !important;
+  fill: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
 }
 
 .headerIconButton.bookmarked:hover svg {
-  fill: #7c1ed9 !important;
-  color: #7c1ed9 !important;
-  stroke: #7c1ed9 !important;
+  fill: var(--color-primary-medium) !important;
+  color: var(--color-primary-medium) !important;
+  stroke: var(--color-primary-medium) !important;
 }
 
 /* Center Section: Empty */

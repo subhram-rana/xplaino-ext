@@ -9,8 +9,8 @@
 
 /* Color variable fallbacks */
 :host {
-  --color-primary: #9527F5 !important;
-  --color-primary-light: #BF7EFA !important;
+  --color-primary: #0d8070 !important;
+  --color-primary-light: #14a08a !important;
   --color-white: #FFFFFF !important;
 }
 
@@ -62,11 +62,11 @@
 }
 
 .bookmarkButton {
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.3) !important;
+  box-shadow: 0 2px 8px var(--color-primary-opacity-30) !important;
 }
 
 .bookmarkButton:hover {
-  box-shadow: 0 4px 12px rgba(149, 39, 245, 0.5) !important;
+  box-shadow: 0 4px 12px var(--color-primary-opacity-50) !important;
   transform: scale(1.1) !important;
 }
 

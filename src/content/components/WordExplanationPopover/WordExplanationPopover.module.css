@@ -2,7 +2,7 @@
 
 /* CSS Variables */
 :root {
-  --color-primary: #9527F5;
+  --color-primary: #0d8070;
   --color-white: #FFFFFF;
   --color-text: #2D3748;
   --color-text-secondary: #718096;
@@ -15,7 +15,7 @@
   max-width: 400px;
   background: var(--color-white, #FFFFFF);
   border-radius: 30px;
-  box-shadow: 0 4px 20px rgba(149, 39, 245, 0.3);
+  box-shadow: 0 2px 8px 2px rgba(13, 128, 112, 0.15);
   border: none;
   padding: 15px;
   z-index: 2147483646; /* One less than spinners/icons */
@@ -30,7 +30,7 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(149, 39, 245, 0.1);
+  border-bottom: 1px solid rgba(13, 128, 112, 0.1);
 }
 
 .headerLeft {
@@ -43,7 +43,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 18px;
   font-weight: 600;
-  color: var(--color-primary, #9527F5);
+  color: var(--color-primary, #0d8070);
 }
 
 .headerBookmark {
@@ -60,8 +60,8 @@
 }
 
 .headerBookmark:hover:not(:disabled) {
-  background: rgba(149, 39, 245, 0.1);
-  color: var(--color-primary, #9527F5);
+  background: rgba(13, 128, 112, 0.1);
+  color: var(--color-primary, #0d8070);
 }
 
 .headerBookmark:disabled {
@@ -70,7 +70,7 @@
 }
 
 .headerBookmarkSaved {
-  color: var(--color-primary, #9527F5);
+  color: var(--color-primary, #0d8070);
 }
 
 .headerBookmark svg {
@@ -92,8 +92,8 @@
 }
 
 .headerCopyButton:hover {
-  background: #eaddf8;
-  color: var(--color-primary, #9527F5);
+  background: #e0f2ef;
+  color: var(--color-primary, #0d8070);
 }
 
 .headerCopyButton svg {
@@ -120,7 +120,7 @@
 .bookmarkSpinner {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(149, 39, 245, 0.2);
+  border: 2px solid rgba(13, 128, 112, 0.2);
   border-top-color: var(--color-primary, #9527F5);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
@@ -171,7 +171,7 @@
 }
 
 .mainContent code {
-  background: rgba(149, 39, 245, 0.1);
+  background: rgba(13, 128, 112, 0.1);
   padding: 2px 6px;
   border-radius: 4px;
   font-family: 'Monaco', 'Courier New', monospace;
@@ -210,7 +210,7 @@
 }
 
 .utilityButton:hover:not(:disabled) {
-  background: #eaddf8;
+  background: #e0f2ef;
 }
 
 .utilityButton:active:not(:disabled) {
@@ -227,8 +227,8 @@
 .utilityButton svg {
   width: 20px;
   height: 20px;
-  color: #BF7EFA;
-  stroke: #BF7EFA;
+  color: #14a08a;
+  stroke: #14a08a;
   stroke-width: 2.5;
   fill: none;
   pointer-events: none;
@@ -236,7 +236,7 @@
 }
 
 .utilityButton:hover svg {
-  color: var(--color-primary, #9527F5);
+  color: var(--color-primary, #0d8070);
   stroke: var(--color-primary, #9527F5);
 }
 
@@ -245,7 +245,7 @@
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: #eaddf8;
+  background: #e0f2ef;
   color: #BF7EFA;
   padding: 4px 12px;
   border-radius: 999px;
@@ -253,7 +253,7 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.15);
+  box-shadow: 0 2px 8px rgba(13, 128, 112, 0.15);
   pointer-events: none;
   z-index: 10;
   animation: tooltipFadeIn 0.15s ease forwards;
@@ -266,7 +266,7 @@
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: #eaddf8;
+  border-top-color: #e0f2ef;
 }
 
 @keyframes tooltipFadeIn {
@@ -300,7 +300,7 @@
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(149, 39, 245, 0.2);
+  border: 2px solid rgba(13, 128, 112, 0.2);
   border-top-color: var(--color-primary, #9527F5);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -342,7 +342,7 @@
   justify-content: center;
   gap: 8px;
   padding: 12px 24px;
-  background: var(--color-primary, #9527F5);
+  background: var(--color-primary, #0d8070);
   color: white;
   border: none;
   border-radius: 8px;
@@ -351,18 +351,18 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.25);
+  box-shadow: 0 2px 8px rgba(13, 128, 112, 0.25);
 }
 
 .getContextualMeaningButton:hover:not(:disabled) {
-  background: var(--color-primary-hover, #7d1fd4);
-  box-shadow: 0 4px 12px rgba(149, 39, 245, 0.35);
+  background: var(--color-primary-hover, #14a08a);
+  box-shadow: 0 4px 12px rgba(13, 128, 112, 0.35);
   transform: translateY(-1px);
 }
 
 .getContextualMeaningButton:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(149, 39, 245, 0.3);
+  box-shadow: 0 2px 6px rgba(13, 128, 112, 0.3);
 }
 
 .getContextualMeaningButton:disabled {
@@ -383,8 +383,8 @@
 .buttonSpinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(149, 39, 245, 0.2);
-  border-top-color: #9527f5;
+  border: 2px solid rgba(13, 128, 112, 0.2);
+  border-top-color: #0d8070;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }

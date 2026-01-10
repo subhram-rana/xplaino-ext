@@ -175,12 +175,12 @@
 }
 
 .folderItemSelected {
-  background-color: var(--color-bg-purple-tint-1) !important;
+  background-color: var(--color-bg-green-tint-1) !important;
   color: var(--color-primary) !important;
 }
 
 .folderItemSelected:hover {
-  background-color: var(--color-bg-purple-tint-2) !important;
+  background-color: var(--color-bg-green-tint-2) !important;
 }
 
 .rootFolder {
@@ -292,7 +292,7 @@
 }
 
 .addFolderButtonRootButton {
-  background-color: var(--color-bg-purple-tint-3) !important;
+  background-color: var(--color-bg-green-tint-3) !important;
   border: none;
   padding: 8px 16px;
   cursor: pointer;
