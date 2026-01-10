@@ -26,7 +26,7 @@
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  background: rgba(0, 0, 0, 0.6) !important;
+  background: var(--color-overlay, rgba(0, 0, 0, 0.6)) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -62,7 +62,7 @@
 .subscriptionModalContainer {
   background: var(--color-white) !important;
   border-radius: 30px !important;
-  box-shadow: 0 0 30px rgba(149, 39, 245, 0.4) !important;
+  box-shadow: 0 0 30px var(--color-primary-opacity-40) !important;
   padding: 40px !important;
   max-width: 400px !important;
   width: 90% !important;
@@ -104,14 +104,14 @@
 .subscriptionModalTitle {
   font-size: 24px !important;
   font-weight: 700 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
   margin: 0 0 8px 0 !important;
   line-height: 1.3 !important;
 }
 
 .subscriptionModalSubtitle {
   font-size: 14px !important;
-  color: #718096 !important;
+  color: var(--color-text-secondary) !important;
   margin: 0 !important;
   line-height: 1.5 !important;
 }
@@ -150,7 +150,7 @@
 
 .pricingButton:hover:not(:disabled) {
   background: var(--color-primary-dark) !important;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.3) !important;
+  box-shadow: 0 2px 8px var(--color-primary-opacity-30) !important;
 }
 
 .pricingButton:active:not(:disabled) {
@@ -172,7 +172,7 @@
 .subscriptionModalFooter {
   margin-top: 24px !important;
   font-size: 12px !important;
-  color: #A0AEC0 !important;
+  color: var(--color-text-muted) !important;
   line-height: 1.5 !important;
 }
 

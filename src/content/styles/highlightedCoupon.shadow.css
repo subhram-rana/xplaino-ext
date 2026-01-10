@@ -13,16 +13,16 @@
 /* Coupon Container - Main card with flashy effects - Compact */
 .couponContainer {
   position: relative !important;
-  background: linear-gradient(135deg, #9527F5 0%, #FF6B9D 50%, #FFC107 100%) !important;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-gradient-pink) 50%, var(--color-gradient-yellow) 100%) !important;
   background-size: 300% 300% !important;
   animation: gradientShift 4s linear infinite, pulse 2s ease-in-out infinite !important;
   border-radius: 12px !important;
   padding: 12px 16px !important;
   box-shadow: 
-    0 0 30px rgba(149, 39, 245, 0.6),
-    0 0 60px rgba(255, 107, 157, 0.4),
-    inset 0 0 20px rgba(255, 255, 255, 0.2) !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    0 0 30px var(--color-primary-opacity-60),
+    0 0 60px var(--color-gradient-pink-opacity-40),
+    inset 0 0 20px var(--color-white-opacity-20) !important;
+  border: 2px solid var(--color-white-opacity-30) !important;
   overflow: hidden !important;
   position: relative !important;
 }
@@ -35,20 +35,20 @@
   width: 24px !important;
   height: 24px !important;
   border: none !important;
-  background: rgba(0, 0, 0, 0.3) !important;
+  background: var(--color-shadow-black-30, rgba(0, 0, 0, 0.3)) !important;
   border-radius: 50% !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  color: #FFFFFF !important;
+  color: var(--color-white) !important;
   transition: all 0.2s ease !important;
   z-index: 10 !important;
   padding: 0 !important;
 }
 
 .closeButton:hover {
-  background: rgba(0, 0, 0, 0.5) !important;
+  background: var(--color-overlay) !important;
   transform: scale(1.1) !important;
 }
 
@@ -85,15 +85,15 @@
 @keyframes pulse {
   0%, 100% {
     box-shadow: 
-      0 0 30px rgba(149, 39, 245, 0.6),
-      0 0 60px rgba(255, 107, 157, 0.4),
-      inset 0 0 20px rgba(255, 255, 255, 0.2) !important;
+      0 0 30px var(--color-primary-opacity-60),
+      0 0 60px var(--color-gradient-pink-opacity-40),
+      inset 0 0 20px var(--color-white-opacity-20) !important;
   }
   50% {
     box-shadow: 
-      0 0 50px rgba(149, 39, 245, 0.9),
-      0 0 90px rgba(255, 107, 157, 0.6),
-      inset 0 0 30px rgba(255, 255, 255, 0.3) !important;
+      0 0 50px var(--color-primary-opacity-90),
+      0 0 90px var(--color-gradient-pink-opacity-60),
+      inset 0 0 30px var(--color-white-opacity-30) !important;
   }
 }
 
@@ -120,11 +120,11 @@
   display: inline-block !important;
   font-size: 28px !important;
   font-weight: 900 !important;
-  color: #FFFFFF !important;
+  color: var(--color-white) !important;
   text-shadow: 
-    0 0 10px rgba(255, 255, 255, 0.8),
-    0 0 20px rgba(255, 255, 255, 0.6),
-    0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    0 0 10px var(--color-white-opacity-80),
+    0 0 20px var(--color-white-opacity-60),
+    0 2px 4px var(--color-shadow-black-30) !important;
   letter-spacing: 1px !important;
   animation: shimmer 2s ease-in-out infinite !important;
   text-transform: uppercase !important;
@@ -135,24 +135,24 @@
 @keyframes shimmer {
   0%, 100% {
     text-shadow: 
-      0 0 10px rgba(255, 255, 255, 0.8),
-      0 0 20px rgba(255, 255, 255, 0.6),
-      0 4px 8px rgba(0, 0, 0, 0.3) !important;
+      0 0 10px var(--color-white-opacity-80),
+      0 0 20px var(--color-white-opacity-60),
+      0 4px 8px var(--color-shadow-black-30) !important;
     transform: scale(1) !important;
   }
   50% {
     text-shadow: 
-      0 0 20px rgba(255, 255, 255, 1),
-      0 0 40px rgba(255, 255, 255, 0.8),
-      0 0 60px rgba(255, 255, 255, 0.6),
-      0 4px 8px rgba(0, 0, 0, 0.3) !important;
+      0 0 20px var(--color-white-opacity-100),
+      0 0 40px var(--color-white-opacity-80),
+      0 0 60px var(--color-white-opacity-60),
+      0 4px 8px var(--color-shadow-black-30) !important;
     transform: scale(1.05) !important;
   }
 }
 
 /* Coupon Content - Compact */
 .couponContent {
-  color: #FFFFFF !important;
+  color: var(--color-white) !important;
   position: relative !important;
   z-index: 1 !important;
 }
@@ -171,11 +171,11 @@
 .couponName {
   font-size: 16px !important;
   font-weight: 700 !important;
-  color: #FFFFFF !important;
+  color: var(--color-white) !important;
   margin: 0 !important;
   text-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 0 8px rgba(255, 255, 255, 0.3) !important;
+    0 1px 2px var(--color-shadow-black-30),
+    0 0 8px var(--color-white-opacity-30) !important;
   line-height: 1.2 !important;
   flex: 1 !important;
   min-width: 0 !important;
@@ -185,10 +185,10 @@
 .couponDescription {
   font-size: 12px !important;
   font-weight: 400 !important;
-  color: rgba(255, 255, 255, 0.95) !important;
+  color: var(--color-white-opacity-95) !important;
   margin: 0 0 8px 0 !important;
   line-height: 1.4 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  text-shadow: 0 1px 2px var(--color-shadow-black-20) !important;
 }
 
 /* Coupon Actions - Horizontal layout */
@@ -211,7 +211,7 @@
 .couponCodeLabel {
   font-size: 11px !important;
   font-weight: 600 !important;
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: var(--color-white-opacity-90) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
   white-space: nowrap !important;
@@ -222,16 +222,16 @@
   font-size: 13px !important;
   font-weight: 800 !important;
   font-family: 'Courier New', monospace !important;
-  color: #FFFFFF !important;
-  background: rgba(0, 0, 0, 0.3) !important;
+  color: var(--color-white) !important;
+  background: var(--color-shadow-black-30, rgba(0, 0, 0, 0.3)) !important;
   padding: 4px 10px !important;
   border-radius: 6px !important;
-  border: 2px solid rgba(255, 255, 255, 0.5) !important;
+  border: 2px solid var(--color-white-opacity-50) !important;
   letter-spacing: 1px !important;
   text-transform: uppercase !important;
   box-shadow: 
-    0 0 10px rgba(255, 255, 255, 0.3),
-    inset 0 0 10px rgba(255, 255, 255, 0.1) !important;
+    0 0 10px var(--color-white-opacity-30),
+    inset 0 0 10px var(--color-white-opacity-10) !important;
   animation: codeGlow 2s ease-in-out infinite !important;
   cursor: pointer !important;
   transition: transform 0.2s ease, background 0.2s ease !important;
@@ -240,7 +240,7 @@
 
 .couponCode:hover {
   transform: scale(1.05) !important;
-  background: rgba(0, 0, 0, 0.4) !important;
+  background: var(--color-overlay-light, rgba(0, 0, 0, 0.4)) !important;
 }
 
 .couponCode:active {
@@ -250,16 +250,16 @@
 /* Code glow animation */
 @keyframes codeGlow {
   0%, 100% {
-    border-color: rgba(255, 255, 255, 0.5) !important;
+    border-color: var(--color-white-opacity-50) !important;
     box-shadow: 
       0 0 10px rgba(255, 255, 255, 0.3),
       inset 0 0 10px rgba(255, 255, 255, 0.1) !important;
   }
   50% {
-    border-color: rgba(255, 255, 255, 0.9) !important;
+    border-color: var(--color-white-opacity-90) !important;
     box-shadow: 
-      0 0 20px rgba(255, 255, 255, 0.6),
-      inset 0 0 15px rgba(255, 255, 255, 0.2) !important;
+      0 0 20px var(--color-white-opacity-60),
+      inset 0 0 15px var(--color-white-opacity-20) !important;
   }
 }
 
@@ -267,16 +267,16 @@
 .couponExpiry {
   font-size: 10px !important;
   font-weight: 500 !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  color: var(--color-white-opacity-85) !important;
+  text-shadow: 0 1px 2px var(--color-shadow-black-20) !important;
   font-style: italic !important;
   white-space: nowrap !important;
 }
 
 /* Get Deal Button */
 .getDealButton {
-  background: rgba(255, 255, 255, 0.95) !important;
-  color: #9527F5 !important;
+  background: var(--color-white-opacity-95) !important;
+  color: var(--color-primary) !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   padding: 6px 16px !important;
@@ -286,26 +286,26 @@
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
   box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    0 0 15px rgba(255, 255, 255, 0.3) !important;
+    0 2px 8px var(--color-shadow-black-20),
+    0 0 15px var(--color-white-opacity-30) !important;
   transition: all 0.2s ease !important;
   white-space: nowrap !important;
   flex-shrink: 0 !important;
 }
 
 .getDealButton:hover {
-  background: #FFFFFF !important;
+  background: var(--color-white) !important;
   transform: translateY(-1px) !important;
   box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(255, 255, 255, 0.4) !important;
+    0 4px 12px var(--color-shadow-black-30),
+    0 0 20px var(--color-white-opacity-40) !important;
 }
 
 .getDealButton:active {
   transform: translateY(0) !important;
   box-shadow: 
-    0 2px 6px rgba(0, 0, 0, 0.2),
-    0 0 10px rgba(255, 255, 255, 0.3) !important;
+    0 2px 6px var(--color-shadow-black-20),
+    0 0 10px var(--color-white-opacity-30) !important;
 }
 
 /* Responsive adjustments */

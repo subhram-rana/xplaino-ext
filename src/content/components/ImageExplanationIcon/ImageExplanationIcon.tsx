@@ -1,6 +1,7 @@
 // src/content/components/ImageExplanationIcon/ImageExplanationIcon.tsx
 import React, { useCallback, useEffect, useRef } from 'react';
 import styles from './ImageExplanationIcon.module.css';
+import { COLORS } from '@/constants/colors';
 
 export interface ImageExplanationIconProps {
   /** Position of the icon */
@@ -288,8 +289,8 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
             width="16"
             height="16"
             viewBox="0 0 24 24"
-            fill="#9333ea"
-            stroke="#9333ea"
+            fill={COLORS.PRIMARY}
+            stroke={COLORS.PRIMARY}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"

@@ -62,7 +62,7 @@
   background: var(--color-white) !important;
   border-radius: 30px !important;
   padding: 16px 20px !important;
-  box-shadow: 0 0 16px rgba(149, 39, 245, 0.35) !important;
+  box-shadow: 0 0 16px var(--color-primary-opacity-35) !important;
   min-width: 240px !important;
   display: flex !important;
   flex-direction: column !important;

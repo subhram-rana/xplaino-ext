@@ -1,11 +1,24 @@
 /* src/content/components/FAB/TranslationControlPopover.module.css */
 /* Styles for translation control popover */
+/* CSS Variables - values from src/constants/colors.ts */
 
 .popover {
-  background: white;
+  /* CSS Variables defined on component */
+  --color-primary: #9527F5;
+  --color-primary-opacity-5: rgba(149, 39, 245, 0.05);
+  --color-primary-opacity-15: rgba(149, 39, 245, 0.15);
+  --color-primary-opacity-35: rgba(149, 39, 245, 0.35);
+  --color-white: #FFFFFF;
+  --color-gray-dark: #333;
+  --color-gray-light: #ccc;
+  --color-error-alt: #ff4444;
+  --color-error-opacity-10: rgba(255, 68, 68, 0.1);
+  --color-shadow-black-20: rgba(0, 0, 0, 0.2);
+  
+  background: var(--color-white);
   border-radius: 15px;
   padding: 12px;
-  box-shadow: 0 0 12px rgba(149, 39, 245, 0.35);
+  box-shadow: 0 0 12px var(--color-primary-opacity-35);
   min-width: 220px;
 }
 
@@ -17,8 +30,8 @@
   top: 50%;
   transform: translateY(-50%);
   border: 8px solid transparent;
-  border-left-color: white;
-  filter: drop-shadow(2px 0 2px rgba(149, 39, 245, 0.15));
+  border-left-color: var(--color-white);
+  filter: drop-shadow(2px 0 2px var(--color-primary-opacity-15));
 }
 
 .toggleContainer {
@@ -35,13 +48,13 @@
 }
 
 .toggleContainer:hover {
-  background-color: rgba(149, 39, 245, 0.05);
+  background-color: var(--color-primary-opacity-5);
 }
 
 .toggleLabel {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-gray-dark);
   flex: 1;
 }
 
@@ -49,7 +62,7 @@
   position: relative;
   width: 44px;
   height: 24px;
-  background: #ccc;
+  background: var(--color-gray-light);
   border-radius: 12px;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -57,19 +70,19 @@
 }
 
 .toggleSwitch.active {
-  background: #9527F5;
+  background: var(--color-primary);
 }
 
 .toggleKnob {
   position: absolute;
   width: 20px;
   height: 20px;
-  background: white;
+  background: var(--color-white);
   border-radius: 50%;
   top: 2px;
   left: 2px;
   transition: transform 0.3s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px var(--color-shadow-black-20);
 }
 
 .toggleSwitch.active .toggleKnob {
@@ -84,14 +97,14 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
-  color: #ff4444;
+  color: var(--color-error-alt);
   font-size: 14px;
   font-weight: 500;
   user-select: none;
 }
 
 .clearButton:hover {
-  background-color: rgba(255, 68, 68, 0.1);
+  background-color: var(--color-error-opacity-10);
 }
 
 .clearIcon {

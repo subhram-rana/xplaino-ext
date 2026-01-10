@@ -35,7 +35,7 @@
   max-width: 800px !important;
   background: var(--color-white, #FFFFFF) !important;
   border-radius: 30px 0 0 30px !important;
-  box-shadow: 0 0 20px rgba(149, 39, 245, 0.3) !important;
+  box-shadow: 0 0 20px var(--color-primary-opacity-30) !important;
   z-index: 2147483642 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -91,9 +91,9 @@
   align-items: center !important;
   justify-content: space-between !important;
   padding: 8px 12px !important;
-  background: rgba(149, 39, 245, 0.05) !important;
+  background: var(--color-primary-opacity-5) !important;
   height: 48px !important;
-  border-bottom: 1px solid rgba(149, 39, 245, 0.1) !important;
+  border-bottom: 1px solid var(--color-primary-opacity-10) !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
 }
@@ -140,7 +140,7 @@
 }
 
 .iconButton:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .iconButton:active {
@@ -206,7 +206,7 @@
 }
 
 .userMessage {
-  background: rgba(149, 39, 245, 0.08) !important;
+  background: var(--color-primary-opacity-8) !important;
   color: var(--color-text, #2D3748) !important;
   align-self: flex-end !important;
   border-radius: 20px 20px 0 20px !important;
@@ -238,7 +238,7 @@
 }
 
 .assistantMessage code {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
   padding: 2px 6px !important;
   border-radius: 4px !important;
   font-family: 'Monaco', 'Courier New', monospace !important;
@@ -278,7 +278,7 @@
 /* Built-in Prompts */
 .builtInPromptsContainer {
   padding: 12px 20px !important;
-  border-top: 1px solid #E2E8F0 !important;
+  border-top: 1px solid var(--color-border-default) !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 8px !important;
@@ -294,8 +294,8 @@
 .promptButton {
   padding: 8px 16px !important;
   background: var(--color-white, #FFFFFF) !important;
-  color: #4A5568 !important;
-  border: 1px solid #E2E8F0 !important;
+  color: var(--color-gray-700) !important;
+  border: 1px solid var(--color-border-default) !important;
   border-radius: 999px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
@@ -306,9 +306,9 @@
 }
 
 .promptButton:hover:not(:disabled) {
-  background: rgba(149, 39, 245, 0.08) !important;
+  background: var(--color-primary-opacity-8) !important;
   color: var(--color-primary, #9527F5) !important;
-  border-color: rgba(149, 39, 245, 0.2) !important;
+  border-color: var(--color-primary-opacity-20) !important;
 }
 
 .promptButton:disabled {
@@ -323,7 +323,7 @@
   gap: 8px !important;
   margin-top: 12px !important;
   padding-top: 12px !important;
-  border-top: 1px solid #E2E8F0 !important;
+  border-top: 1px solid var(--color-border-default) !important;
 }
 
 .questionItem {
@@ -382,7 +382,7 @@
 .input {
   flex: 1 !important;
   padding: 10px 14px !important;
-  border: 1px solid #E2E8F0 !important;
+  border: 1px solid var(--color-border-default) !important;
   border-radius: 20px !important;
   font-size: 14px !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
@@ -397,7 +397,7 @@
 }
 
 .input:disabled {
-  background: #F7FAFC !important;
+  background: var(--color-bg-secondary) !important;
   cursor: not-allowed !important;
   opacity: 0.6 !important;
 }
@@ -462,7 +462,7 @@
 }
 
 .stopButton:hover {
-  background: #DC2626 !important;
+  background: var(--color-error-dark) !important;
   transform: scale(1.05) !important;
 }
 
@@ -484,7 +484,7 @@
   border-radius: 50% !important;
   background: transparent !important;
   border: none !important;
-  color: #A0AEC0 !important;
+  color: var(--color-text-muted) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
@@ -496,7 +496,7 @@
 
 .deleteButton:hover {
   background: rgba(239, 68, 68, 0.1) !important;
-  color: #EF4444 !important;
+  color: var(--color-error) !important;
 }
 
 .deleteButton:active {

@@ -150,16 +150,21 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
          PRIMARY COLOR OPACITY VARIANTS
          ============================================ */
       --color-primary-opacity-5: ${COLORS.PRIMARY_OPACITY_5} !important;
+      --color-primary-opacity-8: ${COLORS.PRIMARY_OPACITY_8} !important;
       --color-primary-opacity-10: ${COLORS.PRIMARY_OPACITY_10} !important;
       --color-primary-opacity-15: ${COLORS.PRIMARY_OPACITY_15} !important;
+      --color-primary-opacity-18: ${COLORS.PRIMARY_OPACITY_18} !important;
       --color-primary-opacity-20: ${COLORS.PRIMARY_OPACITY_20} !important;
       --color-primary-opacity-25: ${COLORS.PRIMARY_OPACITY_25} !important;
       --color-primary-opacity-30: ${COLORS.PRIMARY_OPACITY_30} !important;
       --color-primary-opacity-35: ${COLORS.PRIMARY_OPACITY_35} !important;
       --color-primary-opacity-40: ${COLORS.PRIMARY_OPACITY_40} !important;
+      --color-primary-opacity-45: ${COLORS.PRIMARY_OPACITY_45} !important;
       --color-primary-opacity-50: ${COLORS.PRIMARY_OPACITY_50} !important;
       --color-primary-opacity-60: ${COLORS.PRIMARY_OPACITY_60} !important;
+      --color-primary-opacity-70: ${COLORS.PRIMARY_OPACITY_70} !important;
       --color-primary-opacity-80: ${COLORS.PRIMARY_OPACITY_80} !important;
+      --color-primary-opacity-90: ${COLORS.PRIMARY_OPACITY_90} !important;
       
       /* ============================================
          SUCCESS COLOR OPACITY VARIANTS
@@ -175,11 +180,23 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
          ============================================ */
       --color-error-opacity-10: ${COLORS.ERROR_OPACITY_10} !important;
       --color-error-opacity-10-alt: ${COLORS.ERROR_OPACITY_10_ALT} !important;
+      --color-error-opacity-30: ${COLORS.ERROR_OPACITY_30} !important;
       
       /* ============================================
          WHITE OPACITY VARIANTS
          ============================================ */
+      --color-white-opacity-10: ${COLORS.WHITE_OPACITY_10} !important;
+      --color-white-opacity-20: ${COLORS.WHITE_OPACITY_20} !important;
       --color-white-opacity-30: ${COLORS.WHITE_OPACITY_30} !important;
+      --color-white-opacity-40: ${COLORS.WHITE_OPACITY_40} !important;
+      --color-white-opacity-50: ${COLORS.WHITE_OPACITY_50} !important;
+      --color-white-opacity-60: ${COLORS.WHITE_OPACITY_60} !important;
+      --color-white-opacity-70: ${COLORS.WHITE_OPACITY_70} !important;
+      --color-white-opacity-80: ${COLORS.WHITE_OPACITY_80} !important;
+      --color-white-opacity-85: ${COLORS.WHITE_OPACITY_85} !important;
+      --color-white-opacity-90: ${COLORS.WHITE_OPACITY_90} !important;
+      --color-white-opacity-95: ${COLORS.WHITE_OPACITY_95} !important;
+      --color-white-opacity-100: ${COLORS.WHITE_OPACITY_100} !important;
       
       /* ============================================
          GRADIENT COLORS
@@ -188,10 +205,22 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
       --color-gradient-yellow: ${COLORS.GRADIENT_YELLOW} !important;
       
       /* ============================================
+         GRADIENT PINK OPACITY VARIANTS
+         ============================================ */
+      --color-gradient-pink-opacity-30: ${COLORS.GRADIENT_PINK_OPACITY_30} !important;
+      --color-gradient-pink-opacity-40: ${COLORS.GRADIENT_PINK_OPACITY_40} !important;
+      --color-gradient-pink-opacity-50: ${COLORS.GRADIENT_PINK_OPACITY_50} !important;
+      --color-gradient-pink-opacity-60: ${COLORS.GRADIENT_PINK_OPACITY_60} !important;
+      
+      /* ============================================
          GOOGLE COLORS
          ============================================ */
       --color-google-text: ${COLORS.GOOGLE_TEXT} !important;
       --color-google-bg: ${COLORS.GOOGLE_BG} !important;
+      --color-google-blue: ${COLORS.GOOGLE_BLUE} !important;
+      --color-google-green: ${COLORS.GOOGLE_GREEN} !important;
+      --color-google-yellow: ${COLORS.GOOGLE_YELLOW} !important;
+      --color-google-red: ${COLORS.GOOGLE_RED} !important;
       
       /* ============================================
          SHADOW COLORS
@@ -350,16 +379,21 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
          PRIMARY COLOR OPACITY VARIANTS
          ============================================ */
       --color-primary-opacity-5: ${COLORS.PRIMARY_OPACITY_5} !important;
+      --color-primary-opacity-8: ${COLORS.PRIMARY_OPACITY_8} !important;
       --color-primary-opacity-10: ${COLORS.PRIMARY_OPACITY_10} !important;
       --color-primary-opacity-15: ${COLORS.PRIMARY_OPACITY_15} !important;
+      --color-primary-opacity-18: ${COLORS.PRIMARY_OPACITY_18} !important;
       --color-primary-opacity-20: ${COLORS.PRIMARY_OPACITY_20} !important;
       --color-primary-opacity-25: ${COLORS.PRIMARY_OPACITY_25} !important;
       --color-primary-opacity-30: ${COLORS.PRIMARY_OPACITY_30} !important;
       --color-primary-opacity-35: ${COLORS.PRIMARY_OPACITY_35} !important;
       --color-primary-opacity-40: ${COLORS.PRIMARY_OPACITY_40} !important;
+      --color-primary-opacity-45: ${COLORS.PRIMARY_OPACITY_45} !important;
       --color-primary-opacity-50: ${COLORS.PRIMARY_OPACITY_50} !important;
       --color-primary-opacity-60: ${COLORS.PRIMARY_OPACITY_60} !important;
+      --color-primary-opacity-70: ${COLORS.PRIMARY_OPACITY_70} !important;
       --color-primary-opacity-80: ${COLORS.PRIMARY_OPACITY_80} !important;
+      --color-primary-opacity-90: ${COLORS.PRIMARY_OPACITY_90} !important;
       
       /* ============================================
          SUCCESS COLOR OPACITY VARIANTS
@@ -375,11 +409,23 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
          ============================================ */
       --color-error-opacity-10: ${COLORS.ERROR_OPACITY_10} !important;
       --color-error-opacity-10-alt: ${COLORS.ERROR_OPACITY_10_ALT} !important;
+      --color-error-opacity-30: ${COLORS.ERROR_OPACITY_30} !important;
       
       /* ============================================
          WHITE OPACITY VARIANTS
          ============================================ */
+      --color-white-opacity-10: ${COLORS.WHITE_OPACITY_10} !important;
+      --color-white-opacity-20: ${COLORS.WHITE_OPACITY_20} !important;
       --color-white-opacity-30: ${COLORS.WHITE_OPACITY_30} !important;
+      --color-white-opacity-40: ${COLORS.WHITE_OPACITY_40} !important;
+      --color-white-opacity-50: ${COLORS.WHITE_OPACITY_50} !important;
+      --color-white-opacity-60: ${COLORS.WHITE_OPACITY_60} !important;
+      --color-white-opacity-70: ${COLORS.WHITE_OPACITY_70} !important;
+      --color-white-opacity-80: ${COLORS.WHITE_OPACITY_80} !important;
+      --color-white-opacity-85: ${COLORS.WHITE_OPACITY_85} !important;
+      --color-white-opacity-90: ${COLORS.WHITE_OPACITY_90} !important;
+      --color-white-opacity-95: ${COLORS.WHITE_OPACITY_95} !important;
+      --color-white-opacity-100: ${COLORS.WHITE_OPACITY_100} !important;
       
       /* ============================================
          GRADIENT COLORS
@@ -388,10 +434,22 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
       --color-gradient-yellow: ${COLORS.GRADIENT_YELLOW} !important;
       
       /* ============================================
+         GRADIENT PINK OPACITY VARIANTS
+         ============================================ */
+      --color-gradient-pink-opacity-30: ${COLORS.GRADIENT_PINK_OPACITY_30} !important;
+      --color-gradient-pink-opacity-40: ${COLORS.GRADIENT_PINK_OPACITY_40} !important;
+      --color-gradient-pink-opacity-50: ${COLORS.GRADIENT_PINK_OPACITY_50} !important;
+      --color-gradient-pink-opacity-60: ${COLORS.GRADIENT_PINK_OPACITY_60} !important;
+      
+      /* ============================================
          GOOGLE COLORS
          ============================================ */
       --color-google-text: ${COLORS.GOOGLE_TEXT} !important;
       --color-google-bg: ${COLORS.GOOGLE_BG} !important;
+      --color-google-blue: ${COLORS.GOOGLE_BLUE} !important;
+      --color-google-green: ${COLORS.GOOGLE_GREEN} !important;
+      --color-google-yellow: ${COLORS.GOOGLE_YELLOW} !important;
+      --color-google-red: ${COLORS.GOOGLE_RED} !important;
       
       /* ============================================
          SHADOW COLORS

@@ -45,7 +45,7 @@
 
 .sidePanel.open {
   transform: translateX(0) !important;
-  box-shadow: 0 0 20px rgba(149, 39, 245, 0.3) !important;
+  box-shadow: 0 0 20px var(--color-primary-opacity-30) !important;
 }
 
 .sidePanel.slidingOut {
@@ -90,7 +90,7 @@
 
 /* Header */
 .header {
-  background: rgba(149, 39, 245, 0.05) !important;
+  background: var(--color-primary-opacity-5) !important;
   padding: 8px 12px !important;
   display: flex !important;
   align-items: center !important;
@@ -124,7 +124,7 @@
 }
 
 .headerIconButton:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .headerIconButton:active {
@@ -149,15 +149,15 @@
 
 /* Bookmarked state - allow fill to be set */
 .headerIconButton.bookmarked svg {
-  fill: #9527F5 !important;
-  color: #9527F5 !important;
-  stroke: #9527F5 !important;
+  fill: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
 }
 
 .headerIconButton.bookmarked:hover svg {
-  fill: #7c1ed9 !important;
-  color: #7c1ed9 !important;
-  stroke: #7c1ed9 !important;
+  fill: var(--color-primary-hover-dark) !important;
+  color: var(--color-primary-hover-dark) !important;
+  stroke: var(--color-primary-hover-dark) !important;
 }
 
 /* Header Center - Branding */
@@ -256,7 +256,7 @@
   right: 0 !important;
   background: var(--color-white) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 20px rgba(149, 39, 245, 0.25) !important;
+  box-shadow: 0 4px 20px var(--color-primary-opacity-25) !important;
   padding: 12px !important;
   min-width: 180px !important;
   z-index: 1000 !important;
@@ -265,10 +265,10 @@
 .userName {
   font-size: 14px !important;
   font-weight: 600 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
   margin-bottom: 12px !important;
   padding-bottom: 12px !important;
-  border-bottom: 1px solid #E2E8F0 !important;
+  border-bottom: 1px solid var(--color-border-default) !important;
   word-break: break-word !important;
 }
 
@@ -291,7 +291,7 @@
 }
 
 .logoutButton:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
+  background: var(--color-error-opacity-10-alt) !important;
   border-color: var(--color-error) !important;
 }
 
@@ -324,7 +324,7 @@
 
 /* Footer */
 .footer {
-  background: rgba(149, 39, 245, 0.05) !important;
+  background: var(--color-primary-opacity-5) !important;
   padding: 0 !important;
   padding-top: 20px !important;
   padding-bottom: 20px !important;
@@ -359,7 +359,7 @@
 }
 
 .button:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .button.active {
@@ -367,7 +367,7 @@
 }
 
 .button.active:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .buttonIcon {
@@ -383,8 +383,8 @@
   margin: 0 !important;
   padding: 0 !important;
   display: block !important;
-  color: #718096 !important;
-  stroke: #718096 !important;
+  color: var(--color-text-secondary) !important;
+  stroke: var(--color-text-secondary) !important;
   fill: none !important;
   pointer-events: none !important;
   transition: color 0.2s ease, stroke 0.2s ease !important;
@@ -406,7 +406,7 @@
 }
 
 .buttonLabel {
-  color: #718096 !important;
+  color: var(--color-text-secondary) !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -483,7 +483,7 @@
 }
 
 .tab:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .tab.active {
@@ -519,13 +519,13 @@
 }
 
 .tab.active svg {
-  color: #FFFFFF !important;
-  stroke: #FFFFFF !important;
+  color: var(--color-white) !important;
+  stroke: var(--color-white) !important;
 }
 
 .tab.active:hover svg {
-  color: #FFFFFF !important;
-  stroke: #FFFFFF !important;
+  color: var(--color-white) !important;
+  stroke: var(--color-white) !important;
 }
 
 /* IconTabGroup - Tab Wrapper for Tooltip */
@@ -538,15 +538,15 @@
 .tabTooltip {
   position: absolute !important;
   bottom: calc(100% + 8px) !important;
-  background: rgba(26, 32, 44, 0.9) !important;
-  color: #FFFFFF !important;
+  background: var(--color-overlay-dark) !important;
+  color: var(--color-white) !important;
   padding: 6px 12px !important;
   border-radius: 6px !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
   font-size: 12px !important;
   font-weight: 500 !important;
   white-space: nowrap !important;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.25) !important;
+  box-shadow: 0 2px 8px var(--color-primary-opacity-25) !important;
   pointer-events: none !important;
   z-index: 1000 !important;
 }
@@ -590,7 +590,7 @@
   position: absolute !important;
   top: 100% !important;
   border: 5px solid transparent !important;
-  border-top-color: rgba(26, 32, 44, 0.9) !important;
+  border-top-color: var(--color-overlay-dark) !important;
 }
 
 .tabTooltip.center {
@@ -710,7 +710,7 @@
 .summaryText {
   font-size: 14px !important;
   line-height: 1.6 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
   word-wrap: break-word !important;
 }
 
@@ -718,7 +718,7 @@
 .markdownH1 {
   font-size: 20px !important;
   font-weight: 700 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
   margin: 16px 0 8px 0 !important;
   line-height: 1.3 !important;
 }
@@ -726,7 +726,7 @@
 .markdownH2 {
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
   margin: 14px 0 6px 0 !important;
   line-height: 1.3 !important;
 }
@@ -734,7 +734,7 @@
 .markdownH3 {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
   margin: 12px 0 4px 0 !important;
   line-height: 1.3 !important;
 }
@@ -757,7 +757,7 @@
 
 .markdownStrong {
   font-weight: 600 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
 }
 
 .markdownEm {
@@ -765,7 +765,7 @@
 }
 
 .markdownCode {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
   color: var(--color-primary) !important;
   padding: 2px 6px !important;
   border-radius: 4px !important;
@@ -811,12 +811,12 @@
 }
 
 .refButtonActive {
-  background: #4CAF50 !important; /* Medium green */
+  background: var(--color-secondary-success) !important; /* Medium green */
   color: var(--color-white) !important;
 }
 
 .refButtonActive:hover {
-  background: #45a049 !important; /* Slightly darker green on hover */
+  background: var(--color-secondary-success-dark) !important; /* Slightly darker green on hover */
   transform: scale(1.1) !important;
 }
 
@@ -827,7 +827,7 @@
   gap: 8px !important;
   margin-top: 16px !important;
   padding-top: 16px !important;
-  border-top: 1px solid #E2E8F0 !important;
+  border-top: 1px solid var(--color-border-default) !important;
   animation: fadeInSlideUp 0.3s ease-out !important;
 }
 
@@ -875,7 +875,7 @@
 
 .questionText {
   font-size: 13px !important;
-  color: #4A5568 !important;
+  color: var(--color-gray-700) !important;
   line-height: 1.4 !important;
   transition: color 0.2s ease !important;
 }
@@ -898,18 +898,18 @@
 }
 
 .userMessage {
-  background: rgba(149, 39, 245, 0.1) !important;
-  color: #1A202C !important;
+  background: var(--color-primary-opacity-10) !important;
+  color: var(--color-text-primary) !important;
   align-self: flex-end !important;
   border-radius: 20px 20px 0 20px !important;
 }
 
 .assistantMessage {
   background: var(--color-white) !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
   align-self: flex-start !important;
   border-bottom-left-radius: 4px !important;
-  box-shadow: 0 1px 2px rgba(149, 39, 245, 0.05) !important;
+  box-shadow: 0 1px 2px var(--color-primary-opacity-5) !important;
 }
 
 /* Loading Dots Animation */
@@ -939,7 +939,7 @@
 }
 
 .emptyState p {
-  color: #718096 !important;
+  color: var(--color-text-secondary) !important;
   font-size: 14px !important;
   text-align: center !important;
 }
@@ -951,12 +951,12 @@
   justify-content: center !important;
   padding: 16px !important;
   margin-top: 16px !important;
-  background: rgba(239, 68, 68, 0.1) !important;
+  background: var(--color-error-opacity-10-alt) !important;
   border-radius: 8px !important;
 }
 
 .errorState p {
-  color: #EF4444 !important;
+  color: var(--color-error) !important;
   font-size: 14px !important;
   text-align: center !important;
 }
@@ -991,7 +991,7 @@
 }
 
 .summariseButton:disabled {
-  background: #CBD5E0 !important;
+  background: var(--color-gray-400) !important;
   cursor: not-allowed !important;
 }
 
@@ -1005,7 +1005,7 @@
 }
 
 .summariseButton.stopVariant:hover:not(:disabled) {
-  background: #DC2626 !important;
+  background: var(--color-error-dark) !important;
 }
 
 .summariseButton.stopVariant svg {
@@ -1031,7 +1031,7 @@
 }
 
 .stopButton:hover {
-  background: #DC2626 !important;
+  background: var(--color-error-dark) !important;
   transform: scale(1.05) !important;
 }
 
@@ -1040,7 +1040,7 @@
 }
 
 .stopButton:disabled {
-  background: #CBD5E0 !important;
+  background: var(--color-gray-400) !important;
   cursor: not-allowed !important;
   transform: none !important;
 }
@@ -1068,14 +1068,14 @@
 
 .input {
   width: 100% !important;
-  border: 1px solid #E2E8F0 !important;
+  border: 1px solid var(--color-border-default) !important;
   border-radius: 20px !important;
   padding: 10px 40px 10px 14px !important;
   font-size: 14px !important;
   outline: none !important;
   transition: border-color 0.2s ease !important;
   background: var(--color-white) !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
 }
 
 .input::placeholder {
@@ -1105,7 +1105,7 @@
 }
 
 .micButton:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
   color: var(--color-primary) !important;
 }
 
@@ -1115,8 +1115,8 @@
 }
 
 .micButtonRecording {
-  background: rgba(239, 68, 68, 0.1) !important;
-  color: #EF4444 !important;
+  background: var(--color-error-opacity-10-alt) !important;
+  color: var(--color-error) !important;
   animation: pulse 1.5s ease-in-out infinite !important;
 }
 
@@ -1156,7 +1156,7 @@
 }
 
 .sendButton:disabled {
-  background: #CBD5E0 !important;
+  background: var(--color-gray-400) !important;
   cursor: not-allowed !important;
   transform: none !important;
 }
@@ -1184,8 +1184,8 @@
 }
 
 .deleteButton:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
-  color: #EF4444 !important;
+  background: var(--color-error-opacity-10-alt) !important;
+  color: var(--color-error) !important;
 }
 
 .deleteButton:active {
@@ -1207,7 +1207,7 @@
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  background: rgba(0, 0, 0, 0.5) !important;
+  background: var(--color-overlay) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1218,7 +1218,7 @@
   background: var(--color-white) !important;
   padding: 24px !important;
   border-radius: 16px !important;
-  box-shadow: 0 4px 20px rgba(149, 39, 245, 0.25) !important;
+  box-shadow: 0 4px 20px var(--color-primary-opacity-25) !important;
   max-width: 300px !important;
   text-align: center !important;
 }
@@ -1227,13 +1227,13 @@
   margin: 0 0 12px 0 !important;
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
 }
 
 .loginModal p {
   margin: 0 0 20px 0 !important;
   font-size: 14px !important;
-  color: #718096 !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .loginModalButton {
@@ -1278,8 +1278,8 @@
   align-items: center !important;
   gap: 8px !important;
   padding: 10px 12px !important;
-  background: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
+  background: var(--color-white) !important;
+  border: 1px solid var(--color-border-default) !important;
   border-radius: 15px !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
@@ -1288,7 +1288,7 @@
 
 .linkItem:hover {
   border-color: #9527F5 !important;
-  background: rgba(149, 39, 245, 0.05) !important;
+  background: var(--color-primary-opacity-5) !important;
 }
 
 .linkIcon {
@@ -1308,7 +1308,7 @@
 
 .linkText {
   flex: 1 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
 }
@@ -1316,7 +1316,7 @@
 .linkRefIcon {
   width: 16px !important;
   height: 16px !important;
-  color: #718096 !important;
+  color: var(--color-text-secondary) !important;
   flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -1340,8 +1340,8 @@
   padding: 16px !important;
   height: 100% !important;
   overflow-y: auto !important;
-  background: #FFFFFF !important;
-  color: #4A5568 !important;
+  background: var(--color-white) !important;
+  color: var(--color-gray-700) !important;
 }
 
 .loading {
@@ -1349,7 +1349,7 @@
   align-items: center !important;
   justify-content: center !important;
   height: 100% !important;
-  color: #718096 !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .section {
@@ -1376,7 +1376,7 @@
 .sectionTitle {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #4A5568 !important;
+  color: var(--color-gray-700) !important;
   margin: 0 !important;
   flex-shrink: 0 !important;
 }
@@ -1423,7 +1423,7 @@
 .settingLabel {
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: #4A5568 !important;
+  color: var(--color-gray-700) !important;
 }
 
 .languageSettingRow {
@@ -1507,7 +1507,7 @@
   width: 18px !important;
   height: 18px !important;
   border-radius: 50% !important;
-  background: #FFFFFF !important;
+  background: var(--color-white) !important;
   box-shadow: 0 2px 4px rgba(149, 39, 245, 0.2) !important;
   transition: left 0.2s ease !important;
 }
@@ -1527,7 +1527,7 @@
 .toggleLabel {
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: #4A5568 !important;
+  color: var(--color-gray-700) !important;
   user-select: none !important;
 }
 
@@ -1544,7 +1544,7 @@
   margin-bottom: 8px !important;
   font-size: 14px !important;
   font-weight: 500 !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
 }
 
 .dropdown {
@@ -1555,8 +1555,8 @@
 .dropdownButton {
   width: 100% !important;
   padding: 10px 12px !important;
-  background: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
+  background: var(--color-white) !important;
+  border: 1px solid var(--color-border-default) !important;
   border-radius: 10px !important;
   display: flex !important;
   align-items: center !important;
@@ -1564,7 +1564,7 @@
   cursor: pointer !important;
   transition: all 0.2s ease !important;
   font-size: 14px !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
 }
 
 .dropdownButton:hover {
@@ -1579,7 +1579,7 @@
 .dropdownValue {
   flex: 1 !important;
   text-align: left !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
 }
 
 .dropdownValue:empty::before {
@@ -1590,7 +1590,7 @@
 .chevron {
   width: 16px !important;
   height: 16px !important;
-  color: #718096 !important;
+  color: var(--color-text-secondary) !important;
   transition: transform 0.2s ease !important;
   flex-shrink: 0 !important;
 }
@@ -1604,8 +1604,8 @@
   top: calc(100% + 4px) !important;
   left: 0 !important;
   right: 0 !important;
-  background: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
+  background: var(--color-white) !important;
+  border: 1px solid var(--color-border-default) !important;
   border-radius: 10px !important;
   box-shadow: 0 4px 12px rgba(149, 39, 245, 0.25) !important;
   z-index: 1000 !important;
@@ -1619,11 +1619,11 @@
   cursor: pointer !important;
   transition: background-color 0.2s ease !important;
   font-size: 14px !important;
-  color: #1A202C !important;
+  color: var(--color-text-primary) !important;
 }
 
 .dropdownItem:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .dropdownItem.selected {

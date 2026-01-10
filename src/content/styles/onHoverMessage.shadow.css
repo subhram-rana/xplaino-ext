@@ -20,7 +20,7 @@
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important, 
               visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important,
               transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.18) !important;
+  box-shadow: 0 2px 8px var(--color-primary-opacity-18) !important;
 }
 
 .onHoverMessage.visible {

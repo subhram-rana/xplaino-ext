@@ -119,16 +119,21 @@ export const COLORS = {
   // PRIMARY COLOR OPACITY VARIANTS (for shadows, backgrounds, borders)
   // ============================================
   PRIMARY_OPACITY_5: 'rgba(149, 39, 245, 0.05)',
+  PRIMARY_OPACITY_8: 'rgba(149, 39, 245, 0.08)',
   PRIMARY_OPACITY_10: 'rgba(149, 39, 245, 0.1)',
   PRIMARY_OPACITY_15: 'rgba(149, 39, 245, 0.15)',
+  PRIMARY_OPACITY_18: 'rgba(149, 39, 245, 0.18)',
   PRIMARY_OPACITY_20: 'rgba(149, 39, 245, 0.2)',
   PRIMARY_OPACITY_25: 'rgba(149, 39, 245, 0.25)',
   PRIMARY_OPACITY_30: 'rgba(149, 39, 245, 0.3)',
   PRIMARY_OPACITY_35: 'rgba(149, 39, 245, 0.35)',
   PRIMARY_OPACITY_40: 'rgba(149, 39, 245, 0.4)',
+  PRIMARY_OPACITY_45: 'rgba(149, 39, 245, 0.45)',
   PRIMARY_OPACITY_50: 'rgba(149, 39, 245, 0.5)',
   PRIMARY_OPACITY_60: 'rgba(149, 39, 245, 0.6)',
+  PRIMARY_OPACITY_70: 'rgba(149, 39, 245, 0.7)',
   PRIMARY_OPACITY_80: 'rgba(149, 39, 245, 0.8)',
+  PRIMARY_OPACITY_90: 'rgba(149, 39, 245, 0.9)',
 
   // ============================================
   // SECONDARY/SUCCESS COLOR OPACITY VARIANTS
@@ -144,11 +149,23 @@ export const COLORS = {
   // ============================================
   ERROR_OPACITY_10: 'rgba(255, 68, 68, 0.1)',
   ERROR_OPACITY_10_ALT: 'rgba(239, 68, 68, 0.1)',
+  ERROR_OPACITY_30: 'rgba(239, 68, 68, 0.3)',
 
   // ============================================
   // WHITE OPACITY VARIANTS
   // ============================================
+  WHITE_OPACITY_10: 'rgba(255, 255, 255, 0.1)',
+  WHITE_OPACITY_20: 'rgba(255, 255, 255, 0.2)',
   WHITE_OPACITY_30: 'rgba(255, 255, 255, 0.3)',
+  WHITE_OPACITY_40: 'rgba(255, 255, 255, 0.4)',
+  WHITE_OPACITY_50: 'rgba(255, 255, 255, 0.5)',
+  WHITE_OPACITY_60: 'rgba(255, 255, 255, 0.6)',
+  WHITE_OPACITY_70: 'rgba(255, 255, 255, 0.7)',
+  WHITE_OPACITY_80: 'rgba(255, 255, 255, 0.8)',
+  WHITE_OPACITY_85: 'rgba(255, 255, 255, 0.85)',
+  WHITE_OPACITY_90: 'rgba(255, 255, 255, 0.9)',
+  WHITE_OPACITY_95: 'rgba(255, 255, 255, 0.95)',
+  WHITE_OPACITY_100: 'rgba(255, 255, 255, 1)',
 
   // ============================================
   // GRADIENT COLORS
@@ -157,10 +174,22 @@ export const COLORS = {
   GRADIENT_YELLOW: '#FFC107',   // Yellow gradient color
 
   // ============================================
+  // GRADIENT PINK OPACITY VARIANTS
+  // ============================================
+  GRADIENT_PINK_OPACITY_30: 'rgba(255, 107, 157, 0.3)',
+  GRADIENT_PINK_OPACITY_40: 'rgba(255, 107, 157, 0.4)',
+  GRADIENT_PINK_OPACITY_50: 'rgba(255, 107, 157, 0.5)',
+  GRADIENT_PINK_OPACITY_60: 'rgba(255, 107, 157, 0.6)',
+
+  // ============================================
   // GOOGLE COLORS
   // ============================================
   GOOGLE_TEXT: '#3c4043',       // Google text color
   GOOGLE_BG: '#f8f9fa',         // Google background color
+  GOOGLE_BLUE: '#4285F4',       // Google blue (Sign in button)
+  GOOGLE_GREEN: '#34A853',      // Google green (Sign in button)
+  GOOGLE_YELLOW: '#FBBC05',     // Google yellow (Sign in button)
+  GOOGLE_RED: '#EA4335',        // Google red (Sign in button)
 
   // ============================================
   // SHADOW COLORS

@@ -5,8 +5,8 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background-color: #9527F5;
-  color: #FFFFFF;
+  background-color: var(--color-primary);
+  color: var(--color-white);
   border: none;
   border-radius: 9999px;
   cursor: pointer;
@@ -19,7 +19,7 @@
 }
 
 .youtubeAskAIButton:hover:not(:disabled) {
-  box-shadow: 0 0 10px rgba(149, 39, 245, 0.5);
+  box-shadow: 0 0 10px var(--color-primary-opacity-50);
 }
 
 .youtubeAskAIButton:active:not(:disabled) {

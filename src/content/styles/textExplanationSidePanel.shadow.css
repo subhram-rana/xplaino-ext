@@ -44,7 +44,7 @@
   max-width: 800px !important;
   background: var(--color-white) !important;
   border-radius: 30px 0 0 30px !important;
-  box-shadow: 0 0 20px rgba(149, 39, 245, 0.3) !important;
+  box-shadow: 0 0 20px var(--color-primary-opacity-30) !important;
   z-index: 2147483643 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -93,7 +93,7 @@
 
 /* Header */
 .header {
-  background: rgba(149, 39, 245, 0.05) !important;
+  background: var(--color-primary-opacity-5) !important;
   padding: 8px 12px !important;
   display: flex !important;
   align-items: center !important;
@@ -127,7 +127,7 @@
 }
 
 .headerIconButton:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .headerIconButton:active {
@@ -152,7 +152,7 @@
 
 /* Bookmarked state - allow fill to be set */
 .headerIconButton.bookmarked svg {
-  fill: #9527F5 !important;
+  fill: var(--color-primary) !important;
   color: #9527F5 !important;
   stroke: #9527F5 !important;
 }
@@ -255,7 +255,7 @@
   right: 0 !important;
   background: var(--color-white) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 20px rgba(149, 39, 245, 0.25) !important;
+  box-shadow: 0 4px 20px var(--color-primary-opacity-25) !important;
   padding: 12px !important;
   min-width: 180px !important;
   z-index: 1000 !important;
@@ -292,7 +292,7 @@
 }
 
 .logoutButton:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
+  background: var(--color-error-opacity-10-alt) !important;
   border-color: var(--color-error) !important;
 }
 
@@ -436,7 +436,7 @@
 }
 
 .markdownCode {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
   padding: 2px 6px !important;
   border-radius: 4px !important;
   font-family: 'Courier New', monospace !important;
@@ -683,7 +683,7 @@
 }
 
 .deleteButton:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
+  background: var(--color-error-opacity-10-alt) !important;
   color: #EF4444 !important;
 }
 
@@ -737,7 +737,7 @@
   font-family: var(--font-family-primary) !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.3) !important;
+  box-shadow: 0 2px 8px var(--color-primary-opacity-30) !important;
   flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -747,7 +747,7 @@
 
 .translateButton:hover:not(:disabled) {
   background: var(--color-primary-dark, #8607F5) !important;
-  box-shadow: 0 4px 12px rgba(149, 39, 245, 0.4) !important;
+  box-shadow: 0 4px 12px var(--color-primary-opacity-40) !important;
 }
 
 .translateButton:active:not(:disabled) {
@@ -884,7 +884,7 @@
 
 .dropdownButton.open {
   border-color: var(--color-primary, #9527F5) !important;
-  box-shadow: 0 0 0 3px rgba(149, 39, 245, 0.1) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-opacity-10) !important;
 }
 
 .dropdownValue {
@@ -918,7 +918,7 @@
   background: var(--color-white, #FFFFFF) !important;
   border: 1px solid var(--color-border, #E2E8F0) !important;
   border-radius: 10px !important;
-  box-shadow: 0 4px 12px rgba(149, 39, 245, 0.25) !important;
+  box-shadow: 0 4px 12px var(--color-primary-opacity-25) !important;
   z-index: 1000 !important;
   max-height: 200px !important;
   overflow-y: auto !important;
@@ -935,7 +935,7 @@
 }
 
 .dropdownItem:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .dropdownItem.selected {
@@ -976,7 +976,7 @@
 }
 
 .button:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .button.active {
@@ -984,7 +984,7 @@
 }
 
 .button.active:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .buttonIcon {
@@ -1062,7 +1062,7 @@
 }
 
 .userMessage {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
   color: #1A202C !important;
   align-self: flex-end !important;
   border-radius: 20px 20px 0 20px !important;
@@ -1091,7 +1091,7 @@
 
 /* Footer */
 .footer {
-  background: rgba(149, 39, 245, 0.05) !important;
+  background: var(--color-primary-opacity-5) !important;
   padding: 0 !important;
   padding-top: 20px !important;
   padding-bottom: 20px !important;

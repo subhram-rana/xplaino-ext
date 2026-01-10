@@ -44,7 +44,7 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 0 10px rgba(149, 39, 245, 0.35) !important;
+  box-shadow: 0 0 10px var(--color-primary-opacity-35) !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   padding: 0 !important;
   outline: none !important;
@@ -68,7 +68,7 @@
 }
 
 .xplainoIconButton:hover {
-  box-shadow: 0 0 14px rgba(149, 39, 245, 0.45) !important;
+  box-shadow: 0 0 14px var(--color-primary-opacity-45) !important;
 }
 
 .xplainoIcon {
@@ -90,7 +90,7 @@
   background: var(--color-white) !important;
   border-radius: 999px !important;
   padding: 5px !important;
-  box-shadow: 0 0 12px rgba(149, 39, 245, 0.35) !important;
+  box-shadow: 0 0 12px var(--color-primary-opacity-35) !important;
   opacity: 0 !important;
   visibility: hidden !important;
   transform: translateX(-12px) scale(0.95) !important;
@@ -176,7 +176,7 @@
   font-size: 12px !important;
   font-weight: 500 !important;
   white-space: nowrap !important;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.15) !important;
+  box-shadow: 0 2px 8px var(--color-primary-opacity-15) !important;
   pointer-events: none !important;
   animation: tooltipFadeIn 0.15s ease forwards !important;
   z-index: 10 !important;
@@ -291,7 +291,7 @@
   background: var(--color-white) !important;
   border-radius: 15px !important;
   padding: 4px !important;
-  box-shadow: 0 0 12px rgba(149, 39, 245, 0.35) !important;
+  box-shadow: 0 0 12px var(--color-primary-opacity-35) !important;
   /* Animation is handled by JavaScript useEmergeAnimation hook */
   z-index: 20 !important;
   width: fit-content !important;
@@ -362,7 +362,7 @@
   background: var(--color-white) !important;
   border-radius: 15px !important;
   padding: 4px !important;
-  box-shadow: 0 0 12px rgba(149, 39, 245, 0.35) !important;
+  box-shadow: 0 0 12px var(--color-primary-opacity-35) !important;
   /* Animation is handled by JavaScript useEmergeAnimation hook */
   z-index: 20 !important;
   width: fit-content !important;

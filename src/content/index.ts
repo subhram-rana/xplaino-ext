@@ -51,6 +51,7 @@ import minimalCouponButtonStyles from './styles/minimalCouponButton.shadow.css?i
 
 // Import color CSS variables
 import { ALL_COLOR_VARIABLES, getAllColorVariables } from '../constants/colors.css.js';
+import { COLORS, colorWithOpacity } from '../constants/colors';
 import { getCurrentTheme } from '../constants/theme';
 
 // Import services and utilities
@@ -1802,7 +1803,7 @@ async function handleWordExplain(
               const isSaved = atomState?.isSaved || false;
               
               // Update inline styles to show green background (CSS classes don't work in main DOM)
-              state.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
+              state.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
               state.wordSpanElement.style.cursor = 'pointer';
               state.wordSpanElement.style.transition = 'background 0.2s ease';
               
@@ -1823,12 +1824,12 @@ async function handleWordExplain(
               // Add hover event listeners for green highlight effect
               state.wordSpanElement.addEventListener('mouseenter', () => {
                 if (state.wordSpanElement) {
-                  state.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.25)';
+                  state.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_25;
                 }
               });
               state.wordSpanElement.addEventListener('mouseleave', () => {
                 if (state.wordSpanElement) {
-                  state.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
+                  state.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
                 }
               });
 
@@ -2108,7 +2109,7 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
               const isSaved = atomState?.isSaved || false;
               
               // Update inline styles to show green background
-              localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
+              localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
               localState.wordSpanElement.style.cursor = 'pointer';
               localState.wordSpanElement.style.transition = 'background 0.2s ease';
               
@@ -2128,12 +2129,12 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
               // Add hover event listeners
               localState.wordSpanElement.addEventListener('mouseenter', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.25)';
+                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_25;
                 }
               });
               localState.wordSpanElement.addEventListener('mouseleave', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
+                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
                 }
               });
               
@@ -2344,7 +2345,7 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
               const isSaved = atomState?.isSaved || false;
               
               // Update inline styles to show green background
-              localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
+              localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
               localState.wordSpanElement.style.cursor = 'pointer';
               localState.wordSpanElement.style.transition = 'background 0.2s ease';
               
@@ -2364,12 +2365,12 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
               // Add hover event listeners
               localState.wordSpanElement.addEventListener('mouseenter', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.25)';
+                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_25;
                 }
               });
               localState.wordSpanElement.addEventListener('mouseleave', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
+                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
                 }
               });
               
@@ -2598,7 +2599,7 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
               const isSaved = atomState?.isSaved || false;
               
               // Update inline styles to show green background
-              localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
+              localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
               localState.wordSpanElement.style.cursor = 'pointer';
               localState.wordSpanElement.style.transition = 'background 0.2s ease';
               
@@ -2618,12 +2619,12 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
               // Add hover event listeners
               localState.wordSpanElement.addEventListener('mouseenter', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.25)';
+                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_25;
                 }
               });
               localState.wordSpanElement.addEventListener('mouseleave', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = 'rgba(0, 200, 0, 0.15)';
+                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
                 }
               });
               
@@ -2977,7 +2978,7 @@ function createWordSpan(word: string, range: Range): HTMLElement | null {
     span.className = 'word-explanation-loading';
     span.textContent = word;
     span.style.cssText = `
-      background: rgba(149, 39, 245, 0.1);
+      background: ${COLORS.PRIMARY_OPACITY_10};
       border-radius: 12px;
       padding: 2px 4px;
       cursor: default;
@@ -3025,8 +3026,8 @@ function createPurpleSpinner(wordSpan: HTMLElement): HTMLElement {
   spinner.style.cssText = `
     width: 18px;
     height: 18px;
-    border: 2px solid rgba(149, 39, 245, 0.2);
-    border-top-color: #9527F5;
+    border: 2px solid ${colorWithOpacity(COLORS.PRIMARY, 0.2)};
+    border-top-color: ${COLORS.PRIMARY};
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   `;
@@ -3058,12 +3059,12 @@ function createBookmarkIcon(): HTMLElement {
   svg.setAttribute('width', '16');
   svg.setAttribute('height', '16');
   svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('fill', '#9527F5');
+  svg.setAttribute('fill', COLORS.PRIMARY);
   svg.style.cssText = 'width: 100%; height: 100%;';
   
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('d', 'M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z');
-  path.setAttribute('fill', '#9527F5');
+  path.setAttribute('fill', COLORS.PRIMARY);
   
   svg.appendChild(path);
   bookmarkIcon.appendChild(svg);
@@ -3086,8 +3087,8 @@ function createWordSpanCloseButton(wordId: string): HTMLElement {
     width: 15px;
     height: 15px;
     border-radius: 50%;
-    background: #FFFFFF;
-    border: 1px solid rgba(0, 200, 0, 0.5);
+    background: ${COLORS.WHITE};
+    border: 1px solid ${COLORS.SUCCESS_OPACITY_50};
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -3103,7 +3104,7 @@ function createWordSpanCloseButton(wordId: string): HTMLElement {
   svg.setAttribute('height', '9');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'rgba(0, 200, 0, 0.8)');
+  svg.setAttribute('stroke', COLORS.SUCCESS_OPACITY_80);
   svg.setAttribute('stroke-width', '2.5');
   svg.setAttribute('stroke-linecap', 'round');
   svg.setAttribute('stroke-linejoin', 'round');
@@ -3207,7 +3208,7 @@ function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, wordId: string,
   }
   
   // Add green border and border-radius
-  wordSpanElement.style.border = '1px solid rgba(0, 200, 0, 0.5)';
+  wordSpanElement.style.border = `1px solid ${COLORS.SUCCESS_OPACITY_50}`;
   wordSpanElement.style.borderRadius = '12px';
   
   // Remove existing bookmark icon and close button if they exist
@@ -3260,10 +3261,10 @@ function injectWordSpanStyles(): void {
     
     @keyframes word-explanation-pulsate-purple {
       0%, 100% {
-        background-color: rgba(149, 39, 245, 0.1);
+        background-color: ${COLORS.PRIMARY_OPACITY_10};
       }
       50% {
-        background-color: rgba(149, 39, 245, 0.25);
+        background-color: ${COLORS.PRIMARY_OPACITY_25};
       }
     }
     
@@ -7066,8 +7067,8 @@ function injectWordExplanationPopover(): void {
       to { transform: rotate(360deg); }
     }
     @keyframes pulsate-purple {
-      0%, 100% { background-color: rgba(149, 39, 245, 0.1); }
-      50% { background-color: rgba(149, 39, 245, 0.25); }
+      0%, 100% { background-color: ${COLORS.PRIMARY_OPACITY_10}; }
+      50% { background-color: ${COLORS.PRIMARY_OPACITY_25}; }
     }
     @keyframes scale-bounce {
       0%, 40%, 80%, 100% { transform: scale(1); }
@@ -7750,7 +7751,7 @@ function scrollToAndHighlightText(range: Range | null, underlineState?: Underlin
     const originalTransition = element.style.transition;
 
     // Apply initial highlight
-    element.style.backgroundColor = 'rgba(144, 238, 144, 0.3)';
+    element.style.backgroundColor = COLORS.SUCCESS_OPACITY_30;
     element.style.borderRadius = '4px';
     element.style.transition = 'background-color 0.3s ease';
 
@@ -7761,10 +7762,10 @@ function scrollToAndHighlightText(range: Range | null, underlineState?: Underlin
       
       if (pulseCount % 2 === 0) {
         // Even pulse: highlight
-        element!.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
+        element!.style.backgroundColor = COLORS.SUCCESS_OPACITY_50;
       } else {
         // Odd pulse: less highlight
-        element!.style.backgroundColor = 'rgba(144, 238, 144, 0.3)';
+        element!.style.backgroundColor = COLORS.SUCCESS_OPACITY_30;
       }
 
       if (pulseCount >= 6) {
@@ -7800,7 +7801,7 @@ function scrollToAndHighlightImage(imageElement: HTMLImageElement): void {
     });
 
     const originalBoxShadow = imageElement.style.boxShadow;
-    imageElement.style.boxShadow = '0 0 0 3px #22c55e'; // Tailwind green-500
+    imageElement.style.boxShadow = `0 0 0 3px ${COLORS.SUCCESS}`;
 
     setTimeout(() => {
       imageElement.style.boxShadow = originalBoxShadow;
@@ -8033,14 +8034,14 @@ function updateToast(): void {
           className: toastClosing ? 'toast-closing' : '',
           style: {
             background: 'white',
-            border: toastType === 'error' ? '2px solid #ef4444' : '2px solid #10b981',
-            color: toastType === 'error' ? '#ef4444' : '#10b981',
+            border: toastType === 'error' ? `2px solid ${COLORS.ERROR}` : `2px solid ${COLORS.SUCCESS}`,
+            color: toastType === 'error' ? COLORS.ERROR : COLORS.SUCCESS,
             padding: '0.75rem 1.5rem',
             borderRadius: '13px',
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             fontSize: '0.9375rem',
             fontWeight: '500',
-            boxShadow: '0 4px 12px rgba(149, 39, 245, 0.15)',
+            boxShadow: `0 4px 12px ${COLORS.PRIMARY_OPACITY_15}`,
             animation: toastClosing ? 'slideOut 0.3s ease-in forwards' : 'slideIn 0.3s ease-out',
             whiteSpace: 'nowrap',
             maxWidth: '400px',
@@ -8153,15 +8154,15 @@ function injectBookmarkToast(): void {
     }
     
     .bookmark-toast {
-      background: white;
+      background: ${COLORS.WHITE};
       border: none;
-      color: #BF7EFA;
+      color: ${COLORS.PRIMARY_LIGHT};
       padding: 1rem 1.25rem;
       border-radius: 20px;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 0.9375rem;
       font-weight: 500;
-      box-shadow: 0 4px 20px rgba(149, 39, 245, 0.3);
+      box-shadow: 0 4px 20px ${colorWithOpacity(COLORS.PRIMARY, 0.3)};
       animation: slideIn 0.3s ease-out;
       display: flex;
       flex-direction: column;
@@ -8178,14 +8179,14 @@ function injectBookmarkToast(): void {
     }
     
     .bookmark-toast-link {
-      color: #BF7EFA;
+      color: ${COLORS.PRIMARY_LIGHT};
       text-decoration: underline;
       cursor: pointer;
       font-weight: 600;
     }
     
     .bookmark-toast-link:hover {
-      color: #9527F5;
+      color: ${COLORS.PRIMARY};
     }
     
     .bookmark-toast-buttons {
@@ -8200,8 +8201,8 @@ function injectBookmarkToast(): void {
       padding: 0.5rem 1rem;
       border: none;
       border-radius: 13px;
-      background: #eaddf8;
-      color: #BF7EFA;
+      background: ${COLORS.PRIMARY_VERY_LIGHT};
+      color: ${COLORS.PRIMARY_LIGHT};
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 0.875rem;
       font-weight: 500;
@@ -8210,8 +8211,8 @@ function injectBookmarkToast(): void {
     }
     
     .bookmark-toast-button:hover {
-      background: #BF7EFA !important;
-      color: white !important;
+      background: ${COLORS.PRIMARY_LIGHT} !important;
+      color: ${COLORS.WHITE} !important;
     }
     
     .bookmark-toast-button:active {
