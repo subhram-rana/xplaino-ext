@@ -21,12 +21,14 @@
   max-width: calc(100vw - 20px) !important;
   background: var(--color-white, #FFFFFF) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 4px 20px var(--color-shadow-black-10, rgba(0, 0, 0, 0.1)) !important;
+  border: none !important;
   display: flex !important;
   flex-direction: column !important;
   z-index: 2147483640 !important;
   overflow: hidden !important;
   font-family: var(--font-family-primary, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+  transition: box-shadow 0.3s ease, border 0.3s ease !important;
 }
 
 /* Vertically expanded state */
@@ -34,6 +36,8 @@
   top: 10px !important;
   bottom: 10px !important;
   height: auto !important;
+  box-shadow: none !important;
+  border: 3px solid var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1)) !important;
 }
 
 /* Slide animation states */

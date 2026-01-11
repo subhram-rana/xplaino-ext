@@ -1,6 +1,6 @@
 // src/content/utils/textSelectionUnderline.ts
 /**
- * Utility functions for adding/removing dashed green underline to text selections
+ * Utility functions for adding/removing solid teal underline to text selections
  */
 
 import { COLORS, colorWithOpacity } from '../../constants/colors';
@@ -11,12 +11,13 @@ export interface UnderlineState {
 }
 
 /**
- * Add a dashed underline to the selected text
+ * Add a solid teal underline to the selected text
  * @param range - The selection range to underline
- * @param color - The color of the underline (default: green for text explanations)
+ * @param _color - The color of the underline (default: green for text explanations) - kept for backward compatibility but always uses teal now
  * @returns The wrapper element and original range, or null if failed
  */
-export function addTextUnderline(range: Range, color: 'green' | 'purple' = 'green'): UnderlineState | null {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function addTextUnderline(range: Range, _color: 'green' | 'purple' = 'green'): UnderlineState | null {
   if (!range || range.collapsed) {
     return null;
   }
@@ -25,24 +26,62 @@ export function addTextUnderline(range: Range, color: 'green' | 'purple' = 'gree
     // Clone the range to avoid modifying the original
     const clonedRange = range.cloneRange();
     
-    // Create a wrapper span element
-    const wrapper = document.createElement('span');
-    wrapper.style.textDecoration = 'underline';
-    wrapper.style.textDecorationStyle = 'dashed';
+    // Get the computed styles from the selected text to preserve font properties
+    const startContainer = range.startContainer;
+    let fontStyle = '';
+    let fontWeight = '';
+    let fontSize = '';
+    let fontFamily = '';
+    let color = '';
+    let lineHeight = '';
     
-    // Set color based on parameter
-    if (color === 'purple') {
-      // Medium purple color: rgba(149, 39, 245, 0.6) -> rgba(149, 39, 245, 0.8)
-      wrapper.style.textDecorationColor = colorWithOpacity(COLORS.PRIMARY, 0.6);
-    } else {
-      // Green color for text explanations
-      wrapper.style.textDecorationColor = colorWithOpacity(COLORS.SUCCESS_GREEN, 0.6);
+    if (startContainer.nodeType === Node.TEXT_NODE && startContainer.parentElement) {
+      const computedStyle = window.getComputedStyle(startContainer.parentElement);
+      fontStyle = computedStyle.fontStyle;
+      fontWeight = computedStyle.fontWeight;
+      fontSize = computedStyle.fontSize;
+      fontFamily = computedStyle.fontFamily;
+      color = computedStyle.color;
+      lineHeight = computedStyle.lineHeight;
+    } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
+      const computedStyle = window.getComputedStyle(startContainer as Element);
+      fontStyle = computedStyle.fontStyle;
+      fontWeight = computedStyle.fontWeight;
+      fontSize = computedStyle.fontSize;
+      fontFamily = computedStyle.fontFamily;
+      color = computedStyle.color;
+      lineHeight = computedStyle.lineHeight;
     }
     
-    wrapper.style.textDecorationThickness = '2px';
-    wrapper.style.transition = 'text-decoration-color 0.3s ease';
-    // Add padding for visual spacing around the underline
-    wrapper.style.padding = '2px 0';
+    // Create a wrapper span element
+    const wrapper = document.createElement('span');
+    
+    // Preserve original font styles to maintain text size and appearance
+    wrapper.style.fontStyle = fontStyle;
+    wrapper.style.fontWeight = fontWeight;
+    wrapper.style.fontSize = fontSize;
+    wrapper.style.fontFamily = fontFamily;
+    wrapper.style.color = color;
+    wrapper.style.lineHeight = lineHeight;
+    
+    // Use text-decoration underline instead of bottom border
+    wrapper.style.textDecoration = 'underline';
+    wrapper.style.textDecorationColor = COLORS.PRIMARY;
+    wrapper.style.textDecorationThickness = '1.5px';
+    wrapper.style.textUnderlineOffset = '2px';
+    
+    // Make wrapper position relative so icon can be absolutely positioned within it
+    wrapper.style.position = 'relative';
+    wrapper.style.display = 'inline';
+    
+    // Add minimal padding and margin - ensure no bottom padding
+    wrapper.style.padding = '0';
+    wrapper.style.paddingBottom = '0';
+    wrapper.style.margin = '0';
+    wrapper.style.marginBottom = '0';
+    
+    // Add a data attribute to identify this wrapper for icon insertion
+    wrapper.setAttribute('data-text-explanation-wrapper', 'true');
     
     // Wrap the selected content
     try {
@@ -54,15 +93,6 @@ export function addTextUnderline(range: Range, color: 'green' | 'purple' = 'gree
       wrapper.appendChild(contents);
       clonedRange.insertNode(wrapper);
     }
-    
-    // Animate the underline appearance
-    requestAnimationFrame(() => {
-      if (color === 'purple') {
-        wrapper.style.textDecorationColor = colorWithOpacity(COLORS.PRIMARY, 0.8);
-      } else {
-        wrapper.style.textDecorationColor = colorWithOpacity(COLORS.SUCCESS_GREEN, 0.8);
-      }
-    });
     
     return {
       wrapperElement: wrapper,
@@ -112,13 +142,35 @@ export function findAllUnderlinedElements(): HTMLElement[] {
   const allSpans = document.querySelectorAll('span');
   
   allSpans.forEach((span) => {
+    // Check for text-decoration underlines
     const style = window.getComputedStyle(span);
-    if (
-      style.textDecoration.includes('underline') &&
+    const inlineStyle = (span as HTMLElement).style;
+    const textDecorationColor = inlineStyle.textDecorationColor || style.textDecorationColor;
+    
+    // Check for teal, green, or purple underlines
+    if (style.textDecoration.includes('underline')) {
+      const isTeal = textDecorationColor.includes('13, 128, 112') || 
+                     textDecorationColor.includes('0d8070') ||
+                     textDecorationColor.includes(COLORS.PRIMARY.replace('#', ''));
+      const isGreen = textDecorationColor.includes('0, 200, 0') || 
+                     textDecorationColor.includes('00C800') ||
+                     textDecorationColor.includes(COLORS.SUCCESS_GREEN.replace('#', ''));
+      const isPurple = textDecorationColor.includes('149, 39, 245') || 
+                      textDecorationColor.includes('9527F5');
+      
+      if (isTeal || isGreen || isPurple) {
+        elements.push(span);
+        return;
+      }
+    }
+    
+    // Check for legacy dashed green underlines (for backward compatibility)
+    const isDashedGreen = style.textDecoration.includes('underline') &&
       style.textDecorationStyle === 'dashed' &&
-      span.style.textDecorationColor.includes(COLORS.SUCCESS_GREEN.replace('#', 'rgb(').slice(0, -1) + ')') ||
-      span.style.textDecorationColor.includes('rgb(0, 200, 0)')
-    ) {
+      (textDecorationColor.includes(COLORS.SUCCESS_GREEN.replace('#', 'rgb(').slice(0, -1) + ')') ||
+       textDecorationColor.includes('rgb(0, 200, 0)'));
+    
+    if (isDashedGreen) {
       elements.push(span);
     }
   });
@@ -129,25 +181,27 @@ export function findAllUnderlinedElements(): HTMLElement[] {
 /**
  * Change the color of an existing underline
  * @param underlineState - The underline state containing the wrapper element
- * @param color - The new color for the underline
+ * @param color - The new color for the underline ('green', 'purple', or 'teal')
  */
-export function changeUnderlineColor(underlineState: UnderlineState | null, color: 'green' | 'purple'): void {
+export function changeUnderlineColor(underlineState: UnderlineState | null, color: 'green' | 'purple' | 'teal'): void {
   if (!underlineState || !underlineState.wrapperElement) {
     return;
   }
 
   const wrapper = underlineState.wrapperElement;
   
-  // Update the text decoration color
+  // Update text-decoration color
   if (color === 'purple') {
     wrapper.style.textDecorationColor = colorWithOpacity(COLORS.PRIMARY, 0.8);
+  } else if (color === 'teal') {
+    wrapper.style.textDecorationColor = COLORS.PRIMARY;
   } else {
     wrapper.style.textDecorationColor = colorWithOpacity(COLORS.SUCCESS_GREEN, 0.8);
   }
 }
 
 /**
- * Check if a range overlaps with any underlined text (purple or green)
+ * Check if a range overlaps with any underlined text (purple, green, or teal)
  * @param range - The selection range to check
  * @returns true if the range overlaps with underlined text, false otherwise
  */
@@ -162,27 +216,33 @@ export function isRangeOverlappingUnderlinedText(range: Range): boolean {
     
     // Check if any part of the range overlaps with an underlined span
     for (const span of allSpans) {
+      // Check for text-decoration underlines
       const style = window.getComputedStyle(span);
       const inlineStyle = (span as HTMLElement).style;
       
-      // Check if this span has a dashed underline
-      const hasUnderline = style.textDecoration.includes('underline') && 
-                          style.textDecorationStyle === 'dashed';
+      // Check if this span has an underline
+      const hasUnderline = style.textDecoration.includes('underline');
       
-      if (!hasUnderline) {
+      if (hasUnderline) {
+        // Check if it's purple, green, or teal underline
+        const textDecorationColor = inlineStyle.textDecorationColor || style.textDecorationColor;
+        const isPurple = textDecorationColor.includes('149, 39, 245') || 
+                         textDecorationColor.includes('9527F5');
+        const isGreen = textDecorationColor.includes('0, 200, 0') || 
+                       textDecorationColor.includes('00C800') ||
+                       textDecorationColor.includes(COLORS.SUCCESS_GREEN.replace('#', ''));
+        const isTeal = textDecorationColor.includes('13, 128, 112') || 
+                       textDecorationColor.includes('0d8070') ||
+                       textDecorationColor.includes(COLORS.PRIMARY.replace('#', ''));
+        
+        if (!isPurple && !isGreen && !isTeal) {
+          continue;
+        }
+      } else {
         continue;
       }
       
-      // Check if it's purple or green underline
-      const textDecorationColor = inlineStyle.textDecorationColor || style.textDecorationColor;
-      const isPurple = textDecorationColor.includes('149, 39, 245') || 
-                       textDecorationColor.includes('9527F5') ||
-                       textDecorationColor.includes(COLORS.PRIMARY.replace('#', ''));
-      const isGreen = textDecorationColor.includes('0, 200, 0') || 
-                     textDecorationColor.includes('00C800') ||
-                     textDecorationColor.includes(COLORS.SUCCESS_GREEN.replace('#', ''));
-      
-      if (!isPurple && !isGreen) {
+      if (!hasUnderline) {
         continue;
       }
       
@@ -239,7 +299,7 @@ export function isRangeOverlappingUnderlinedText(range: Range): boolean {
 }
 
 /**
- * Pulse the background color of the underlined text three times with green color
+ * Pulse the background color of the underlined text three times with very light teal color
  * @param underlineState - The underline state containing the wrapper element
  */
 export function pulseTextBackground(underlineState: UnderlineState | null): void {
@@ -251,50 +311,42 @@ export function pulseTextBackground(underlineState: UnderlineState | null): void
   
   // Store original transition to restore later
   const originalTransition = wrapper.style.transition || '';
+  const originalBackground = wrapper.style.backgroundColor || '';
   
-  // Set transition for smooth color changes with longer duration for better visibility
-  wrapper.style.transition = 'background-color 0.4s ease';
+  // Set transition for smooth color changes
+  wrapper.style.transition = 'background-color 0.3s ease';
   
-  // Pulse three times
+  // Pulse exactly 3 times with very light teal color
   let pulseCount = 0;
   const maxPulses = 3;
   
   const pulse = () => {
     if (pulseCount >= maxPulses) {
-      // Restore to transparent after animation completes
-      wrapper.style.backgroundColor = 'transparent';
-      // Restore original transition
-      if (originalTransition) {
-        wrapper.style.transition = originalTransition;
-      } else {
-        wrapper.style.transition = '';
-      }
+      // Restore to original state after animation completes
+      wrapper.style.backgroundColor = originalBackground || 'transparent';
+      wrapper.style.transition = originalTransition || '';
       return;
     }
     
-    // Pulse to green with higher opacity for better visibility
-    wrapper.style.backgroundColor = colorWithOpacity(COLORS.SUCCESS_GREEN, 0.5);
+    // Pulse to very light teal color
+    wrapper.style.backgroundColor = COLORS.PRIMARY_VERY_LIGHT;
     
     setTimeout(() => {
       // Fade back to transparent
       wrapper.style.backgroundColor = 'transparent';
-      
       pulseCount++;
+      
       if (pulseCount < maxPulses) {
-        // Wait a bit before next pulse
-        setTimeout(pulse, 300);
+        // Wait before next pulse
+        setTimeout(pulse, 250);
       } else {
-        // Ensure background is transparent and restore original transition after all pulses
+        // Restore original state after final pulse fades
         setTimeout(() => {
-          wrapper.style.backgroundColor = 'transparent';
-          if (originalTransition) {
-            wrapper.style.transition = originalTransition;
-          } else {
-            wrapper.style.transition = '';
-          }
-        }, 400);
+          wrapper.style.backgroundColor = originalBackground || 'transparent';
+          wrapper.style.transition = originalTransition || '';
+        }, 300);
       }
-    }, 400);
+    }, 300);
   };
   
   // Start first pulse immediately

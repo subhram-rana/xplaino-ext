@@ -212,10 +212,8 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
       if (!isWord && windowSelection.rangeCount > 0) {
         const range = windowSelection.getRangeAt(0);
         if (isRangeOverlappingUnderlinedText(range)) {
-          // Show error toast and prevent button from appearing
-          onShowToast?.('Can\'t select from already selected text', 'error');
-          // Clear the selection
-          windowSelection.removeAllRanges();
+          // Allow selection but don't show the xplaino icon
+          // Just return early without setting selection state
           return;
         }
       }

@@ -17,9 +17,17 @@
   --color-white: #FFFFFF !important;
   --color-error: #EF4444 !important;
   --color-text: #1A202C !important;
+  --color-text-primary: #1A202C !important;
   --color-text-secondary: #718096 !important;
   --color-border: #E2E8F0 !important;
+  --color-border-default: #E2E8F0 !important;
   --color-disabled: #CBD5E0 !important;
+  --color-primary-opacity-5: rgba(13, 128, 112, 0.05) !important;
+  --color-primary-opacity-10: rgba(13, 128, 112, 0.1) !important;
+  --color-primary-opacity-15: rgba(13, 128, 112, 0.15) !important;
+  --color-primary-opacity-50: rgba(13, 128, 112, 0.5) !important;
+  --color-error-light: #FEE2E2 !important;
+  --color-shadow-black-10: rgba(0, 0, 0, 0.1) !important;
   --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
@@ -44,14 +52,17 @@
   max-width: 800px !important;
   background: var(--color-white) !important;
   border-radius: 30px 0 0 30px !important;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 4px 20px var(--color-shadow-black-10, rgba(0, 0, 0, 0.1)) !important;
+  border: none !important;
   z-index: 2147483643 !important;
   display: flex !important;
   flex-direction: column !important;
   /* Transform is handled by animation hook - don't set it here */
   transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease 0.3s !important;
+              border-radius 0.2s ease 0.3s,
+              box-shadow 0.3s ease,
+              border 0.3s ease !important;
   overflow: hidden !important;
 }
 
@@ -59,10 +70,15 @@
   top: 0 !important;
   bottom: 0 !important;
   border-radius: 0 !important;
+  box-shadow: none !important;
+  border: 3px solid var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1)) !important;
+  border-right: none !important;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease !important;
+              border-radius 0.2s ease,
+              box-shadow 0.3s ease,
+              border 0.3s ease !important;
 }
 
 /* Resize Handle */
@@ -93,7 +109,8 @@
 
 /* Header */
 .header {
-  background: var(--color-primary-opacity-5) !important;
+  background: var(--color-white) !important;
+  border-bottom: 1px solid var(--color-border-default, #E2E8F0) !important;
   padding: 8px 12px !important;
   display: flex !important;
   align-items: center !important;
@@ -121,17 +138,17 @@
   align-items: center !important;
   justify-content: center !important;
   border-radius: 10px !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: none !important;
   padding: 0 !important;
   outline: none !important;
 }
 
 .headerIconButton:hover {
-  background: var(--color-primary-opacity-10) !important;
+  background: transparent !important;
 }
 
 .headerIconButton:active {
-  transform: scale(0.95) !important;
+  transform: none !important;
 }
 
 .headerIconButton svg {
@@ -163,12 +180,21 @@
   stroke: var(--color-primary-dark) !important;
 }
 
-/* Header Center - Branding */
+/* Header Center - Heading */
 .headerCenter {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   flex: 1 !important;
+}
+
+.headerHeading {
+  font-family: var(--font-family-primary, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--color-primary, #0d8070) !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
 }
 
 .headerBrand {
@@ -190,6 +216,34 @@
   align-items: center !important;
   gap: 4px !important;
   flex-shrink: 0 !important;
+}
+
+/* MinimizeIcon Component Styles */
+.minimizeIcon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  border: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  color: var(--color-primary) !important;
+  flex-shrink: 0 !important;
+}
+
+.minimizeIcon:hover {
+  background: var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1)) !important;
+  border-color: var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
+}
+
+.minimizeIcon svg {
+  display: block !important;
+  color: currentColor !important;
+  stroke: currentColor !important;
 }
 
 .loginButton {
@@ -518,8 +572,8 @@
   padding: 8px 16px !important;
   border: none !important;
   border-radius: 8px !important;
-  background: var(--color-primary, #0d8070) !important;
-  color: var(--color-white, #FFFFFF) !important;
+  background: var(--color-white, #FFFFFF) !important;
+  color: var(--color-primary, #0d8070) !important;
   font-size: 13px !important;
   font-weight: 600 !important;
   font-family: var(--font-family-primary) !important;
@@ -533,7 +587,7 @@
 }
 
 .simplifyButton:hover:not(:disabled) {
-  background: var(--color-primary-dark, #0a5f54) !important;
+  background: var(--color-primary-opacity-5, rgba(13, 128, 112, 0.05)) !important;
 }
 
 .simplifyButton:active:not(:disabled) {
@@ -541,8 +595,10 @@
 }
 
 .simplifyButton:disabled {
-  background: var(--color-disabled, #CBD5E0) !important;
+  background: var(--color-white, #FFFFFF) !important;
+  color: var(--color-text-secondary, #718096) !important;
   cursor: not-allowed !important;
+  opacity: 0.6 !important;
 }
 
 .simplifyButtonSpinner {
@@ -639,9 +695,9 @@
   width: 36px !important;
   height: 36px !important;
   border-radius: 50% !important;
-  background: var(--color-error, #EF4444) !important;
+  background: var(--color-white, #FFFFFF) !important;
   border: none !important;
-  color: var(--color-white, #FFFFFF) !important;
+  color: var(--color-error, #EF4444) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
@@ -652,7 +708,7 @@
 }
 
 .stopButton:hover {
-  background: #DC2626 !important;
+  background: var(--color-error-light, #FEE2E2) !important;
   transform: scale(1.05) !important;
 }
 
@@ -730,14 +786,14 @@
   padding: 12px 24px !important;
   border: none !important;
   border-radius: 8px !important;
-  background: var(--color-primary, #0d8070) !important;
-  color: var(--color-white, #FFFFFF) !important;
+  background: var(--color-white, #FFFFFF) !important;
+  color: var(--color-primary, #0d8070) !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   font-family: var(--font-family-primary) !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: none !important;
   flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -746,8 +802,8 @@
 }
 
 .translateButton:hover:not(:disabled) {
-  background: var(--color-primary-dark, #0a5f54) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  background: var(--color-primary-opacity-5, rgba(13, 128, 112, 0.05)) !important;
+  box-shadow: none !important;
 }
 
 .translateButton:active:not(:disabled) {
@@ -755,7 +811,7 @@
 }
 
 .translateButton:disabled {
-  background: var(--color-disabled, #CBD5E0) !important;
+  background: var(--color-white, #FFFFFF) !important;
   color: var(--color-text-secondary, #718096) !important;
   cursor: not-allowed !important;
   opacity: 0.6 !important;
@@ -1091,14 +1147,51 @@
 
 /* Footer */
 .footer {
-  background: var(--color-primary-opacity-5) !important;
+  border-top: 1px solid var(--color-border-default) !important;
   padding: 0 !important;
-  padding-top: 20px !important;
-  padding-bottom: 20px !important;
+  margin: 0 -15px 0 -15px !important;
+  display: flex !important;
+  justify-content: center !important;
+  width: calc(100% + 30px) !important;
+  border-radius: 0 0 30px 30px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  background: var(--color-white) !important;
+  flex-shrink: 0 !important;
+}
+
+/* Override ButtonGroup styles for full-width */
+.footer .buttonGroup {
+  width: 100% !important;
+  display: flex !important;
+  background: transparent !important;
+}
+
+.footer .button {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  position: relative !important;
+  padding: 14px 16px !important;
+  border-radius: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  flex-shrink: 0 !important;
-  height: 50px !important;
+  text-align: center !important;
+}
+
+.footer .button:hover {
+  background: var(--color-primary-opacity-5) !important;
+}
+
+/* Vertical separator between buttons */
+.footer .button:not(:last-child)::after {
+  content: '' !important;
+  position: absolute !important;
+  right: 0 !important;
+  top: 25% !important;
+  height: 50% !important;
+  width: 1px !important;
+  background: var(--color-border-default) !important;
 }
 

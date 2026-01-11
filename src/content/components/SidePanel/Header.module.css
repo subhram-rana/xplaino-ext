@@ -15,10 +15,16 @@
   align-items: center !important;
   justify-content: space-between !important;
   padding: 8px 12px !important;
-  background: rgba(13, 128, 112, 0.05) !important;
+  background: var(--color-white, #FFFFFF) !important;
   height: 48px !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
+  border-bottom: 1px solid var(--color-primary-hover-bg, rgba(13, 128, 112, 0.1)) !important;
+}
+
+/* Settings tab header - light teal background (same as footer) */
+.headerSettings {
+  background: rgba(13, 128, 112, 0.05) !important;
 }
 
 /* Left Section: Action Icons */
@@ -39,17 +45,17 @@
   align-items: center !important;
   justify-content: center !important;
   border-radius: 10px !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: none !important;
   padding: 0 !important;
   outline: none !important;
 }
 
 .headerIconButton:hover {
-  background: var(--color-primary-hover-bg) !important;
+  background: transparent !important;
 }
 
 .headerIconButton:active {
-  transform: scale(0.95) !important;
+  transform: none !important;
 }
 
 .headerIconButton svg {

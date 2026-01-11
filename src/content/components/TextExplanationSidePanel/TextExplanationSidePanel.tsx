@@ -408,6 +408,7 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         showRightIcons={showHeaderIcons}
         isBookmarked={isBookmarked}
         showDeleteIcon={showDeleteIcon}
+        viewMode={viewMode}
       />
 
       {/* Content */}

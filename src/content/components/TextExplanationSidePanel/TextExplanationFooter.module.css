@@ -1,14 +1,51 @@
 /* src/content/components/TextExplanationSidePanel/TextExplanationFooter.module.css */
 
 .footer {
-  background: var(--color-primary-opacity-5, rgba(13, 128, 112, 0.05));
+  background: var(--color-white, #FFFFFF);
+  border-top: 1px solid var(--color-border-default, #E2E8F0);
   padding: 0;
-  padding-top: 20px;
-  padding-bottom: 20px;
+  margin: 0 -15px 0 -15px;
+  display: flex;
+  justify-content: center;
+  width: calc(100% + 30px);
+  border-radius: 0 0 30px 30px;
+  overflow: hidden;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+/* Override ButtonGroup styles for full-width */
+.footer :global(.buttonGroup) {
+  width: 100%;
+  display: flex;
+  background: transparent;
+}
+
+.footer :global(.button) {
+  flex: 1;
+  background: transparent;
+  border: none;
+  position: relative;
+  padding: 14px 16px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  height: 50px;
+  text-align: center;
+}
+
+.footer :global(.button:hover) {
+  background: var(--color-primary-opacity-5, rgba(13, 128, 112, 0.05));
+}
+
+/* Vertical separator between buttons */
+.footer :global(.button:not(:last-child))::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--color-border-default, #E2E8F0);
 }
 

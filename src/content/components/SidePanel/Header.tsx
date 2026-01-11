@@ -1,9 +1,10 @@
 // src/content/components/SidePanel/Header.tsx
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ChevronRight, Bookmark } from 'lucide-react';
 import styles from './Header.module.css';
 import { ENV } from '@/config/env';
 import { COLORS } from '@/constants/colors';
+import { OnHoverMessage } from '../OnHoverMessage';
 
 // Custom expand icon - arrows pointing away from center (up and down)
 const ExpandVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
@@ -84,6 +85,17 @@ export const Header: React.FC<HeaderProps> = ({
   showBookmark = false,
   isBookmarked = false,
 }) => {
+  // Refs for buttons
+  const slideOutButtonRef = useRef<HTMLButtonElement>(null);
+  const expandButtonRef = useRef<HTMLButtonElement>(null);
+  const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Track when refs are mounted for OnHoverMessage
+  const [isMounted, setIsMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const getClassName = (baseClass: string) => {
     if (useShadowDom) {
@@ -111,10 +123,11 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <div className={getClassName('header')}>
+    <div className={`${getClassName('header')} ${activeTab === 'settings' ? getClassName('headerSettings') : ''}`}>
       {/* Left: Action Icons */}
       <div className={getClassName('headerLeft')}>
         <button
+          ref={slideOutButtonRef}
           className={getClassName('headerIconButton')}
           onClick={handleSlideOut}
           aria-label="Slide out panel"
@@ -122,7 +135,16 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <ChevronRight size={18} />
         </button>
+        {isMounted && slideOutButtonRef.current && (
+          <OnHoverMessage
+            message="Minimize"
+            targetRef={slideOutButtonRef}
+            position="bottom"
+            offset={8}
+          />
+        )}
         <button
+          ref={expandButtonRef}
           className={getClassName('headerIconButton')}
           onClick={handleVerticalExpand}
           aria-label={isExpanded ? "Contract vertically" : "Expand vertically"}
@@ -130,6 +152,14 @@ export const Header: React.FC<HeaderProps> = ({
         >
           {isExpanded ? <ContractVerticalIcon size={18} /> : <ExpandVerticalIcon size={18} />}
         </button>
+        {isMounted && expandButtonRef.current && (
+          <OnHoverMessage
+            message={isExpanded ? "Contract" : "Expand"}
+            targetRef={expandButtonRef}
+            position="bottom"
+            offset={8}
+          />
+        )}
       </div>
 
       {/* Center: Branding or Page Summary */}
@@ -162,19 +192,29 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Right: Bookmark (summary tab only) */}
       <div className={getClassName('headerRight')}>
         {activeTab === 'summary' && showBookmark && (
-          <button
-            className={`${getClassName('headerIconButton')} ${isBookmarked ? getClassName('bookmarked') : ''}`}
-            onClick={onBookmark}
-            aria-label={isBookmarked ? "Remove saved link" : "Save link"}
-            title={isBookmarked ? "Remove saved link" : "Save link"}
-            type="button"
-          >
-            <Bookmark 
-              size={18} 
-              fill={isBookmarked ? COLORS.PRIMARY : "none"} 
-              color={isBookmarked ? COLORS.PRIMARY : "currentColor"} 
-            />
-          </button>
+          <>
+            <button
+              ref={bookmarkButtonRef}
+              className={`${getClassName('headerIconButton')} ${isBookmarked ? getClassName('bookmarked') : ''}`}
+              onClick={onBookmark}
+              aria-label={isBookmarked ? "Remove saved link" : "Save summary and page link"}
+              type="button"
+            >
+              <Bookmark 
+                size={18} 
+                fill={isBookmarked ? COLORS.PRIMARY : "none"} 
+                color={isBookmarked ? COLORS.PRIMARY : "currentColor"} 
+              />
+            </button>
+            {isMounted && bookmarkButtonRef.current && (
+              <OnHoverMessage
+                message={isBookmarked ? "Remove saved link" : "Save summary and page link"}
+                targetRef={bookmarkButtonRef}
+                position="bottom"
+                offset={8}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

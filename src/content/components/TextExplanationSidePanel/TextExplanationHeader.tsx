@@ -1,6 +1,8 @@
 // src/content/components/TextExplanationSidePanel/TextExplanationHeader.tsx
-import React from 'react';
-import { Minus, Bookmark, Trash2, Eye } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Bookmark, Trash2, Eye } from 'lucide-react';
+import { MinimizeIcon } from '../ui/MinimizeIcon';
+import { OnHoverMessage } from '../OnHoverMessage';
 import styles from './TextExplanationHeader.module.css';
 import { COLORS } from '../../../constants/colors';
 
@@ -69,6 +71,8 @@ export interface TextExplanationHeaderProps {
   isBookmarked?: boolean;
   /** Whether to show the delete icon (only show when there's content) */
   showDeleteIcon?: boolean;
+  /** Active view mode */
+  viewMode?: 'contextual' | 'translation';
 }
 
 export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
@@ -82,7 +86,36 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
   showRightIcons = true,
   isBookmarked = false,
   showDeleteIcon = false,
+  viewMode = 'contextual',
 }) => {
+  // Refs for buttons
+  const expandButtonRef = useRef<HTMLButtonElement>(null);
+  const eyeButtonRef = useRef<HTMLButtonElement>(null);
+  const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Track when refs are mounted for OnHoverMessage
+  const [isMounted, setIsMounted] = useState(false);
+  // Separate state for delete button since it's conditionally rendered
+  const [isDeleteButtonMounted, setIsDeleteButtonMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
+  // Update delete button mounted state when showDeleteIcon changes
+  useEffect(() => {
+    if (showDeleteIcon) {
+      // Small delay to ensure ref is assigned after render
+      const timer = setTimeout(() => {
+        setIsDeleteButtonMounted(true);
+      }, 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsDeleteButtonMounted(false);
+    }
+  }, [showDeleteIcon]);
+
   const getClassName = (baseClass: string) => {
     if (useShadowDom) {
       return baseClass;
@@ -99,15 +132,13 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
     <div className={getClassName('header')}>
       {/* Left: Action Icons */}
       <div className={getClassName('headerLeft')}>
-        <button
-          className={getClassName('headerIconButton')}
+        <MinimizeIcon
           onClick={onClose}
-          aria-label="Minimize panel"
-          type="button"
-        >
-          <Minus size={18} />
-        </button>
+          size={18}
+          useShadowDom={useShadowDom}
+        />
         <button
+          ref={expandButtonRef}
           className={getClassName('headerIconButton')}
           onClick={handleVerticalExpand}
           aria-label={isExpanded ? "Contract vertically" : "Expand vertically"}
@@ -115,10 +146,21 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
         >
           {isExpanded ? <ContractVerticalIcon size={18} /> : <ExpandVerticalIcon size={18} />}
         </button>
+        {isMounted && expandButtonRef.current && (
+          <OnHoverMessage
+            message={isExpanded ? "Contract" : "Expand"}
+            targetRef={expandButtonRef}
+            position="bottom"
+            offset={8}
+          />
+        )}
       </div>
 
-      {/* Center: Empty (coupon removed) */}
+      {/* Center: Heading Text */}
       <div className={getClassName('headerCenter')}>
+        <span className={getClassName('headerHeading')}>
+          {viewMode === 'contextual' ? 'CONTEXTUAL EXPLANATION' : 'TRANSLATION'}
+        </span>
       </div>
 
       {/* Right: Action Icons */}
@@ -126,35 +168,61 @@ export const TextExplanationHeader: React.FC<TextExplanationHeaderProps> = ({
         <div className={getClassName('headerRight')}>
           {/* Eye button - always show */}
           <button
+            ref={eyeButtonRef}
             className={getClassName('headerIconButton')}
             onClick={onViewOriginal}
             aria-label="View original text"
-            title="View original text"
             type="button"
           >
             <Eye size={18} />
           </button>
+          {isMounted && eyeButtonRef.current && (
+            <OnHoverMessage
+              message="View original"
+              targetRef={eyeButtonRef}
+              position="bottom"
+              offset={8}
+            />
+          )}
           {/* Bookmark button - always show */}
           <button
+            ref={bookmarkButtonRef}
             className={`${getClassName('headerIconButton')} ${isBookmarked ? getClassName('bookmarked') : ''}`}
             onClick={onBookmark}
             aria-label={isBookmarked ? "Remove bookmark" : "Bookmark text"}
-            title={isBookmarked ? "Remove bookmark" : "Bookmark text"}
             type="button"
           >
             <Bookmark size={18} fill={isBookmarked ? COLORS.PRIMARY : "none"} color={isBookmarked ? COLORS.PRIMARY : "currentColor"} />
           </button>
+          {isMounted && bookmarkButtonRef.current && (
+            <OnHoverMessage
+              message={isBookmarked ? "Remove bookmark" : "Bookmark"}
+              targetRef={bookmarkButtonRef}
+              position="bottom"
+              offset={8}
+            />
+          )}
           {/* Delete button - only show when there's content */}
           {showDeleteIcon && (
-            <button
-              className={getClassName('headerIconButton')}
-              onClick={onRemove}
-              aria-label="Remove explanation"
-              title="Remove explanation"
-              type="button"
-            >
-              <Trash2 size={18} />
-            </button>
+            <>
+              <button
+                ref={deleteButtonRef}
+                className={getClassName('headerIconButton')}
+                onClick={onRemove}
+                aria-label="Remove explanation"
+                type="button"
+              >
+                <Trash2 size={18} />
+              </button>
+              {isDeleteButtonMounted && deleteButtonRef.current && (
+                <OnHoverMessage
+                  message="Remove"
+                  targetRef={deleteButtonRef}
+                  position="bottom"
+                  offset={8}
+                />
+              )}
+            </>
           )}
         </div>
       )}

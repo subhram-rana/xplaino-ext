@@ -200,7 +200,11 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       hasElement: !!element,
       hasSource: !!source,
       elementTag: element?.tagName,
+      elementClassName: element?.className,
       sourceTag: source?.tagName,
+      sourceClassName: source?.className,
+      sourceId: source?.id,
+      sourceRect: source ? source.getBoundingClientRect() : null,
       attempts,
     });
 
@@ -279,10 +283,22 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       console.log('[useEmergeAnimation] emerge() - animation created, waiting for finish');
       await animationRef.current.finished;
       console.log('[useEmergeAnimation] emerge() - animation finished, setting to visible');
+      
+      // CRITICAL: Clear the inline transform style that was set before animation
+      // The animation is finished and committed via fill: 'forwards', but we need to
+      // also clear the inline style so it doesn't interfere
+      if (element) {
+        element.style.transform = 'translate(0, 0) scale(1)';
+        console.log('[useEmergeAnimation] emerge() - cleared inline transform to final state');
+      }
+      
       setAnimationState('visible');
     } catch (error) {
       // Animation was cancelled or failed - set to visible as fallback
       console.error('[useEmergeAnimation] emerge() - animation error:', error);
+      if (element) {
+        element.style.transform = 'translate(0, 0) scale(1)';
+      }
       setAnimationState('visible');
     }
   }, [animationState, duration, easing, transformOrigin, isVisible]);

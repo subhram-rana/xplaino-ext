@@ -1,6 +1,8 @@
 // src/content/components/TextExplanationIcon/TextExplanationIcon.tsx
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import styles from './TextExplanationIcon.module.css';
+import { OnHoverMessage } from '../OnHoverMessage';
+import { COLORS } from '../../../constants/colors';
 
 export interface TextExplanationIconProps {
   /** Position of the icon */
@@ -17,8 +19,6 @@ export interface TextExplanationIconProps {
   isPanelOpen?: boolean;
   /** Selection range for scroll tracking */
   selectionRange?: Range | null;
-  /** Whether to use fixed positioning (false when inside a container) */
-  useFixedPosition?: boolean;
 }
 
 /**
@@ -27,12 +27,12 @@ export interface TextExplanationIconProps {
 const TealBookIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
-    width="18"
-    height="18"
+    width="14"
+    height="14"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#14B8A6"
-    strokeWidth="2"
+    stroke={COLORS.PRIMARY}
+    strokeWidth="3"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
@@ -72,12 +72,12 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
   iconRef,
   isPanelOpen = false,
   selectionRange,
-  useFixedPosition = true,
 }) => {
-  const iconElementRef: React.MutableRefObject<HTMLButtonElement | null> = { current: null };
+  const iconElementRef = useRef<HTMLButtonElement | null>(null);
   const [isRefSet, setIsRefSet] = useState(false);
-  const scrollableParentsRef = React.useRef<HTMLElement[]>([]);
-  const rafIdRef = React.useRef<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const scrollableParentsRef = useRef<HTMLElement[]>([]);
+  const rafIdRef = useRef<number | null>(null);
 
   const getClassName = (baseClass: string) => {
     if (useShadowDom) {
@@ -130,7 +130,8 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
       const topmostY = selectionRect.top;
       
       // Update position directly via DOM for immediate update (no React render delay)
-      iconElementRef.current.style.left = `${leftmostX - 30}px`;
+      // Align icon with text span - position it closer and aligned with text baseline
+      iconElementRef.current.style.left = `${leftmostX - 24}px`;
       iconElementRef.current.style.top = `${topmostY}px`;
     } catch (error) {
       // Silently handle errors (range might be invalid after DOM changes)
@@ -149,11 +150,15 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
   }, [updatePosition]);
 
   // Callback ref to detect when element is mounted
-  const setIconRef = useCallback((node: HTMLButtonElement | null) => {
-    iconElementRef.current = node;
-    setIsRefSet(node !== null);
+  const setIconRef = useCallback((buttonElement: HTMLButtonElement | null) => {
+    iconElementRef.current = buttonElement;
+    setIsRefSet(buttonElement !== null);
+    setIsMounted(buttonElement !== null);
+    
+    // Always use fixed positioning - never try to insert into wrapper span
+    // as that breaks React's reconciliation
     if (iconRef) {
-      iconRef(node);
+      iconRef(buttonElement);
     }
   }, [iconRef]);
 
@@ -165,6 +170,7 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
   }, [isRefSet, selectionRange, updatePosition]);
 
   // Set up scroll listeners when both ref and range are ready
+  // Always use scroll listeners for fixed positioning
   React.useEffect(() => {
     if (!selectionRange || !isRefSet || !iconElementRef.current) {
       return;
@@ -222,40 +228,45 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
     };
   }, [selectionRange, isRefSet, handleScroll, updatePosition]);
 
-  const iconStyle: React.CSSProperties = useFixedPosition
-    ? {
-        position: 'fixed',
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        zIndex: 2147483647,
-      }
-    : {
-        position: 'relative',
-        left: '0',
-        top: '0',
-      };
+  // Always use fixed positioning - the scroll listeners will update position
+  const iconStyle: React.CSSProperties = {
+    position: 'fixed',
+    left: `${position.x}px`,
+    top: `${position.y}px`,
+    zIndex: 2147483647,
+  };
 
   const buttonClassName = `${getClassName('textExplanationIcon')} ${isPanelOpen ? getClassName('panelOpen') : ''}`;
 
   return (
-    <button
-      ref={setIconRef}
-      className={buttonClassName}
-      style={iconStyle}
-      onClick={(e) => {
-        e.stopPropagation();
-        onTogglePanel();
-      }}
-      aria-label="Toggle text explanation"
-    >
-      {isSpinning ? (
-        <span 
-          className={getClassName('loadingSpinner')}
+    <>
+      <button
+        ref={setIconRef}
+        className={buttonClassName}
+        style={iconStyle}
+        onClick={(e) => {
+          e.stopPropagation();
+          onTogglePanel();
+        }}
+        aria-label="Toggle text explanation"
+      >
+        {isSpinning ? (
+          <span 
+            className={getClassName('loadingSpinner')}
+          />
+        ) : (
+          <TealBookIcon className={getClassName('iconImage')} />
+        )}
+      </button>
+      {isMounted && iconElementRef.current && (
+        <OnHoverMessage
+          message="View explanation"
+          targetRef={iconElementRef}
+          position="left"
+          offset={10}
         />
-      ) : (
-        <TealBookIcon className={getClassName('iconImage')} />
       )}
-    </button>
+    </>
   );
 };
 

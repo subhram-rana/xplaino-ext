@@ -1,9 +1,11 @@
 // src/content/components/WordExplanationPopover/WordExplanationPopover.tsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { BookText, GraduationCap, Bookmark, Lightbulb, MessageCircle, BookOpen, ArrowLeftRight, Languages, Sparkles, Copy, Check } from 'lucide-react';
+import { BookText, GraduationCap, Bookmark, Lightbulb, MessageCircle, BookOpen, ArrowLeftRight, Languages, Sparkles, Copy, Check, Trash2 } from 'lucide-react';
 import { ButtonGroup, ButtonItem } from '@/components/ui/ButtonGroup';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
+import { MinimizeIcon } from '../ui/MinimizeIcon';
+import { OnHoverMessage } from '../OnHoverMessage';
 import styles from './WordExplanationPopover.module.css';
 
 export type TabType = 'contextual' | 'grammar';
@@ -57,6 +59,8 @@ export interface WordExplanationPopoverProps {
   isSavingWord?: boolean;
   /** Handler for bookmark icon click */
   onBookmarkClick?: () => void;
+  /** Handler for delete icon click (removes word explanation) */
+  onDelete?: () => void;
   
   // Handlers for utility buttons
   /** Handler for Get contextual meaning button (re-fetch initial explanation) */
@@ -73,11 +77,13 @@ export interface WordExplanationPopoverProps {
   onAskAI?: () => void;
   /** Callback when Ask AI button ref is ready */
   onAskAIButtonMount?: (ref: React.RefObject<HTMLButtonElement>) => void;
+  /** Ref to Ask AI side panel to exclude from click outside detection */
+  askAISidePanelRef?: React.RefObject<HTMLElement>;
 }
 
 const tabButtons: ButtonItem[] = [
   { id: 'contextual', icon: BookText, label: 'Contextual' },
-  { id: 'grammar', icon: GraduationCap, label: 'Grammar' },
+  { id: 'grammar', icon: GraduationCap, label: 'Vocabulary' },
 ];
 
 export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
@@ -102,6 +108,7 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
   isSaved = false,
   isSavingWord = false,
   onBookmarkClick,
+  onDelete,
   onGetContextualMeaning,
   onGetMoreExamples,
   onGetSynonyms,
@@ -109,11 +116,25 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
   onTranslate,
   onAskAI,
   onAskAIButtonMount,
+  askAISidePanelRef,
 }) => {
   const wasVisible = useRef(false);
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const askAIButtonRef = useRef<HTMLButtonElement>(null);
   const [isCopied, setIsCopied] = useState(false);
+  
+  // Refs for header buttons
+  const copyButtonRef = useRef<HTMLButtonElement>(null);
+  const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Track when header refs are mounted for OnHoverMessage
+  const [headerMounted, setHeaderMounted] = useState(false);
+  
+  // Set mounted state after initial render
+  useEffect(() => {
+    setHeaderMounted(true);
+  }, []);
 
   console.log('[WordExplanationPopover] Render with props:', {
     visible,
@@ -138,9 +159,8 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
     transformOrigin: 'center center',
   });
 
-  // Override shouldRender to also check the visible prop
-  // This ensures the component renders when visible is true, even before animation starts
-  const shouldRender = visible || animationShouldRender;
+  // Use animation hook's shouldRender - it manages visibility during animations
+  const shouldRender = animationShouldRender;
 
   console.log('[WordExplanationPopover] Animation state:', { 
     visible, 
@@ -215,6 +235,69 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
     }
   }, [visible, sourceRef, calculatePosition]);
 
+  // Set up scroll listeners to keep popover tied to word span
+  useEffect(() => {
+    if (!visible || !sourceRef?.current) {
+      return;
+    }
+
+    let rafId: number | null = null;
+    
+    const handleScroll = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        calculatePosition();
+      });
+    };
+
+    // Find scrollable parents
+    const findScrollableParents = (element: Node): HTMLElement[] => {
+      const scrollableParents: HTMLElement[] = [];
+      let current: Node | null = element;
+
+      while (current && current !== document.body) {
+        if (current.nodeType === Node.ELEMENT_NODE) {
+          const el = current as HTMLElement;
+          const style = window.getComputedStyle(el);
+          const overflow = style.overflow + style.overflowY + style.overflowX;
+          
+          if (overflow.includes('scroll') || overflow.includes('auto')) {
+            scrollableParents.push(el);
+          }
+        }
+        current = current.parentNode;
+      }
+
+      return scrollableParents;
+    };
+
+    const scrollableParents = findScrollableParents(sourceRef.current);
+
+    // Add listeners to window, document, and scrollable parents
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleScroll);
+    document.addEventListener('scroll', handleScroll, true);
+    
+    scrollableParents.forEach((parent) => {
+      parent.addEventListener('scroll', handleScroll, true);
+    });
+
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleScroll);
+      document.removeEventListener('scroll', handleScroll, true);
+      
+      scrollableParents.forEach((parent) => {
+        parent.removeEventListener('scroll', handleScroll, true);
+      });
+    };
+  }, [visible, sourceRef, calculatePosition]);
+
   // Sync sourceRef with animation hook
   useEffect(() => {
     if (sourceRef?.current) {
@@ -260,9 +343,14 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
       // Check if our popover or source element is in the event path
       const isInsidePopover = elementRef.current && path.includes(elementRef.current);
       const isInsideSource = sourceRef.current && path.includes(sourceRef.current);
+      
+      // Query Ask AI panel directly (more reliable than prop ref)
+      const panelHost = document.getElementById('xplaino-word-ask-ai-panel-host');
+      const panel = panelHost?.shadowRoot?.querySelector('.wordAskAISidePanel');
+      const isInsideAskAIPanel = panel && path.includes(panel as Element);
 
-      // Only close if click is outside both popover and source
-      if (!isInsidePopover && !isInsideSource) {
+      // Only close if click is outside popover, source, and Ask AI panel
+      if (!isInsidePopover && !isInsideSource && !isInsideAskAIPanel) {
         console.log('[WordExplanationPopover] Outside click detected, closing');
         onClose();
       }
@@ -277,7 +365,7 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [visible, onClose, sourceRef, elementRef]);
+  }, [visible, onClose, sourceRef, elementRef, askAISidePanelRef]);
 
   const getClassName = (baseClass: string) => {
     if (useShadowDom) {
@@ -378,15 +466,20 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
   // Only apply position when NOT animating to avoid overriding animation transforms
   const combinedStyle: React.CSSProperties = {
     ...animationStyle,
-    // Only override position when not animating
+    // Start at scale(0) when emerging - the animation will take over
+    // This prevents a flash of full-size content before animation applies
+    ...(animationState === 'emerging' && {
+      transform: 'scale(0)',
+    }),
+    // Only override position when NOT animating to avoid overriding animation transforms
     ...(position && animationState !== 'emerging' && animationState !== 'shrinking' && {
       top: `${position.top}px`,
       left: `${position.left}px`,
     }),
-    // Don't force opacity/visibility during animations
+    // Set visibility based on animation state
     ...(animationState === 'visible' && {
       opacity: 1,
-      visibility: 'visible',
+      visibility: 'visible' as const,
     }),
     zIndex: 2147483640,
   };
@@ -406,6 +499,7 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
         <div className={getClassName('headerLeft')}>
           <span className={getClassName('headerWord')}>{word}</span>
           <button 
+            ref={copyButtonRef}
             className={`${getClassName('headerCopyButton')} ${isCopied ? getClassName('headerCopyButtonCopied') : ''}`}
             aria-label="Copy word"
             onClick={handleCopy}
@@ -419,19 +513,63 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
               <Copy size={18} strokeWidth={2} />
             )}
           </button>
-        </div>
-        <button 
-          className={`${getClassName('headerBookmark')} ${isSaved ? getClassName('headerBookmarkSaved') : ''}`}
-          aria-label={isSaved ? "Remove bookmark" : "Bookmark"}
-          onClick={onBookmarkClick}
-          disabled={isSavingWord}
-        >
-          {isSavingWord ? (
-            <div className={getClassName('bookmarkSpinner')} />
-          ) : (
-            <Bookmark size={18} strokeWidth={2} fill={isSaved ? "currentColor" : "none"} />
+          {headerMounted && !isCopied && copyButtonRef.current && (
+            <OnHoverMessage
+              message="Copy"
+              targetRef={copyButtonRef}
+              position="bottom"
+              offset={8}
+            />
           )}
-        </button>
+        </div>
+        <div className={getClassName('headerRight')}>
+          <button 
+            ref={bookmarkButtonRef}
+            className={`${getClassName('headerBookmark')} ${isSaved ? getClassName('headerBookmarkSaved') : ''}`}
+            aria-label={isSaved ? "Remove bookmark" : "Bookmark"}
+            onClick={onBookmarkClick}
+            disabled={isSavingWord}
+          >
+            {isSavingWord ? (
+              <div className={getClassName('bookmarkSpinner')} />
+            ) : (
+              <Bookmark size={18} strokeWidth={2} fill={isSaved ? "currentColor" : "none"} />
+            )}
+          </button>
+          {headerMounted && !isSavingWord && bookmarkButtonRef.current && (
+            <OnHoverMessage
+              message={isSaved ? "Remove bookmark" : "Bookmark"}
+              targetRef={bookmarkButtonRef}
+              position="bottom"
+              offset={8}
+            />
+          )}
+          <MinimizeIcon
+            onClick={onClose}
+            size={18}
+            useShadowDom={useShadowDom}
+          />
+          {onDelete && (
+            <>
+              <button 
+                ref={deleteButtonRef}
+                className={getClassName('headerDelete')}
+                aria-label="Delete word explanation"
+                onClick={onDelete}
+              >
+                <Trash2 size={18} strokeWidth={2} />
+              </button>
+              {headerMounted && deleteButtonRef.current && (
+                <OnHoverMessage
+                  message="Remove"
+                  targetRef={deleteButtonRef}
+                  position="bottom"
+                  offset={8}
+                />
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}
@@ -447,43 +585,60 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
         ) : errorMessage ? (
           <div className={getClassName('errorState')}>{errorMessage}</div>
         ) : activeTab === 'grammar' ? (
-          // Grammar tab - show synonyms, antonyms, translations (no loading states in content)
+          // Vocabulary tab - show synonyms, antonyms, translations in grid layout
           <div className={getClassName('grammarContent')}>
-            {synonyms.length > 0 && (
-              <div className={getClassName('section')}>
-                <strong className={getClassName('sectionTitle')}>Synonyms:</strong>
-                <div className={getClassName('commaSeparated')}>
-                  {synonyms.join(', ')}
-                </div>
+            {(synonyms.length > 0 || antonyms.length > 0 || translations.length > 0) ? (
+              <div className={getClassName('vocabularyGrid')}>
+                {/* Row 1: Synonyms - only show if has data */}
+                {synonyms.length > 0 && (
+                  <div className={getClassName('vocabularyRow')}>
+                    <div className={getClassName('vocabularyLabel')}>
+                      <strong className={getClassName('sectionTitle')}>Synonyms</strong>
+                    </div>
+                    <div className={getClassName('vocabularyValue')}>
+                      <div className={getClassName('commaSeparated')}>
+                        {synonyms.join(', ')}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Row 2: Antonyms - only show if has data */}
+                {antonyms.length > 0 && (
+                  <div className={getClassName('vocabularyRow')}>
+                    <div className={getClassName('vocabularyLabel')}>
+                      <strong className={getClassName('sectionTitle')}>Antonyms</strong>
+                    </div>
+                    <div className={getClassName('vocabularyValue')}>
+                      <div className={getClassName('commaSeparated')}>
+                        {antonyms.join(', ')}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Row 3: Translations - only show if has data */}
+                {translations.length > 0 && (
+                  <div className={getClassName('vocabularyRow')}>
+                    <div className={getClassName('vocabularyLabel')}>
+                      <strong className={getClassName('sectionTitle')}>
+                        Translation{translations.length > 1 ? 's' : ''}
+                      </strong>
+                    </div>
+                    <div className={getClassName('vocabularyValue')}>
+                      <div className={getClassName('commaSeparated')}>
+                        {translations.map((trans, idx) => (
+                          <span key={idx}>
+                            {trans.translated_content}
+                            {idx < translations.length - 1 && ', '}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            
-            {antonyms.length > 0 && (
-              <div className={getClassName('section')}>
-                <strong className={getClassName('sectionTitle')}>Antonyms:</strong>
-                <div className={getClassName('commaSeparated')}>
-                  {antonyms.join(', ')}
-                </div>
-              </div>
-            )}
-            
-            {translations.length > 0 && (
-              <div className={getClassName('section')}>
-                <strong className={getClassName('sectionTitle')}>
-                  Translation{translations.length > 1 ? 's' : ''}({translations.map(t => t.language).join(', ')}):
-                </strong>
-                <div className={getClassName('commaSeparated')}>
-                  {translations.map((trans, idx) => (
-                    <span key={idx}>
-                      {trans.translated_content}
-                      {idx < translations.length - 1 && ', '}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {synonyms.length === 0 && antonyms.length === 0 && translations.length === 0 && (
+            ) : (
               <div className={getClassName('placeholderState')}>
                 Click the buttons below to explore more about this word
               </div>
@@ -547,27 +702,29 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
           // Only show utility buttons if there's content
           content ? (
             <>
-              <div className={getClassName('utilityButtonWrapper')}>
-                <button 
-                  className={`${getClassName('utilityButton')} ${(isLoadingExamples || !shouldAllowFetchMoreExamples) ? getClassName('utilityButtonDisabled') : ''}`}
-                  onClick={handleGetMoreExamples}
-                  onMouseEnter={() => setActiveTooltip('examples')}
-                  onMouseLeave={() => setActiveTooltip(null)}
-                  aria-label="Get more examples"
-                  disabled={isLoadingExamples || !shouldAllowFetchMoreExamples}
-                >
-                  {isLoadingExamples ? (
-                    <div className={getClassName('buttonSpinner')} />
-                  ) : (
-                    <Lightbulb size={20} strokeWidth={2.5} />
+              {shouldAllowFetchMoreExamples && (
+                <div className={getClassName('utilityButtonWrapper')}>
+                  <button 
+                    className={`${getClassName('utilityButton')} ${isLoadingExamples ? getClassName('utilityButtonDisabled') : ''}`}
+                    onClick={handleGetMoreExamples}
+                    onMouseEnter={() => setActiveTooltip('examples')}
+                    onMouseLeave={() => setActiveTooltip(null)}
+                    aria-label="Get more examples"
+                    disabled={isLoadingExamples}
+                  >
+                    {isLoadingExamples ? (
+                      <div className={getClassName('buttonSpinner')} />
+                    ) : (
+                      <Lightbulb size={20} strokeWidth={2.5} />
+                    )}
+                  </button>
+                  {activeTooltip === 'examples' && !isLoadingExamples && (
+                    <div className={getClassName('utilityTooltip')}>
+                      Get more examples
+                    </div>
                   )}
-                </button>
-                {activeTooltip === 'examples' && !isLoadingExamples && (
-                  <div className={getClassName('utilityTooltip')}>
-                    {shouldAllowFetchMoreExamples ? 'Get more examples' : 'No more examples'}
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
               <div className={getClassName('utilityButtonWrapper')}>
                 <button 
                   ref={askAIButtonRef}

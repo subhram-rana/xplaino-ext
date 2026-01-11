@@ -234,8 +234,8 @@
   padding: 8px 16px !important;
   border: none !important;
   border-radius: 8px !important;
-  background: var(--color-primary, #0d8070) !important;
-  color: var(--color-white, #FFFFFF) !important;
+  background: var(--color-white, #FFFFFF) !important;
+  color: var(--color-primary, #0d8070) !important;
   font-size: 13px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
@@ -248,7 +248,7 @@
 }
 
 .simplifyButton:hover:not(:disabled) {
-  background: var(--color-primary-dark, #0a5f54) !important;
+  background: var(--color-primary-opacity-5, rgba(13, 128, 112, 0.05)) !important;
 }
 
 .simplifyButton:active:not(:disabled) {
@@ -256,8 +256,10 @@
 }
 
 .simplifyButton:disabled {
-  background: var(--color-disabled, #CBD5E0) !important;
+  background: var(--color-white, #FFFFFF) !important;
+  color: var(--color-text-secondary, #718096) !important;
   cursor: not-allowed !important;
+  opacity: 0.6 !important;
 }
 
 .simplifyButtonSpinner {
@@ -351,9 +353,9 @@
   width: 36px !important;
   height: 36px !important;
   border-radius: 50% !important;
-  background: var(--color-error, #EF4444) !important;
+  background: var(--color-white, #FFFFFF) !important;
   border: none !important;
-  color: var(--color-white, #FFFFFF) !important;
+  color: var(--color-error, #EF4444) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
@@ -364,7 +366,7 @@
 }
 
 .stopButton:hover {
-  background: #DC2626 !important;
+  background: var(--color-error-light, #FEE2E2) !important;
   transform: scale(1.05) !important;
 }
 
@@ -442,13 +444,13 @@
   padding: 12px 24px !important;
   border: none !important;
   border-radius: 8px !important;
-  background: var(--color-primary, #0d8070) !important;
-  color: var(--color-white, #FFFFFF) !important;
+  background: var(--color-white, #FFFFFF) !important;
+  color: var(--color-primary, #0d8070) !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: none !important;
   flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -457,8 +459,8 @@
 }
 
 .translateButton:hover:not(:disabled) {
-  background: var(--color-primary-dark, #0a5f54) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  background: var(--color-primary-opacity-5, rgba(13, 128, 112, 0.05)) !important;
+  box-shadow: none !important;
 }
 
 .translateButton:active:not(:disabled) {

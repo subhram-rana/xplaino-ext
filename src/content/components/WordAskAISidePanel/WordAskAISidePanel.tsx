@@ -1,8 +1,9 @@
 // src/content/components/WordAskAISidePanel/WordAskAISidePanel.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { RefObject } from 'react';
-import { ArrowUp, Square, Trash2, Plus, Minus } from 'lucide-react';
+import { ArrowUp, Square, Trash2, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { MinimizeIcon } from '../ui/MinimizeIcon';
 import styles from './WordAskAISidePanel.module.css';
 import { ChatMessage } from '@/store/wordExplanationAtoms';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
@@ -80,6 +81,10 @@ export interface WordAskAISidePanelProps {
   onClearChat: () => void;
   /** Callback to register the close handler for external animated close */
   onCloseHandlerReady?: (handler: () => void) => void;
+  /** Ref to Ask AI button in WordExplanationPopover (for shrink animation) */
+  askAIButtonRef?: RefObject<HTMLElement>;
+  /** Whether the word meaning popover is currently open */
+  isWordPopoverOpen?: boolean;
 }
 
 const MIN_WIDTH = 300;
@@ -100,6 +105,8 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
   onStopRequest,
   onClearChat,
   onCloseHandlerReady,
+  askAIButtonRef,
+  isWordPopoverOpen = false,
 }) => {
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
@@ -131,13 +138,60 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
     transformOrigin: 'top right',
   });
 
-  // Sync sourceRef with buttonRef prop
+  // Sync sourceRef with buttonRef or askAIButtonRef based on popover state
   useEffect(() => {
-    if (buttonRef?.current) {
-      console.log('[WordAskAISidePanel] Syncing buttonRef');
+    console.log('[WordAskAISidePanel] Animation source sync effect triggered:', {
+      isWordPopoverOpen,
+      hasAskAIButtonRef: !!askAIButtonRef?.current,
+      hasButtonRef: !!buttonRef?.current,
+      askAIButtonRefElement: askAIButtonRef?.current ? {
+        tagName: askAIButtonRef.current.tagName,
+        className: askAIButtonRef.current.className,
+        id: askAIButtonRef.current.id,
+      } : null,
+      buttonRefElement: buttonRef?.current ? {
+        tagName: buttonRef.current.tagName,
+        className: buttonRef.current.className,
+        id: buttonRef.current.id,
+      } : null,
+    });
+    
+    // Use Ask AI button if popover is open, otherwise use word span
+    if (isWordPopoverOpen && askAIButtonRef?.current) {
+      console.log('[WordAskAISidePanel] Source sync: Setting to Ask AI button (popover is open)', {
+        element: {
+          tagName: askAIButtonRef.current.tagName,
+          className: askAIButtonRef.current.className,
+          rect: askAIButtonRef.current.getBoundingClientRect(),
+        },
+      });
+      (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = askAIButtonRef.current;
+    } else if (buttonRef?.current) {
+      console.log('[WordAskAISidePanel] Source sync: Setting to word span (popover is closed)', {
+        element: {
+          tagName: buttonRef.current.tagName,
+          className: buttonRef.current.className,
+          rect: buttonRef.current.getBoundingClientRect(),
+        },
+      });
       (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = buttonRef.current;
+    } else {
+      console.warn('[WordAskAISidePanel] Source sync: No valid source found!', {
+        isWordPopoverOpen,
+        hasAskAIButtonRef: !!askAIButtonRef?.current,
+        hasButtonRef: !!buttonRef?.current,
+      });
     }
-  }, [buttonRef, animationSourceRef]);
+    
+    console.log('[WordAskAISidePanel] Source sync: Final animationSourceRef.current:', {
+      hasSource: !!animationSourceRef.current,
+      sourceElement: animationSourceRef.current ? {
+        tagName: animationSourceRef.current.tagName,
+        className: animationSourceRef.current.className,
+        rect: animationSourceRef.current.getBoundingClientRect(),
+      } : null,
+    });
+  }, [buttonRef, askAIButtonRef, isWordPopoverOpen, animationSourceRef]);
 
   // Get class name based on context (Shadow DOM vs CSS Modules)
   const getClassName = useCallback((shadowClass: string, moduleClass: string) => {
@@ -219,6 +273,15 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
     isAnimatingRef.current = true;
     
     try {
+      // Determine shrink target: Ask AI button if popover is open, otherwise word span
+      if (isWordPopoverOpen && askAIButtonRef?.current) {
+        console.log('[WordAskAISidePanel] Shrinking to Ask AI button (popover is open)');
+        (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = askAIButtonRef.current;
+      } else if (buttonRef?.current) {
+        console.log('[WordAskAISidePanel] Shrinking to word span (popover is closed)');
+        (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = buttonRef.current;
+      }
+      
       await shrink();
       console.log('[WordAskAISidePanel] Shrink animation complete');
     } catch (error) {
@@ -228,7 +291,7 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
       hasEmergedRef.current = false;
       onClose?.();
     }
-  }, [shrink, onClose]);
+  }, [shrink, onClose, isWordPopoverOpen, askAIButtonRef, buttonRef, animationSourceRef]);
 
   // Register close handler for external animated close
   useEffect(() => {
@@ -240,8 +303,63 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
     const wasOpen = previousIsOpenRef.current;
     previousIsOpenRef.current = isOpen;
 
+    console.log('[WordAskAISidePanel] Emerge effect triggered:', {
+      isOpen,
+      wasOpen,
+      hasEmerged: hasEmergedRef.current,
+      isAnimating: isAnimatingRef.current,
+      isWordPopoverOpen,
+      hasAskAIButtonRef: !!askAIButtonRef?.current,
+      hasButtonRef: !!buttonRef?.current,
+      currentAnimationSource: animationSourceRef.current ? {
+        tagName: animationSourceRef.current.tagName,
+        className: animationSourceRef.current.className,
+      } : null,
+    });
+
     if (isOpen && !wasOpen && !hasEmergedRef.current && !isAnimatingRef.current) {
-      console.log('[WordAskAISidePanel] Emerging');
+      console.log('[WordAskAISidePanel] Starting emerge animation');
+      
+      // Sync animation source before calling emerge()
+      // Use Ask AI button if popover is open, otherwise use word span
+      let sourceSet = false;
+      if (isWordPopoverOpen && askAIButtonRef?.current) {
+        console.log('[WordAskAISidePanel] Emerge: Setting source to Ask AI button (popover is open)', {
+          element: {
+            tagName: askAIButtonRef.current.tagName,
+            className: askAIButtonRef.current.className,
+            rect: askAIButtonRef.current.getBoundingClientRect(),
+          },
+        });
+        (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = askAIButtonRef.current;
+        sourceSet = true;
+      } else if (buttonRef?.current) {
+        console.log('[WordAskAISidePanel] Emerge: Setting source to word span (popover is closed)', {
+          element: {
+            tagName: buttonRef.current.tagName,
+            className: buttonRef.current.className,
+            rect: buttonRef.current.getBoundingClientRect(),
+          },
+        });
+        (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = buttonRef.current;
+        sourceSet = true;
+      } else {
+        console.warn('[WordAskAISidePanel] Emerge: No valid source found!', {
+          isWordPopoverOpen,
+          hasAskAIButtonRef: !!askAIButtonRef?.current,
+          hasButtonRef: !!buttonRef?.current,
+        });
+      }
+      
+      console.log('[WordAskAISidePanel] Emerge: Source set before calling emerge():', {
+        sourceSet,
+        animationSourceRefCurrent: animationSourceRef.current ? {
+          tagName: animationSourceRef.current.tagName,
+          className: animationSourceRef.current.className,
+          rect: animationSourceRef.current.getBoundingClientRect(),
+        } : null,
+      });
+      
       isAnimatingRef.current = true;
       emerge()
         .then(() => {
@@ -255,7 +373,7 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
           isAnimatingRef.current = false;
         });
     }
-  }, [isOpen, emerge]);
+  }, [isOpen, emerge, isWordPopoverOpen, askAIButtonRef, buttonRef, animationSourceRef]);
 
   // Scroll detection logic
   const SCROLL_THRESHOLD = 5; // pixels from bottom to consider "at bottom"
@@ -368,13 +486,11 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
       <div className={headerClass}>
         {/* Left: Action Icons */}
         <div className={headerLeftClass}>
-          <button
-            className={iconButtonClass}
+          <MinimizeIcon
             onClick={handleClose}
-            aria-label="Close"
-          >
-            <Minus size={18} />
-          </button>
+            size={18}
+            useShadowDom={useShadowDom}
+          />
           <button
             className={iconButtonClass}
             onClick={handleVerticalExpand}
@@ -386,7 +502,7 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
         
         {/* Center: Title */}
         <div className={headerCenterClass}>
-          <span className={headerTitleClass}>Ask about "{word.toUpperCase()}"</span>
+          <span className={headerTitleClass}>Ask about {word.toUpperCase()}</span>
         </div>
         
         {/* Right: Empty (for symmetry) */}
@@ -458,9 +574,6 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
           </span>
         </div>
 
-        {/* Footer with Upgrade and Coupon buttons */}
-        <Footer useShadowDom={useShadowDom} />
-
         {/* Input Container */}
         <div className={inputContainerClass}>
           <input
@@ -501,6 +614,9 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
             </>
           )}
         </div>
+
+        {/* Footer with Upgrade and Coupon buttons */}
+        <Footer useShadowDom={useShadowDom} />
       </div>
     </div>
   );

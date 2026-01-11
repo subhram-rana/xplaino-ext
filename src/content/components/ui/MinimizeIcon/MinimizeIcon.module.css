@@ -1,0 +1,26 @@
+.minimizeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5));
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  color: var(--color-primary, #0d8070);
+  flex-shrink: 0;
+}
+
+.minimizeIcon:hover {
+  background: var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1));
+  border-color: var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5));
+}
+
+.minimizeIcon svg {
+  display: block;
+  color: currentColor;
+  stroke: currentColor;
+}

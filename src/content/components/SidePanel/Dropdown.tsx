@@ -40,19 +40,32 @@ export const Dropdown: React.FC<DropdownProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const canOpenRef = useRef<boolean>(false);
+  // Track if dropdown has ever been opened (to prevent animation on initial mount)
+  const hasBeenOpenedRef = useRef<boolean>(false);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
-  // Handle animation state
+  // Prevent dropdown from opening immediately after mount (prevents auto-open glitch)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      canOpenRef.current = true;
+    }, 150); // Small delay to prevent click events from tab switches
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Handle animation state - only animate when actually transitioning
   useEffect(() => {
     if (isOpen) {
+      hasBeenOpenedRef.current = true;
       setIsAnimating(true);
       // Small delay to trigger opening animation
       const timeoutId = setTimeout(() => {
         setIsAnimating(false);
       }, 10);
       return () => clearTimeout(timeoutId);
-    } else {
+    } else if (hasBeenOpenedRef.current) {
+      // Only animate closing if it was previously opened
       setIsAnimating(true);
       // Delay for closing animation
       const timeoutId = setTimeout(() => {
@@ -60,6 +73,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
       }, 300); // Match CSS transition duration
       return () => clearTimeout(timeoutId);
     }
+    // Don't animate on initial mount when isOpen is false
   }, [isOpen]);
 
   useEffect(() => {
@@ -110,6 +124,10 @@ export const Dropdown: React.FC<DropdownProps> = ({
           }}
           onClick={(e) => {
             e.stopPropagation();
+            // Prevent opening immediately after mount to avoid auto-open glitch
+            if (!canOpenRef.current) {
+              return;
+            }
             setIsOpen(!isOpen);
           }}
           type="button"

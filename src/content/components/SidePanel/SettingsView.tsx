@@ -1,6 +1,6 @@
 // src/content/components/SidePanel/SettingsView.tsx
 import React, { useEffect, useState, useCallback } from 'react';
-import { Settings, LayoutDashboard, Crown, LogOut } from 'lucide-react';
+import { Settings, LayoutDashboard, LogOut } from 'lucide-react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { userAuthInfoAtom, showLoginModalAtom } from '@/store/uiAtoms';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
@@ -152,11 +152,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
     window.open(dashboardUrl, '_blank');
   };
 
-  const handleUpgradeClick = () => {
-    const pricingUrl = `${ENV.XPLAINO_WEBSITE_BASE_URL}/pricing`;
-    window.open(pricingUrl, '_blank');
-  };
-
   const handleLogoutClick = async () => {
     console.log('[SettingsView] Logout button clicked, calling AuthService.logout()');
     try {
@@ -207,14 +202,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
       <div className={getClassName('section')}>
         {isLoggedIn && userAuthInfo?.user ? (
           <>
-            <div className={getClassName('sectionHeader')}>
-              <div className={getClassName('sectionAccent')} />
-              <h3 className={getClassName('sectionTitle')}>Account</h3>
-              <div className={getClassName('sectionHeaderLine')} />
-            </div>
-            
             <div className={getClassName('accountContent')}>
-              {/* Left: Profile Picture + Badge + Upgrade */}
+              {/* Left: Profile Picture */}
               <div className={getClassName('accountLeft')}>
                 <div className={getClassName('accountPictureContainer')}>
                   <img 
@@ -223,44 +212,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                     className={getClassName('accountPicture')}
                   />
                 </div>
-                <span className={getClassName('accountFreeTrialBadge')}>
-                  Free trial
-                </span>
-                <button
-                  onClick={handleUpgradeClick}
-                  className={getClassName('accountUpgradeButton')}
-                  type="button"
-                >
-                  <Crown size={16} strokeWidth={2.5} />
-                  <span>Upgrade</span>
-                </button>
               </div>
               
-              {/* Middle: Name + Email + Account Buttons */}
+              {/* Middle: Name + Badge + Email */}
               <div className={getClassName('accountMiddle')}>
-                <div className={getClassName('accountName')}>
-                  {userAuthInfo.user.name || 'Name'}
+                <div className={getClassName('accountNameRow')}>
+                  <div className={getClassName('accountName')}>
+                    {userAuthInfo.user.name || 'Name'}
+                  </div>
+                  <span className={getClassName('accountFreeTrialBadge')}>
+                    Free trial
+                  </span>
                 </div>
                 <div className={getClassName('accountEmail')}>
                   {userAuthInfo.user.email || 'Email'}
-                </div>
-                <div className={getClassName('accountButtonsRow')}>
-                  <button
-                    onClick={handleAccountSettingsClick}
-                    type="button"
-                    className={getClassName('accountButton')}
-                  >
-                    <Settings size={16} />
-                    <span>Open settings</span>
-                  </button>
-                  <button
-                    onClick={handleDashboardClick}
-                    type="button"
-                    className={getClassName('accountButton')}
-                  >
-                    <LayoutDashboard size={16} />
-                    <span>My Dashboard</span>
-                  </button>
                 </div>
               </div>
               
@@ -275,6 +240,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                   <span>Logout</span>
                 </button>
               </div>
+            </div>
+            
+            {/* Account Buttons Row */}
+            <div className={getClassName('accountButtonsRow')}>
+              <button
+                onClick={handleAccountSettingsClick}
+                type="button"
+                className={getClassName('accountButton')}
+              >
+                <Settings size={16} />
+                <span>My settings</span>
+              </button>
+              <button
+                onClick={handleDashboardClick}
+                type="button"
+                className={getClassName('accountButton')}
+              >
+                <LayoutDashboard size={16} />
+                <span>My Dashboard</span>
+              </button>
             </div>
           </>
         ) : (
@@ -293,13 +278,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
         )}
       </div>
 
+      {/* Horizontal Divider */}
+      <div className={getClassName('sectionDivider')} />
+
       {/* Extension Settings Section */}
       <div className={getClassName('section')}>
-        <div className={getClassName('sectionHeader')}>
-          <div className={getClassName('sectionAccent')} />
-          <h3 className={getClassName('sectionTitle')}>Extension settings</h3>
-          <div className={getClassName('sectionHeaderLine')} />
-        </div>
         <div className={getClassName('sectionContent')}>
           {/* Theme Dropdown */}
           {currentDomain && (

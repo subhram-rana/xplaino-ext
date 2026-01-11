@@ -1,0 +1,26 @@
+.minimizeIcon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  border: 3px solid var(--color-primary-opacity-50) !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  color: var(--color-primary) !important;
+  flex-shrink: 0 !important;
+}
+
+.minimizeIcon:hover {
+  background: var(--color-primary-opacity-10) !important;
+  border-color: var(--color-primary-opacity-50) !important;
+}
+
+.minimizeIcon svg {
+  display: block !important;
+  color: currentColor !important;
+  stroke: currentColor !important;
+}

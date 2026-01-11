@@ -363,6 +363,7 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
           <div className={getClassName('translationControls')}>
             <div className={getClassName('languageDropdownWrapper')}>
               <Dropdown
+                key={`translation-dropdown-${viewMode}`}
                 options={languageOptions}
                 value={selectedLanguage}
                 onChange={(value) => setSelectedLanguage(value)}

@@ -1803,12 +1803,12 @@ async function handleWordExplain(
               const atomState = store.get(wordExplanationsAtom).get(wordId);
               const isSaved = atomState?.isSaved || false;
               
-              // Update inline styles to show green background (CSS classes don't work in main DOM)
-              state.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
+              // Update inline styles - no background, only bottom border
+              state.wordSpanElement.style.background = 'transparent';
               state.wordSpanElement.style.cursor = 'pointer';
-              state.wordSpanElement.style.transition = 'background 0.2s ease';
+              state.wordSpanElement.style.transition = 'none';
               
-              // Apply green styling with border, bookmark icon, and close button
+              // Apply styling with bottom border, bookmark icon, and close button
               applyGreenWordSpanStyling(state.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation with inline styles
@@ -1822,15 +1822,15 @@ async function handleWordExplain(
                 }
               }, 800);
 
-              // Add hover event listeners for green highlight effect
+              // Add hover effect with very light theme color
               state.wordSpanElement.addEventListener('mouseenter', () => {
                 if (state.wordSpanElement) {
-                  state.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_25;
+                  state.wordSpanElement.style.background = COLORS.PRIMARY_OPACITY_10;
                 }
               });
               state.wordSpanElement.addEventListener('mouseleave', () => {
                 if (state.wordSpanElement) {
-                  state.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
+                  state.wordSpanElement.style.background = 'transparent';
                 }
               });
 
@@ -2109,12 +2109,12 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
               const atomState = store.get(wordExplanationsAtom).get(wordId);
               const isSaved = atomState?.isSaved || false;
               
-              // Update inline styles to show green background
-              localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
+              // Update inline styles - no background, only bottom border
+              localState.wordSpanElement.style.background = 'transparent';
               localState.wordSpanElement.style.cursor = 'pointer';
-              localState.wordSpanElement.style.transition = 'background 0.2s ease';
+              localState.wordSpanElement.style.transition = 'none';
               
-              // Apply green styling with border, bookmark icon, and close button
+              // Apply styling with bottom border, bookmark icon, and close button
               applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
@@ -2127,15 +2127,15 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
                 }
               }, 800);
               
-              // Add hover event listeners
+              // Add hover effect with very light theme color
               localState.wordSpanElement.addEventListener('mouseenter', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_25;
+                  localState.wordSpanElement.style.background = COLORS.PRIMARY_OPACITY_10;
                 }
               });
               localState.wordSpanElement.addEventListener('mouseleave', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
+                  localState.wordSpanElement.style.background = 'transparent';
                 }
               });
               
@@ -2345,12 +2345,12 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
               const atomState = store.get(wordExplanationsAtom).get(wordId);
               const isSaved = atomState?.isSaved || false;
               
-              // Update inline styles to show green background
-              localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
+              // Update inline styles - no background, only bottom border
+              localState.wordSpanElement.style.background = 'transparent';
               localState.wordSpanElement.style.cursor = 'pointer';
-              localState.wordSpanElement.style.transition = 'background 0.2s ease';
+              localState.wordSpanElement.style.transition = 'none';
               
-              // Apply green styling with border, bookmark icon, and close button
+              // Apply styling with bottom border, bookmark icon, and close button
               applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
@@ -2363,15 +2363,15 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
                 }
               });
               
-              // Add hover event listeners
+              // Add hover effect with very light theme color
               localState.wordSpanElement.addEventListener('mouseenter', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_25;
+                  localState.wordSpanElement.style.background = COLORS.PRIMARY_OPACITY_10;
                 }
               });
               localState.wordSpanElement.addEventListener('mouseleave', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
+                  localState.wordSpanElement.style.background = 'transparent';
                 }
               });
               
@@ -2599,12 +2599,12 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
               const atomState = store.get(wordExplanationsAtom).get(wordId);
               const isSaved = atomState?.isSaved || false;
               
-              // Update inline styles to show green background
-              localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
+              // Update inline styles - no background, only bottom border
+              localState.wordSpanElement.style.background = 'transparent';
               localState.wordSpanElement.style.cursor = 'pointer';
-              localState.wordSpanElement.style.transition = 'background 0.2s ease';
+              localState.wordSpanElement.style.transition = 'none';
               
-              // Apply green styling with border, bookmark icon, and close button
+              // Apply styling with bottom border, bookmark icon, and close button
               applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
@@ -2617,15 +2617,15 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
                 }
               }, 800);
               
-              // Add hover event listeners
+              // Add hover effect with very light theme color
               localState.wordSpanElement.addEventListener('mouseenter', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_25;
+                  localState.wordSpanElement.style.background = COLORS.PRIMARY_OPACITY_10;
                 }
               });
               localState.wordSpanElement.addEventListener('mouseleave', () => {
                 if (localState.wordSpanElement) {
-                  localState.wordSpanElement.style.background = COLORS.SUCCESS_OPACITY_15;
+                  localState.wordSpanElement.style.background = 'transparent';
                 }
               });
               
@@ -2972,19 +2972,57 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
 /**
  * Create word span wrapper with loading state
  */
-function createWordSpan(word: string, range: Range): HTMLElement | null {
+function createWordSpan(_word: string, range: Range): HTMLElement | null {
   try {
+    // Get the computed styles from the selected text to preserve font properties
+    const startContainer = range.startContainer;
+    let fontStyle = '';
+    let fontWeight = '';
+    let fontSize = '';
+    let fontFamily = '';
+    let color = '';
+    
+    if (startContainer.nodeType === Node.TEXT_NODE && startContainer.parentElement) {
+      const computedStyle = window.getComputedStyle(startContainer.parentElement);
+      fontStyle = computedStyle.fontStyle;
+      fontWeight = computedStyle.fontWeight;
+      fontSize = computedStyle.fontSize;
+      fontFamily = computedStyle.fontFamily;
+      color = computedStyle.color;
+    } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
+      const computedStyle = window.getComputedStyle(startContainer as Element);
+      fontStyle = computedStyle.fontStyle;
+      fontWeight = computedStyle.fontWeight;
+      fontSize = computedStyle.fontSize;
+      fontFamily = computedStyle.fontFamily;
+      color = computedStyle.color;
+    }
+
     // Create span element
     const span = document.createElement('span');
-    span.className = 'word-explanation-loading';
-    span.textContent = word;
-    span.style.cssText = `
-      background: ${COLORS.PRIMARY_OPACITY_10};
-      border-radius: 12px;
-      padding: 2px 4px;
-      cursor: default;
-      position: relative;
-    `;
+    // Don't add 'word-explanation-loading' class to avoid pulsating animation
+    
+    // Preserve original font styles
+    span.style.fontStyle = fontStyle;
+    span.style.fontWeight = fontWeight;
+    span.style.fontSize = fontSize;
+    span.style.fontFamily = fontFamily;
+    span.style.color = color;
+    // Explicitly set text-decoration to prevent inheritance from parent text underline
+    // Word spans use bottom border, not text-decoration
+    span.style.textDecoration = 'none';
+    
+    // No background, no border, top border-radius only
+    span.style.background = 'transparent';
+    span.style.border = 'none';
+    span.style.borderRadius = '10px 10px 0 0';
+    span.style.padding = '2px 0';
+    span.style.margin = '0';
+    span.style.cursor = 'default';
+    span.style.position = 'relative';
+    // Ensure word span is isolated from parent text-decoration
+    span.style.isolation = 'isolate';
+    span.style.zIndex = '1';
 
     // Wrap the range with the span
     try {
@@ -3010,17 +3048,22 @@ function createPurpleSpinner(wordSpan: HTMLElement): HTMLElement {
   const spinnerContainer = document.createElement('div');
   spinnerContainer.className = 'purple-spinner-container';
   
-  const rect = wordSpan.getBoundingClientRect();
+  // Position spinner above the word span, centered horizontally
+  // Use absolute positioning relative to the span so it scrolls with it
   spinnerContainer.style.cssText = `
-    position: fixed;
-    left: ${rect.right + 8}px;
-    top: ${rect.top + (rect.height / 2) - 9}px;
+    position: absolute;
+    left: 50%;
+    top: -24px;
+    transform: translateX(-50%);
     z-index: 2147483647;
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
   `;
+  
+  // Append to wordSpan so it scrolls with it
+  wordSpan.appendChild(spinnerContainer);
 
   const spinner = document.createElement('div');
   spinner.className = 'purple-spinner';
@@ -3034,7 +3077,6 @@ function createPurpleSpinner(wordSpan: HTMLElement): HTMLElement {
   `;
 
   spinnerContainer.appendChild(spinner);
-  document.body.appendChild(spinnerContainer);
 
   return spinnerContainer;
 }
@@ -3077,65 +3119,6 @@ function createBookmarkIcon(): HTMLElement {
  * Create reusable green close button component for word span
  * Size is 3/4 of original (15px instead of 20px)
  */
-function createWordSpanCloseButton(wordId: string): HTMLElement {
-  const closeButton = document.createElement('button');
-  closeButton.className = 'word-explanation-close-button';
-  closeButton.setAttribute('aria-label', 'Remove word explanation');
-  closeButton.style.cssText = `
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    background: ${COLORS.WHITE};
-    border: 1px solid ${COLORS.SUCCESS_OPACITY_50};
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    margin: 0;
-    z-index: 2;
-  `;
-  
-  // Create SVG X icon (9px instead of 12px - 3/4 size)
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('width', '9');
-  svg.setAttribute('height', '9');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', COLORS.SUCCESS_OPACITY_80);
-  svg.setAttribute('stroke-width', '2.5');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
-  svg.style.cssText = 'width: 100%; height: 100%;';
-  
-  const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  line1.setAttribute('x1', '18');
-  line1.setAttribute('y1', '6');
-  line1.setAttribute('x2', '6');
-  line1.setAttribute('y2', '18');
-  
-  const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  line2.setAttribute('x1', '6');
-  line2.setAttribute('y1', '6');
-  line2.setAttribute('x2', '18');
-  line2.setAttribute('y2', '18');
-  
-  svg.appendChild(line1);
-  svg.appendChild(line2);
-  closeButton.appendChild(svg);
-  
-  // Add click handler
-  closeButton.addEventListener('click', (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    removeWordExplanation(wordId);
-  });
-  
-  return closeButton;
-}
 
 /**
  * Show purple xplaino icon when word is removed via double-click
@@ -3202,24 +3185,54 @@ function showPurpleXplainoIconForWordRemoval(wordSpanElement: HTMLElement, _word
 /**
  * Apply green styling and decorations to word span
  */
-function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, wordId: string, isSaved: boolean): void {
+function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, _wordId: string, isSaved: boolean): void {
   // Ensure position is relative for absolute positioning of icons
   if (wordSpanElement.style.position !== 'relative' && wordSpanElement.style.position !== 'absolute') {
     wordSpanElement.style.position = 'relative';
   }
   
-  // Add green border and border-radius
-  wordSpanElement.style.border = `1px solid ${COLORS.SUCCESS_OPACITY_50}`;
-  wordSpanElement.style.borderRadius = '12px';
+  // No border on all sides, top border-radius only
+  wordSpanElement.style.border = 'none';
+  wordSpanElement.style.borderRadius = '10px 10px 0 0';
   
-  // Remove existing bookmark icon and close button if they exist
+  // Add thick bottom border with pill-shaped ends using pseudo-element
+  // We'll use a separate element for the bottom border since pseudo-elements are tricky in inline styles
+  const existingBottomBorder = wordSpanElement.querySelector('.word-explanation-bottom-border');
+  if (existingBottomBorder) {
+    existingBottomBorder.remove();
+  }
+  
+  const bottomBorder = document.createElement('div');
+  bottomBorder.className = 'word-explanation-bottom-border';
+  // Start with width 0 for animation
+  bottomBorder.style.cssText = `
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px !important;
+    min-height: 2px !important;
+    max-height: 2px !important;
+    background: ${COLORS.PRIMARY};
+    border-radius: 1px;
+    pointer-events: none;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    box-sizing: border-box;
+  `;
+  wordSpanElement.appendChild(bottomBorder);
+  
+  // Animate to full width after a brief delay to ensure element is rendered
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      bottomBorder.style.width = '100%';
+    });
+  });
+  
+  // Remove existing bookmark icon if it exists
   const existingBookmark = wordSpanElement.querySelector('.word-explanation-bookmark-icon');
   if (existingBookmark) {
     existingBookmark.remove();
-  }
-  const existingClose = wordSpanElement.querySelector('.word-explanation-close-button');
-  if (existingClose) {
-    existingClose.remove();
   }
   
   // Add bookmark icon if word is saved
@@ -3228,9 +3241,7 @@ function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, wordId: string,
     wordSpanElement.appendChild(bookmarkIcon);
   }
   
-  // Always add close button
-  const closeButton = createWordSpanCloseButton(wordId);
-  wordSpanElement.appendChild(closeButton);
+  // Close button removed - use delete button in header instead
 }
 
 /**
@@ -3271,7 +3282,7 @@ function injectWordSpanStyles(): void {
     
     .word-explanation-loading {
       animation: word-explanation-pulsate-purple 1.5s ease-in-out infinite;
-      border-radius: 12px;
+      border-radius: 10px;
     }
     
     @keyframes spin {
@@ -5046,10 +5057,10 @@ function updateTextExplanationPanel(): void {
                 return state;
               });
               
-              // Convert purple underline to green if needed
+              // Convert purple underline to teal if needed
               if (shouldConvertUnderline && underlineStateToConvert) {
-                console.log('[Content Script] Converting purple underline to green after first Simplify response');
-                changeUnderlineColor(underlineStateToConvert, 'green');
+                console.log('[Content Script] Converting purple underline to teal after first Simplify response');
+                changeUnderlineColor(underlineStateToConvert, 'teal');
               }
               
               updateTextExplanationPanel();
@@ -7401,6 +7412,9 @@ function updateWordExplanationPopover(): void {
         isSaved: atomState?.isSaved || false,
         isSavingWord: atomState?.isSavingWord || false,
         onBookmarkClick: () => handleWordBookmarkClick(visibleWordId!),
+        onDelete: () => {
+          removeWordExplanation(visibleWordId!);
+        },
         // Handlers
         onGetContextualMeaning: () => handleGetContextualMeaning(visibleWordId!),
         onGetMoreExamples: () => handleGetMoreExamples(visibleWordId!),
@@ -7419,8 +7433,18 @@ function updateWordExplanationPopover(): void {
             const map = new Map(store.get(wordExplanationsAtom));
             map.set(visibleWordId!, updated);
             store.set(wordExplanationsAtom, map);
+            updateWordAskAISidePanel();
           }
         },
+        askAISidePanelRef: (() => {
+          // Get ref to the Ask AI side panel shadow host
+          const panelHost = document.getElementById(WORD_ASK_AI_PANEL_HOST_ID);
+          if (panelHost?.shadowRoot) {
+            const panel = panelHost.shadowRoot.querySelector('.wordAskAISidePanel') as HTMLElement;
+            return panel ? { current: panel } : undefined;
+          }
+          return undefined;
+        })(),
       })
     )
   );
@@ -7498,7 +7522,15 @@ function updateWordAskAISidePanel(): void {
     return;
   }
 
-  console.log('[Content Script] Rendering WordAskAISidePanel for word:', atomState.word);
+  // Get local state to check actual popover visibility (more reliable than atom state)
+  const localState = wordExplanationsMap.get(wordId);
+  const isPopoverOpen = localState?.popoverVisible ?? false;
+
+  console.log('[Content Script] Rendering WordAskAISidePanel for word:', atomState.word, {
+    isPopoverOpen,
+    atomStatePopoverVisible: atomState.popoverVisible,
+    localStatePopoverVisible: localState?.popoverVisible,
+  });
 
   wordAskAISidePanelRoot.render(
     React.createElement(
@@ -7508,7 +7540,7 @@ function updateWordAskAISidePanel(): void {
         isOpen: isOpen,
         onClose: handleAskAIClose,
         word: atomState.word,
-        buttonRef: atomState.askAIButtonRef,
+        buttonRef: atomState.sourceRef,
         useShadowDom: true,
         chatHistory: atomState.askAI.chatHistory,
         messageQuestions: atomState.askAI.messageQuestions,
@@ -7521,6 +7553,8 @@ function updateWordAskAISidePanel(): void {
           console.log('[index.ts] Close handler registered from WordAskAISidePanel');
           wordAskAICloseHandler = handler;
         },
+        askAIButtonRef: atomState.askAIButtonRef || undefined,
+        isWordPopoverOpen: isPopoverOpen,
       })
     )
   );
@@ -7769,7 +7803,6 @@ function scrollToAndHighlightText(range: Range | null, underlineState?: Underlin
   }
 
   try {
-
     // Scroll to element
     try {
       element.scrollIntoView({ 
@@ -7784,38 +7817,9 @@ function scrollToAndHighlightText(range: Range | null, underlineState?: Underlin
       const scrollY = window.scrollY + rect.top - window.innerHeight / 2;
       window.scrollTo({ top: scrollY, behavior: 'smooth' });
     }
-
-    // Store original styles
-    const originalBackgroundColor = element.style.backgroundColor;
-    const originalBorderRadius = element.style.borderRadius;
-    const originalTransition = element.style.transition;
-
-    // Apply initial highlight
-    element.style.backgroundColor = COLORS.SUCCESS_OPACITY_30;
-    element.style.borderRadius = '4px';
-    element.style.transition = 'background-color 0.3s ease';
-
-    // Pulse 3 times
-    let pulseCount = 0;
-    const pulseInterval = setInterval(() => {
-      pulseCount++;
-      
-      if (pulseCount % 2 === 0) {
-        // Even pulse: highlight
-        element!.style.backgroundColor = COLORS.SUCCESS_OPACITY_50;
-      } else {
-        // Odd pulse: less highlight
-        element!.style.backgroundColor = COLORS.SUCCESS_OPACITY_30;
-      }
-
-      if (pulseCount >= 6) {
-        // After 3 full pulses (6 toggles), remove highlight
-        clearInterval(pulseInterval);
-        element!.style.backgroundColor = originalBackgroundColor;
-        element!.style.borderRadius = originalBorderRadius;
-        element!.style.transition = originalTransition;
-      }
-    }, 500); // 500ms per pulse
+    
+    // Note: Pulsation animation is handled separately by pulseTextBackground()
+    // which is called after this function
 
   } catch (error) {
     console.error('[Content Script] Error in scrollToAndHighlightText:', error);
