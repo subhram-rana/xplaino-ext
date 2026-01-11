@@ -27,12 +27,12 @@ export interface TextExplanationIconProps {
 const TealBookIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
-    width="14"
-    height="14"
+    width="18"
+    height="18"
     viewBox="0 0 24 24"
     fill="none"
     stroke={COLORS.PRIMARY}
-    strokeWidth="3"
+    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
   >

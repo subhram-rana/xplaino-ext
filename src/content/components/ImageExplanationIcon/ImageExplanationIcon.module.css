@@ -30,12 +30,11 @@
 }
 
 .imageExplanationIcon.greenIcon:hover {
-  transform: scale(1.1);
   box-shadow: none;
 }
 
 .imageExplanationIcon.greenIcon.panelOpen {
-  border: 2px solid #14B8A6;
+  /* No border - using OnHoverMessage instead */
 }
 
 .imageExplanationIcon:active {

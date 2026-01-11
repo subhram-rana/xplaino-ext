@@ -266,7 +266,7 @@ const BookmarkIconButton: React.FC<BookmarkIconButtonProps> = ({
           zIndex: 2147483647,
         }}
       >
-        <Bookmark size={16} fill={COLORS.PRIMARY} color={COLORS.PRIMARY} />
+        <Bookmark size={18} fill={COLORS.PRIMARY} color={COLORS.PRIMARY} />
       </button>
       {isMounted && buttonRef.current && (
         <OnHoverMessage

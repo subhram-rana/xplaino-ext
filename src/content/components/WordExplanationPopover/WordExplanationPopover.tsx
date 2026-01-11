@@ -79,6 +79,8 @@ export interface WordExplanationPopoverProps {
   onAskAIButtonMount?: (ref: React.RefObject<HTMLButtonElement>) => void;
   /** Ref to Ask AI side panel to exclude from click outside detection */
   askAISidePanelRef?: React.RefObject<HTMLElement>;
+  /** Callback when shrink animation completes */
+  onAnimationComplete?: () => void;
 }
 
 const tabButtons: ButtonItem[] = [
@@ -117,6 +119,7 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
   onAskAI,
   onAskAIButtonMount,
   askAISidePanelRef,
+  onAnimationComplete,
 }) => {
   const wasVisible = useRef(false);
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
@@ -235,6 +238,19 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
     }
   }, [visible, sourceRef, calculatePosition]);
 
+  // Recalculate position when animation completes (state becomes 'visible')
+  // This ensures position is correct when reopening the popover
+  useEffect(() => {
+    if (animationState === 'visible' && sourceRef?.current && elementRef.current) {
+      // Small delay to ensure element is fully rendered
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          calculatePosition();
+        });
+      });
+    }
+  }, [animationState, sourceRef, elementRef, calculatePosition]);
+
   // Set up scroll listeners to keep popover tied to word span
   useEffect(() => {
     if (!visible || !sourceRef?.current) {
@@ -323,14 +339,22 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
         console.error('[WordExplanationPopover] Emerge animation error:', error);
       });
     } else if (!visible && wasVisible.current) {
-      // Closing
+      // Closing - reset position for fresh calculation on next open
       wasVisible.current = false;
+      setPosition(null);
       console.log('[WordExplanationPopover] Closing with shrink animation');
-      shrink().catch((error) => {
-        console.error('[WordExplanationPopover] Shrink animation error:', error);
-      });
+      shrink()
+        .then(() => {
+          console.log('[WordExplanationPopover] Shrink animation completed, calling onAnimationComplete');
+          onAnimationComplete?.();
+        })
+        .catch((error) => {
+          console.error('[WordExplanationPopover] Shrink animation error:', error);
+          // Still call onAnimationComplete even on error so the component gets unmounted
+          onAnimationComplete?.();
+        });
     }
-  }, [visible, emerge, shrink]);
+  }, [visible, emerge, shrink, onAnimationComplete]);
 
   // Handle outside click
   useEffect(() => {
@@ -349,8 +373,16 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
       const panel = panelHost?.shadowRoot?.querySelector('.wordAskAISidePanel');
       const isInsideAskAIPanel = panel && path.includes(panel as Element);
 
-      // Only close if click is outside popover, source, and Ask AI panel
-      if (!isInsidePopover && !isInsideSource && !isInsideAskAIPanel) {
+      // Query Folder List Modal (for bookmark save)
+      const folderModalHost = document.getElementById('xplaino-folder-list-modal-host');
+      const folderModal = folderModalHost?.shadowRoot?.querySelector('.folderListModal');
+      const isInsideFolderModal = folderModal && path.includes(folderModal as Element);
+      
+      // Also check if folder modal host itself is in path (clicks on overlay)
+      const isInsideFolderModalHost = folderModalHost && path.includes(folderModalHost as Element);
+
+      // Only close if click is outside popover, source, Ask AI panel, and folder modal
+      if (!isInsidePopover && !isInsideSource && !isInsideAskAIPanel && !isInsideFolderModal && !isInsideFolderModalHost) {
         console.log('[WordExplanationPopover] Outside click detected, closing');
         onClose();
       }

@@ -281,6 +281,13 @@ interface WordExplanationLocalState {
 
 const wordExplanationsMap = new Map<string, WordExplanationLocalState>();
 
+// Track the last visible word info for shrink animation
+// This allows us to keep rendering the popover with visible=false during the shrink animation
+let lastVisibleWordInfo: {
+  wordId: string;
+  state: WordExplanationLocalState;
+} | null = null;
+
 /**
  * Initialize authentication state from Chrome storage
  * Loads auth info and sets the userAuthInfoAtom
@@ -3335,6 +3342,11 @@ function removeWordExplanation(wordId: string): void {
       // Remove the span
       parent.removeChild(state.wordSpanElement);
     }
+  }
+
+  // Clear lastVisibleWordInfo if it was for this word
+  if (lastVisibleWordInfo && lastVisibleWordInfo.wordId === wordId) {
+    lastVisibleWordInfo = null;
   }
 
   // Remove from map
@@ -7325,27 +7337,51 @@ function updateWordExplanationPopover(): void {
     }
   }
 
-  if (!visibleWordState || !visibleWordId) {
-    // No visible popover
-    console.log('[Content Script] No visible word explanation found, rendering empty fragment');
+  // Determine which state to use for rendering
+  let stateToRender: WordExplanationLocalState | null = null;
+  let wordIdToRender: string | null = null;
+  let isVisible = false;
+
+  if (visibleWordState && visibleWordId) {
+    // A popover is currently visible - update lastVisibleWordInfo for animation
+    stateToRender = visibleWordState;
+    wordIdToRender = visibleWordId;
+    isVisible = true;
+    lastVisibleWordInfo = {
+      wordId: visibleWordId,
+      state: visibleWordState,
+    };
+    console.log('[Content Script] Found visible word explanation, saving to lastVisibleWordInfo:', visibleWordId);
+  } else if (lastVisibleWordInfo) {
+    // No visible popover, but we have a last visible one - render with visible=false for shrink animation
+    stateToRender = lastVisibleWordInfo.state;
+    wordIdToRender = lastVisibleWordInfo.wordId;
+    isVisible = false;
+    console.log('[Content Script] No visible popover, but using lastVisibleWordInfo for shrink animation:', lastVisibleWordInfo.wordId);
+  }
+
+  if (!stateToRender || !wordIdToRender) {
+    // No visible popover and no last visible info - render empty
+    console.log('[Content Script] No visible word explanation and no lastVisibleWordInfo, rendering empty fragment');
     wordExplanationPopoverRoot.render(React.createElement(React.Fragment));
     return;
   }
 
-  console.log('[Content Script] Found visible word explanation:', {
-    wordId: visibleWordId,
-    word: visibleWordState.word,
-    content: visibleWordState.streamedContent.substring(0, 50) + '...',
-    isLoading: visibleWordState.isLoading,
-    sourceRef: visibleWordState.sourceRef.current,
+  console.log('[Content Script] Rendering word explanation:', {
+    wordId: wordIdToRender,
+    word: stateToRender.word,
+    content: stateToRender.streamedContent.substring(0, 50) + '...',
+    isLoading: stateToRender.isLoading,
+    sourceRef: stateToRender.sourceRef.current,
+    isVisible,
   });
 
   // Handler for tab change
   // Get atom state for this word
-  const atomState = store.get(wordExplanationsAtom).get(visibleWordId);
+  const atomState = store.get(wordExplanationsAtom).get(wordIdToRender);
 
   const handleTabChange = (tab: TabType) => {
-    const state = wordExplanationsMap.get(visibleWordId!);
+    const state = wordExplanationsMap.get(wordIdToRender!);
     if (state) {
       state.activeTab = tab;
       updateWordExplanationPopover();
@@ -7354,28 +7390,38 @@ function updateWordExplanationPopover(): void {
     if (atomState) {
       const updated: WordExplanationAtomState = { ...atomState, activeTab: tab };
       const map = new Map(store.get(wordExplanationsAtom));
-      map.set(visibleWordId!, updated);
+      map.set(wordIdToRender!, updated);
       store.set(wordExplanationsAtom, map);
     }
   };
 
   // Handler for close
   const handleClose = () => {
-    const state = wordExplanationsMap.get(visibleWordId!);
+    const state = wordExplanationsMap.get(wordIdToRender!);
     if (state) {
       state.popoverVisible = false;
       updateWordExplanationPopover();
     }
   };
 
+  // Handler for animation complete (shrink animation finished)
+  const handleAnimationComplete = () => {
+    console.log('[Content Script] Shrink animation complete, clearing lastVisibleWordInfo');
+    lastVisibleWordInfo = null;
+    // Now render empty fragment since animation is done
+    if (wordExplanationPopoverRoot) {
+      wordExplanationPopoverRoot.render(React.createElement(React.Fragment));
+    }
+  };
+
   // Render popover
   console.log('[Content Script] Rendering WordExplanationPopover component with props:', {
-    word: visibleWordState.word,
-    visible: visibleWordState.popoverVisible,
-    contentLength: visibleWordState.streamedContent.length,
-    activeTab: visibleWordState.activeTab,
-    isLoading: visibleWordState.isLoading,
-    hasSourceRef: !!visibleWordState.sourceRef.current,
+    word: stateToRender.word,
+    visible: isVisible,
+    contentLength: stateToRender.streamedContent.length,
+    activeTab: stateToRender.activeTab,
+    isLoading: stateToRender.isLoading,
+    hasSourceRef: !!stateToRender.sourceRef.current,
     atomState: atomState ? {
       synonymsCount: atomState.synonyms.length,
       antonymsCount: atomState.antonyms.length,
@@ -7388,16 +7434,17 @@ function updateWordExplanationPopover(): void {
       Provider,
       { store },
       React.createElement(WordExplanationPopover, {
-        word: visibleWordState.word,
-        sourceRef: visibleWordState.sourceRef,
-        visible: visibleWordState.popoverVisible,
-        content: visibleWordState.streamedContent,
-        activeTab: visibleWordState.activeTab,
+        word: stateToRender.word,
+        sourceRef: stateToRender.sourceRef,
+        visible: isVisible,
+        content: stateToRender.streamedContent,
+        activeTab: stateToRender.activeTab,
         onTabChange: handleTabChange,
         onClose: handleClose,
+        onAnimationComplete: handleAnimationComplete,
         useShadowDom: true,
-        isLoading: visibleWordState.isLoading,
-        errorMessage: visibleWordState.errorMessage || undefined,
+        isLoading: stateToRender.isLoading,
+        errorMessage: stateToRender.errorMessage || undefined,
         // Data from atoms
         synonyms: atomState?.synonyms || [],
         antonyms: atomState?.antonyms || [],
@@ -7411,27 +7458,27 @@ function updateWordExplanationPopover(): void {
         // Bookmark/Save state
         isSaved: atomState?.isSaved || false,
         isSavingWord: atomState?.isSavingWord || false,
-        onBookmarkClick: () => handleWordBookmarkClick(visibleWordId!),
+        onBookmarkClick: () => handleWordBookmarkClick(wordIdToRender!),
         onDelete: () => {
-          removeWordExplanation(visibleWordId!);
+          removeWordExplanation(wordIdToRender!);
         },
         // Handlers
-        onGetContextualMeaning: () => handleGetContextualMeaning(visibleWordId!),
-        onGetMoreExamples: () => handleGetMoreExamples(visibleWordId!),
-        onGetSynonyms: () => handleGetSynonyms(visibleWordId!),
-        onGetAntonyms: () => handleGetAntonyms(visibleWordId!),
-        onTranslate: () => handleTranslateWord(visibleWordId!),
-        onAskAI: () => handleAskAI(visibleWordId!),
+        onGetContextualMeaning: () => handleGetContextualMeaning(wordIdToRender!),
+        onGetMoreExamples: () => handleGetMoreExamples(wordIdToRender!),
+        onGetSynonyms: () => handleGetSynonyms(wordIdToRender!),
+        onGetAntonyms: () => handleGetAntonyms(wordIdToRender!),
+        onTranslate: () => handleTranslateWord(wordIdToRender!),
+        onAskAI: () => handleAskAI(wordIdToRender!),
         onAskAIButtonMount: (ref) => {
           // Store the button ref in state for positioning
-          const currentState = store.get(wordExplanationsAtom).get(visibleWordId!);
+          const currentState = store.get(wordExplanationsAtom).get(wordIdToRender!);
           if (currentState) {
             const updated: WordExplanationAtomState = {
               ...currentState,
               askAIButtonRef: ref,
             };
             const map = new Map(store.get(wordExplanationsAtom));
-            map.set(visibleWordId!, updated);
+            map.set(wordIdToRender!, updated);
             store.set(wordExplanationsAtom, map);
             updateWordAskAISidePanel();
           }
@@ -8245,7 +8292,7 @@ function injectBookmarkToast(): void {
       padding: 0.5rem 1rem;
       border: none;
       border-radius: 13px;
-      background: ${COLORS.PRIMARY_VERY_LIGHT};
+      background: none;
       color: ${COLORS.PRIMARY_LIGHT};
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 0.875rem;
@@ -8255,8 +8302,7 @@ function injectBookmarkToast(): void {
     }
     
     .bookmark-toast-button:hover {
-      background: ${COLORS.PRIMARY_LIGHT} !important;
-      color: ${COLORS.WHITE} !important;
+      background: ${COLORS.PRIMARY_VERY_LIGHT} !important;
     }
     
     .bookmark-toast-button:active {

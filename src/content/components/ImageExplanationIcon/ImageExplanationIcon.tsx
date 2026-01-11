@@ -1,7 +1,8 @@
 // src/content/components/ImageExplanationIcon/ImageExplanationIcon.tsx
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './ImageExplanationIcon.module.css';
 import { COLORS } from '@/constants/colors';
+import { OnHoverMessage } from '../OnHoverMessage';
 
 export interface ImageExplanationIconProps {
   /** Position of the icon */
@@ -49,7 +50,7 @@ const TealBookIcon: React.FC<{ className?: string }> = ({ className }) => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#14B8A6"
+    stroke={COLORS.PRIMARY}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -97,10 +98,15 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
   onBookmarkClick,
   isHiding = false,
 }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const iconElementRef = useRef<HTMLButtonElement | null>(null);
   const bookmarkElementRef = useRef<HTMLButtonElement | null>(null);
   const scrollableParentsRef = useRef<HTMLElement[]>([]);
   const rafIdRef = useRef<number | null>(null);
+  
+  // State to track when buttons are mounted for OnHoverMessage
+  const [isBookIconMounted, setIsBookIconMounted] = useState(false);
+  const [isBookmarkButtonMounted, setIsBookmarkButtonMounted] = useState(false);
 
   const getClassName = (baseClass: string) => {
     if (useShadowDom) {
@@ -112,7 +118,7 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
 
   // Update position function based on image element
   const updatePosition = useCallback(() => {
-    if (!iconElementRef.current || !imageElement) return;
+    if (!containerRef.current || !imageElement) return;
     
     try {
       // Get image's bounding rectangle (viewport-relative coordinates)
@@ -123,26 +129,20 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
         return;
       }
 
-      // Position icon outside image, to the left of top-left corner with margin
+      // Position container outside image, to the left of top-left corner with margin
       // left: imageRect.left - 30px (margin to left)
       // top: imageRect.top + 8px (slight margin from top)
       const iconX = imageRect.left - 30;
       const iconY = imageRect.top + 8;
       
-      // Update position directly via DOM for immediate update
-      iconElementRef.current.style.left = `${iconX}px`;
-      iconElementRef.current.style.top = `${iconY}px`;
-      
-      // Update bookmark icon position if it exists
-      if (bookmarkElementRef.current && isBookmarked) {
-        bookmarkElementRef.current.style.left = `${iconX}px`;
-        bookmarkElementRef.current.style.top = `${iconY + 28}px`; // 28px below main icon
-      }
+      // Update container position directly via DOM for immediate update
+      containerRef.current.style.left = `${iconX}px`;
+      containerRef.current.style.top = `${iconY}px`;
     } catch (error) {
       // Silently handle errors (image might be removed from DOM)
       console.error('[ImageExplanationIcon] Error updating position:', error);
     }
-  }, [imageElement, isBookmarked]);
+  }, [imageElement]);
 
   // Handle scroll event
   const handleScroll = useCallback(() => {
@@ -159,24 +159,50 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
     updatePosition();
   }, [updatePosition]);
 
-  // Callback ref to detect when element is mounted
-  const setIconRef = useCallback((node: HTMLButtonElement | null) => {
+  // Callback ref for the icon button element (passed to parent for animation)
+  const setIconButtonRef = useCallback((node: HTMLButtonElement | null) => {
     iconElementRef.current = node;
     if (iconRef) {
       iconRef(node);
     }
   }, [iconRef]);
 
-  // Initial position update when ref is set
+  // Initial position update when container ref is set
   useEffect(() => {
-    if (iconElementRef.current && imageElement) {
+    if (containerRef.current && imageElement) {
       updatePosition();
     }
   }, [imageElement, updatePosition]);
 
+  // Update book icon mounted state when firstChunkReceived changes
+  useEffect(() => {
+    if (firstChunkReceived && iconElementRef.current) {
+      // Small delay to ensure ref is assigned after render
+      const timer = setTimeout(() => {
+        setIsBookIconMounted(true);
+      }, 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsBookIconMounted(false);
+    }
+  }, [firstChunkReceived]);
+
+  // Update bookmark button mounted state when isBookmarked changes
+  useEffect(() => {
+    if (isBookmarked && onBookmarkClick) {
+      // Small delay to ensure ref is assigned after render
+      const timer = setTimeout(() => {
+        setIsBookmarkButtonMounted(true);
+      }, 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsBookmarkButtonMounted(false);
+    }
+  }, [isBookmarked, onBookmarkClick]);
+
   // Set up scroll and resize listeners
   useEffect(() => {
-    if (!imageElement || !iconElementRef.current) {
+    if (!imageElement || !containerRef.current) {
       return;
     }
 
@@ -231,24 +257,25 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
     };
   }, [imageElement, handleScroll, handleResize, updatePosition]);
 
-  const iconStyle: React.CSSProperties = {
+  // Container style for vertical icon layout
+  const containerStyle: React.CSSProperties = {
     position: 'fixed',
     left: `${position.x}px`,
     top: `${position.y}px`,
     zIndex: 2147483647,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
   };
 
   const buttonClassName = `${getClassName('imageExplanationIcon')} ${isPanelOpen ? getClassName('panelOpen') : ''} ${firstChunkReceived ? getClassName('greenIcon') : ''} ${isHiding ? getClassName('hiding') : ''}`;
 
-  // Bookmark icon position (below the main icon) - will be updated dynamically
-  const bookmarkStyle: React.CSSProperties = {
-    position: 'fixed',
-    left: `${position.x}px`, // Same horizontal position as main icon (initial, will be updated)
-    top: `${position.y + 28}px`, // 28px below the main icon (initial, will be updated)
-    zIndex: 2147483647,
-    width: '20px',
-    height: '20px',
-    padding: '2px',
+  // Bookmark button style (no longer needs fixed positioning - container handles it)
+  const bookmarkButtonStyle: React.CSSProperties = {
+    width: '32px',
+    height: '32px',
+    padding: '0',
     border: 'none',
     background: 'transparent',
     cursor: 'pointer',
@@ -256,14 +283,15 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: '10px',
+    outline: 'none',
   };
 
   return (
-    <>
+    <div ref={containerRef} style={containerStyle}>
       <button
-        ref={setIconRef}
+        ref={setIconButtonRef}
         className={buttonClassName}
-        style={iconStyle}
         onClick={(e) => {
           e.stopPropagation();
           onClick();
@@ -292,32 +320,49 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
           />
         )}
       </button>
-      {isBookmarked && onBookmarkClick && (
-        <button
-          ref={bookmarkElementRef}
-          style={bookmarkStyle}
-          onClick={(e) => {
-            e.stopPropagation();
-            onBookmarkClick();
-          }}
-          aria-label="Remove bookmark"
-          title="Remove bookmark"
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill={COLORS.PRIMARY}
-            stroke={COLORS.PRIMARY}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-          </svg>
-        </button>
+      {isBookIconMounted && firstChunkReceived && iconElementRef.current && (
+        <OnHoverMessage
+          message="View explanation"
+          targetRef={iconElementRef}
+          position="left"
+          offset={8}
+        />
       )}
-    </>
+      {isBookmarked && onBookmarkClick && (
+        <>
+          <button
+            ref={bookmarkElementRef}
+            style={bookmarkButtonStyle}
+            onClick={(e) => {
+              e.stopPropagation();
+              onBookmarkClick();
+            }}
+            aria-label="Remove bookmark"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill={COLORS.PRIMARY}
+              stroke={COLORS.PRIMARY}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+          {isBookmarkButtonMounted && bookmarkElementRef.current && (
+            <OnHoverMessage
+              message="Remove bookmark"
+              targetRef={bookmarkElementRef}
+              position="left"
+              offset={8}
+            />
+          )}
+        </>
+      )}
+    </div>
   );
 };
 
