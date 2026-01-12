@@ -21,7 +21,7 @@
   max-width: calc(100vw - 20px) !important;
   background: var(--color-white, #FFFFFF) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 20px var(--color-shadow-black-10, rgba(0, 0, 0, 0.1)) !important;
+  box-shadow: none !important;
   border: none !important;
   display: flex !important;
   flex-direction: column !important;
@@ -43,10 +43,12 @@
 /* Slide animation states */
 .baseSidePanel.open {
   animation: slideIn 0.3s ease forwards !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
 
 .baseSidePanel.slidingOut {
   animation: slideOut 0.3s ease forwards !important;
+  box-shadow: none !important;
 }
 
 @keyframes slideIn {

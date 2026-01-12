@@ -1,5 +1,5 @@
-/* src/content/styles/imageExplanationIcon.shadow.css */
-/* Shadow DOM compatible styles for ImageExplanationIcon component */
+/* src/content/styles/explanationIconButton.shadow.css */
+/* Shadow DOM compatible styles for ExplanationIconButton component */
 /* ALL properties use !important for Shadow DOM style isolation */
 
 :host {
@@ -18,19 +18,8 @@
   box-sizing: border-box !important;
 }
 
-/* Icon Container */
-.iconContainer {
-  position: fixed !important;
-  z-index: 2147483647 !important;
-  pointer-events: none !important;
-}
-
-.iconContainer > * {
-  pointer-events: auto !important;
-}
-
-/* Image Explanation Icon */
-.imageExplanationIcon {
+/* Explanation Icon Button */
+.explanationIconButton {
   width: 14px !important;
   height: 14px !important;
   border-radius: 0 !important;
@@ -43,78 +32,51 @@
   box-shadow: none !important;
   padding: 0 !important;
   margin: 0 !important;
-  animation: imageIconEmerge 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  outline: none !important;
 }
 
-.imageExplanationIcon:hover {
+.explanationIconButton:hover {
   box-shadow: none !important;
 }
 
-.imageExplanationIcon.panelOpen {
-  /* Border only shown when greenIcon (book icon) is displayed */
+.explanationIconButton.panelOpen {
+  /* No special styling when panel is open */
 }
 
-.imageExplanationIcon.greenIcon {
+.explanationIconButton.greenIcon {
   background: transparent !important;
   box-shadow: none !important;
 }
 
-.imageExplanationIcon.greenIcon:hover {
+.explanationIconButton.greenIcon:hover {
   box-shadow: none !important;
 }
 
-.imageExplanationIcon.spinning {
+.explanationIconButton.spinning {
   background: transparent !important;
   box-shadow: none !important;
 }
 
-.imageExplanationIcon.spinning:hover {
+.explanationIconButton.spinning:hover {
   background: transparent !important;
   box-shadow: none !important;
 }
 
-.imageExplanationIcon.greenIcon.panelOpen {
-  /* No border - using OnHoverMessage instead */
-}
-
-.imageExplanationIcon:active {
+.explanationIconButton:active {
   transform: scale(0.95) !important;
 }
 
 /* Hiding state for disappear animation */
-.imageExplanationIcon.hiding {
-  animation: imageIconShrink 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+.explanationIconButton.hiding {
+  animation: iconShrink 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
 }
 
+/* Icon Image */
 .iconImage {
   width: 14px !important;
   height: 14px !important;
   object-fit: contain !important;
   display: block !important;
-}
-
-/* Icon appear animation */
-@keyframes imageIconEmerge {
-  0% {
-    opacity: 0;
-    transform: scale(0);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Icon disappear animation */
-@keyframes imageIconShrink {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0);
-  }
 }
 
 /* Spinner Container - Circular white background */
@@ -127,5 +89,26 @@
   padding: 2px !important;
 }
 
-/* Spinner styles are now provided by the reusable Spinner component */
+/* Icon appear animation */
+@keyframes iconEmerge {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
+/* Icon disappear animation */
+@keyframes iconShrink {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}

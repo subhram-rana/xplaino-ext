@@ -1,0 +1,96 @@
+/* src/content/components/ui/ExplanationIconButton/ExplanationIconButton.module.css */
+
+/* Explanation Icon Button */
+.explanationIconButton {
+  width: 14px;
+  height: 14px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+}
+
+.explanationIconButton:hover {
+  box-shadow: none;
+}
+
+.explanationIconButton.panelOpen {
+  /* No special styling when panel is open */
+}
+
+.explanationIconButton.greenIcon {
+  background: transparent;
+  box-shadow: none;
+}
+
+.explanationIconButton.greenIcon:hover {
+  box-shadow: none;
+}
+
+.explanationIconButton.spinning {
+  background: transparent;
+  box-shadow: none;
+}
+
+.explanationIconButton.spinning:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+.explanationIconButton:active {
+  transform: scale(0.95);
+}
+
+/* Hiding state for disappear animation */
+.explanationIconButton.hiding {
+  animation: iconShrink 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Icon Image */
+.iconImage {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Spinner Container - Circular white background */
+.spinnerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+/* Icon appear animation */
+@keyframes iconEmerge {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Icon disappear animation */
+@keyframes iconShrink {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}

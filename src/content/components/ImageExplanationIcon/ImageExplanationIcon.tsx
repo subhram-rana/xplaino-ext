@@ -1,8 +1,6 @@
 // src/content/components/ImageExplanationIcon/ImageExplanationIcon.tsx
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import styles from './ImageExplanationIcon.module.css';
-import { COLORS } from '@/constants/colors';
-import { OnHoverMessage } from '../OnHoverMessage';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { ExplanationIconButton } from '../ui/ExplanationIconButton';
 
 export interface ImageExplanationIconProps {
   /** Position of the icon */
@@ -32,33 +30,6 @@ export interface ImageExplanationIconProps {
   /** Whether the icon is hiding (for disappear animation) */
   isHiding?: boolean;
 }
-
-/**
- * Get the icon URL for the purple xplaino icon
- */
-function getPurpleIconUrl(): string {
-  return chrome.runtime.getURL('src/assets/icons/xplaino-purple-icon.ico');
-}
-
-/**
- * Teal Book Open icon (Lucide wireframe/outline style) for successful explanation
- */
-const TealBookIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    className={className}
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={COLORS.PRIMARY}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-  </svg>
-);
 
 /**
  * Find all scrollable parent elements
@@ -99,22 +70,8 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
   isHiding = false,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const iconElementRef = useRef<HTMLButtonElement | null>(null);
-  const bookmarkElementRef = useRef<HTMLButtonElement | null>(null);
   const scrollableParentsRef = useRef<HTMLElement[]>([]);
   const rafIdRef = useRef<number | null>(null);
-  
-  // State to track when buttons are mounted for OnHoverMessage
-  const [isBookIconMounted, setIsBookIconMounted] = useState(false);
-  const [isBookmarkButtonMounted, setIsBookmarkButtonMounted] = useState(false);
-
-  const getClassName = (baseClass: string) => {
-    if (useShadowDom) {
-      return baseClass;
-    }
-    const styleClass = styles[baseClass as keyof typeof styles];
-    return styleClass || baseClass;
-  };
 
   // Update position function based on image element
   const updatePosition = useCallback(() => {
@@ -159,46 +116,12 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
     updatePosition();
   }, [updatePosition]);
 
-  // Callback ref for the icon button element (passed to parent for animation)
-  const setIconButtonRef = useCallback((node: HTMLButtonElement | null) => {
-    iconElementRef.current = node;
-    if (iconRef) {
-      iconRef(node);
-    }
-  }, [iconRef]);
-
   // Initial position update when container ref is set
   useEffect(() => {
     if (containerRef.current && imageElement) {
       updatePosition();
     }
   }, [imageElement, updatePosition]);
-
-  // Update book icon mounted state when firstChunkReceived changes
-  useEffect(() => {
-    if (firstChunkReceived && iconElementRef.current) {
-      // Small delay to ensure ref is assigned after render
-      const timer = setTimeout(() => {
-        setIsBookIconMounted(true);
-      }, 10);
-      return () => clearTimeout(timer);
-    } else {
-      setIsBookIconMounted(false);
-    }
-  }, [firstChunkReceived]);
-
-  // Update bookmark button mounted state when isBookmarked changes
-  useEffect(() => {
-    if (isBookmarked && onBookmarkClick) {
-      // Small delay to ensure ref is assigned after render
-      const timer = setTimeout(() => {
-        setIsBookmarkButtonMounted(true);
-      }, 10);
-      return () => clearTimeout(timer);
-    } else {
-      setIsBookmarkButtonMounted(false);
-    }
-  }, [isBookmarked, onBookmarkClick]);
 
   // Set up scroll and resize listeners
   useEffect(() => {
@@ -257,114 +180,36 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
     };
   }, [imageElement, handleScroll, handleResize, updatePosition]);
 
-  // Container style for vertical icon layout
-  const containerStyle: React.CSSProperties = {
+  // Wrapper style for fixed positioning
+  const wrapperStyle: React.CSSProperties = {
     position: 'fixed',
     left: `${position.x}px`,
     top: `${position.y}px`,
     zIndex: 2147483647,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-  };
-
-  const buttonClassName = `${getClassName('imageExplanationIcon')} ${isPanelOpen ? getClassName('panelOpen') : ''} ${firstChunkReceived ? getClassName('greenIcon') : ''} ${isHiding ? getClassName('hiding') : ''}`;
-
-  // Bookmark button style (no longer needs fixed positioning - container handles it)
-  const bookmarkButtonStyle: React.CSSProperties = {
-    width: '32px',
-    height: '32px',
-    padding: '0',
-    border: 'none',
-    background: 'transparent',
-    cursor: 'pointer',
-    pointerEvents: 'auto',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '10px',
-    outline: 'none',
   };
 
   return (
-    <div ref={containerRef} style={containerStyle}>
-      <button
-        ref={setIconButtonRef}
-        className={buttonClassName}
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick();
-        }}
-        onMouseEnter={(e) => {
-          e.stopPropagation();
-          onMouseEnter?.();
-        }}
-        onMouseLeave={(e) => {
-          e.stopPropagation();
-          onMouseLeave?.();
-        }}
-        aria-label="Simplify image"
-      >
-        {isSpinning ? (
-          <span 
-            className={getClassName('loadingSpinner')}
-          />
-        ) : firstChunkReceived ? (
-          <TealBookIcon className={getClassName('iconImage')} />
-        ) : (
-          <img
-            src={getPurpleIconUrl()}
-            alt="Xplaino"
-            className={getClassName('iconImage')}
-          />
-        )}
-      </button>
-      {isBookIconMounted && firstChunkReceived && iconElementRef.current && (
-        <OnHoverMessage
-          message="View explanation"
-          targetRef={iconElementRef}
-          position="left"
-          offset={8}
-        />
-      )}
-      {isBookmarked && onBookmarkClick && (
-        <>
-          <button
-            ref={bookmarkElementRef}
-            style={bookmarkButtonStyle}
-            onClick={(e) => {
-              e.stopPropagation();
-              onBookmarkClick();
-            }}
-            aria-label="Remove bookmark"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill={COLORS.PRIMARY}
-              stroke={COLORS.PRIMARY}
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-            </svg>
-          </button>
-          {isBookmarkButtonMounted && bookmarkElementRef.current && (
-            <OnHoverMessage
-              message="Remove bookmark"
-              targetRef={bookmarkElementRef}
-              position="left"
-              offset={8}
-            />
-          )}
-        </>
-      )}
+    <div ref={containerRef} style={wrapperStyle}>
+      <ExplanationIconButton
+        isSpinning={isSpinning}
+        isPanelOpen={isPanelOpen}
+        isBookmarked={isBookmarked}
+        firstChunkReceived={firstChunkReceived}
+        isHiding={isHiding}
+        onClick={onClick}
+        onBookmarkClick={onBookmarkClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        iconRef={iconRef as ((element: HTMLButtonElement | null) => void) | undefined}
+        useShadowDom={useShadowDom}
+        spinnerSize="xs"
+        showPurpleIconInitially={true}
+        ariaLabel="Simplify image"
+        hoverMessage="View explanation"
+        bookmarkHoverMessage="Remove bookmark"
+      />
     </div>
   );
 };
 
 ImageExplanationIcon.displayName = 'ImageExplanationIcon';
-

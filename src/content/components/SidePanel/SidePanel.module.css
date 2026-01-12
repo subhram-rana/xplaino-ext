@@ -45,6 +45,7 @@
 
 .sidePanel.slidingOut {
   transform: translateX(100%) !important;
+  box-shadow: none !important;
 }
 
 .sidePanel.verticallyExpanded {

@@ -29,10 +29,31 @@
   pointer-events: auto !important;
 }
 
+/* Icon Button Container - White background with border radius */
+.iconButtonContainer {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  background: var(--color-white, #FFFFFF) !important;
+  border-radius: 5px !important;
+  padding: 4px !important;
+  pointer-events: auto !important;
+}
+
+/* Spinner Container - Circular white background */
+.spinnerContainer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--color-white, #FFFFFF) !important;
+  border-radius: 50% !important;
+  padding: 2px !important;
+}
+
 /* Text Explanation Icon */
 .textExplanationIcon {
-  width: 18px !important;
-  height: 18px !important;
+  width: 14px !important;
+  height: 14px !important;
   border-radius: 0 !important;
   background: transparent !important;
   border: none !important;
@@ -65,29 +86,7 @@
   display: block !important;
 }
 
-.loadingSpinner {
-  display: block !important;
-  width: 14px !important;
-  height: 14px !important;
-  min-width: 14px !important;
-  min-height: 14px !important;
-  border: 2px solid var(--color-primary-opacity-15) !important;
-  border-top-color: var(--color-primary) !important;
-  border-right-color: var(--color-primary) !important;
-  border-radius: 50% !important;
-  animation: spinSpinner 0.6s linear infinite !important;
-  box-sizing: border-box !important;
-  flex-shrink: 0 !important;
-}
-
-@keyframes spinSpinner {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
+/* Spinner styles are now provided by the reusable Spinner component */
 
 /* Bookmarked Icon Container */
 .bookmarkedIconContainer {
@@ -105,8 +104,8 @@
 
 /* Bookmark Button */
 .bookmarkButton {
-  width: 18px !important;
-  height: 18px !important;
+  width: 14px !important;
+  height: 14px !important;
   border-radius: 0 !important;
   background: transparent !important;
   border: none !important;

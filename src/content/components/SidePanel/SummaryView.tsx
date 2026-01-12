@@ -22,7 +22,7 @@ import {
   hasContentAtom,
 } from '@/store/summaryAtoms';
 import { findMatchingElement } from '@/content/utils/referenceMatcher';
-import { COLORS } from '@/constants/colors';
+import { COLORS, colorWithOpacity } from '@/constants/colors';
 
 export interface SummaryViewProps {
   /** Whether to use Shadow DOM styling */
@@ -65,6 +65,10 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   
   // Track currently active reference (for button highlighting)
   const [activeRefText, setActiveRefText] = useState<string | null>(null);
+  
+  // Track element to keep scrolled to during streaming
+  const activeScrollTargetRef = useRef<HTMLElement | null>(null);
+  const scrollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
 
   // Animated dots state for "Reading page..."
@@ -145,6 +149,52 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
 
     return () => clearInterval(interval);
   }, [askingState, askStreamingText]);
+
+  // CRITICAL: Continuously scroll to active element during streaming
+  // This prevents the scroll from being interrupted by re-renders
+  useEffect(() => {
+    const isStreaming = summariseState === 'summarising' || askingState === 'asking';
+    
+    if (isStreaming && activeScrollTargetRef.current) {
+      console.log('[SummaryView] Starting continuous scroll during streaming');
+      
+      // Clear any existing interval
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+      }
+      
+      // Keep scrolling to the element every 200ms during streaming
+      scrollIntervalRef.current = setInterval(() => {
+        if (activeScrollTargetRef.current && activeScrollTargetRef.current.isConnected) {
+          try {
+            activeScrollTargetRef.current.scrollIntoView({ 
+              behavior: 'instant' as ScrollBehavior, 
+              block: 'center',
+              inline: 'nearest'
+            });
+          } catch (error) {
+            console.error('[SummaryView] Error in continuous scroll:', error);
+          }
+        }
+      }, 200);
+      
+      return () => {
+        if (scrollIntervalRef.current) {
+          clearInterval(scrollIntervalRef.current);
+          scrollIntervalRef.current = null;
+          console.log('[SummaryView] Stopped continuous scroll');
+        }
+      };
+    } else {
+      // Streaming stopped, clear the interval
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+        console.log('[SummaryView] Cleared scroll interval (streaming ended)');
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summariseState, askingState]);
 
 
   // Extract page content on mount (only if not already done)
@@ -263,6 +313,12 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       clearHighlightSmoothly(elementToClear);
       highlightedElementRef.current = undefined;
       setActiveRefText(null);
+      // Clear scroll target
+      activeScrollTargetRef.current = null;
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+      }
       if (highlightTimeoutRef.current) {
         clearTimeout(highlightTimeoutRef.current);
         highlightTimeoutRef.current = null;
@@ -279,6 +335,12 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       highlightedElementRef.current = undefined;
     } else {
       console.log('[SummaryView] Step 1: No previous highlight to clear');
+    }
+    // Clear previous scroll target
+    activeScrollTargetRef.current = null;
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
     }
     if (highlightTimeoutRef.current) {
       clearTimeout(highlightTimeoutRef.current);
@@ -407,7 +469,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         };
         console.log('[SummaryView] Original element styles:', originalStyles);
         
-        element.style.backgroundColor = COLORS.PRIMARY_OPACITY_15;
+        element.style.backgroundColor = colorWithOpacity(COLORS.PRIMARY_VERY_LIGHT, 0.5);
         element.style.borderRadius = '5px';
         element.style.paddingLeft = '4px';
         element.style.paddingRight = '4px';
@@ -421,7 +483,10 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         
         highlightedElementRef.current = element;
         setActiveRefText(refText);
+        // Set as active scroll target for continuous scrolling during streaming
+        activeScrollTargetRef.current = element;
         console.log('[SummaryView] Step 6: Highlight reference stored, will persist until toggled or another ref clicked');
+        console.log('[SummaryView] Active scroll target set for continuous scrolling during streaming');
       } catch (error) {
         console.error('[SummaryView] Step 6: Error applying highlight:', error);
       }
@@ -775,6 +840,12 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       highlightedElementRef.current = undefined;
     }
     setActiveRefText(null);
+    // Clear scroll target
+    activeScrollTargetRef.current = null;
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
     if (highlightTimeoutRef.current) {
       clearTimeout(highlightTimeoutRef.current);
       highlightTimeoutRef.current = null;

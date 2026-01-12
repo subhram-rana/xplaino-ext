@@ -11,7 +11,7 @@
   max-width: 400px !important;
   background: var(--color-white) !important;
   border-radius: 30px !important;
-  box-shadow: 0 4px 20px var(--color-shadow-black-10, rgba(0, 0, 0, 0.1)) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
   border: none !important;
   padding: 0 15px 0 15px !important;
   z-index: 2147483640 !important;
@@ -423,20 +423,7 @@
   font-size: 14px !important;
 }
 
-.spinner {
-  width: 16px !important;
-  height: 16px !important;
-  border: 2px solid var(--color-primary-opacity-20) !important;
-  border-top-color: var(--color-primary, #9527F5) !important;
-  border-radius: 50% !important;
-  animation: spin 0.8s linear infinite !important;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg) !important;
-  }
-}
+/* Spinner styles are now provided by the reusable Spinner component */
 
 /* Error State */
 .errorState {
@@ -498,14 +485,7 @@
   cursor: not-allowed !important;
 }
 
-.getContextualMeaningButton .buttonSpinner {
-  width: 16px !important;
-  height: 16px !important;
-  border: 2px solid var(--color-white-opacity-30) !important;
-  border-top-color: white !important;
-  border-radius: 50% !important;
-  animation: spin 0.6s linear infinite !important;
-}
+/* Button spinner styles are now provided by the reusable Spinner component */
 
 /* ButtonGroup Styles (for tabs) */
 .buttonGroup {
@@ -644,24 +624,8 @@
   justify-content: center !important;
 }
 
-.purple-spinner {
-  width: 18px !important;
-  height: 18px !important;
-  border: 2px solid var(--color-primary-opacity-20) !important;
-  border-top-color: var(--color-primary, #9527F5) !important;
-  border-radius: 50% !important;
-  animation: spin 0.8s linear infinite !important;
-}
-
-/* Button spinner */
-.buttonSpinner {
-  width: 20px !important;
-  height: 20px !important;
-  border: 2px solid var(--color-primary-opacity-20) !important;
-  border-top-color: var(--color-primary) !important;
-  border-radius: 50% !important;
-  animation: spin 0.6s linear infinite !important;
-}
+/* Purple spinner and button spinner styles are now provided by the reusable Spinner component */
+/* The .purple-spinner class is still used in index.ts for the word span spinner (inline styles) */
 
 /* Grammar tab content */
 .grammarContent {

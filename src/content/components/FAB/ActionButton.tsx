@@ -1,7 +1,8 @@
 // src/content/components/FAB/ActionButton.tsx
 import React, { useRef } from 'react';
-import { FileText, Languages, MoreVertical, Power, Loader2, StopCircle, Bookmark, Globe, LayoutDashboard, Settings } from 'lucide-react';
+import { FileText, Languages, MoreVertical, Power, StopCircle, Bookmark, Globe, LayoutDashboard, Settings } from 'lucide-react';
 import { OnHoverMessage } from '../OnHoverMessage';
+import { Spinner } from '../ui/Spinner';
 
 export interface ActionButtonProps {
   /** Tooltip text shown on hover */
@@ -63,11 +64,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
         aria-label={tooltip}
       >
         {isLoading ? (
-          <Loader2
-            size={18}
-            className="loadingSpinner"
-            strokeWidth={2.5}
-          />
+          <Spinner size="lg" className="loadingSpinner" />
         ) : customText ? (
           <span
             style={{

@@ -1,0 +1,108 @@
+/* src/content/styles/bookmarkSavedToast.shadow.css */
+/* Shadow DOM compatible styles for BookmarkSavedToast component */
+/* ALL properties use !important for Shadow DOM style isolation */
+
+:host {
+  all: initial !important;
+  font-family: var(--font-family-primary, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+}
+
+* {
+  box-sizing: border-box !important;
+}
+
+.toastContainer {
+  position: fixed !important;
+  top: 100px !important;
+  right: 20px !important;
+  z-index: 2147483647 !important;
+  width: 350px !important;
+}
+
+.toast {
+  background: var(--color-white, #FFFFFF) !important;
+  border: none !important;
+  color: var(--color-primary-light, #14a08a) !important;
+  padding: 1rem 1.25rem !important;
+  border-radius: 20px !important;
+  font-family: var(--font-family-primary, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important; /* Grey shadow like word modal */
+  animation: slideIn 0.3s ease-out !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+}
+
+.toastClosing {
+  animation: slideOut 0.3s ease-in forwards !important;
+}
+
+.message {
+  line-height: 1.5 !important;
+  word-wrap: break-word !important;
+}
+
+.link {
+  color: var(--color-primary-light, #14a08a) !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+}
+
+.link:hover {
+  opacity: 0.8 !important;
+}
+
+.buttons {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+  margin-top: 0.25rem !important;
+}
+
+.button {
+  flex: 1 !important;
+  padding: 0.5rem 1rem !important;
+  border: none !important;
+  border-radius: 13px !important;
+  font-family: var(--font-family-primary, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: var(--color-primary-very-light, #e0f2ef) !important;
+  color: var(--color-primary-light, #14a08a) !important;
+}
+
+.button:hover {
+  background: var(--color-primary-opacity-20, rgba(13, 128, 112, 0.2)) !important;
+}
+
+.button:active {
+  transform: scale(0.98) !important;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}

@@ -1,8 +1,6 @@
 // src/content/components/TextExplanationIcon/TextExplanationIcon.tsx
 import React, { useState, useCallback, useRef } from 'react';
-import styles from './TextExplanationIcon.module.css';
-import { OnHoverMessage } from '../OnHoverMessage';
-import { COLORS } from '../../../constants/colors';
+import { ExplanationIconButton } from '../ui/ExplanationIconButton';
 
 export interface TextExplanationIconProps {
   /** Position of the icon */
@@ -19,27 +17,11 @@ export interface TextExplanationIconProps {
   isPanelOpen?: boolean;
   /** Selection range for scroll tracking */
   selectionRange?: Range | null;
+  /** Whether the text is bookmarked */
+  isBookmarked?: boolean;
+  /** Click handler for bookmark icon */
+  onBookmarkClick?: () => void;
 }
-
-/**
- * Teal Book Open icon (Lucide wireframe/outline style) for successful explanation
- */
-const TealBookIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    className={className}
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={COLORS.PRIMARY}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-  </svg>
-);
 
 /**
  * Find all scrollable parent elements
@@ -72,24 +54,17 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
   iconRef,
   isPanelOpen = false,
   selectionRange,
+  isBookmarked = false,
+  onBookmarkClick,
 }) => {
-  const iconElementRef = useRef<HTMLButtonElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [isRefSet, setIsRefSet] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const scrollableParentsRef = useRef<HTMLElement[]>([]);
   const rafIdRef = useRef<number | null>(null);
 
-  const getClassName = (baseClass: string) => {
-    if (useShadowDom) {
-      return baseClass;
-    }
-    const styleClass = styles[baseClass as keyof typeof styles];
-    return styleClass || baseClass;
-  };
-
   // Update position function
   const updatePosition = useCallback(() => {
-    if (!iconElementRef.current || !selectionRange) return;
+    if (!containerRef.current || !selectionRange) return;
     
     try {
       // Check if selection range is still valid
@@ -131,8 +106,8 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
       
       // Update position directly via DOM for immediate update (no React render delay)
       // Align icon with text span - position it closer and aligned with text baseline
-      iconElementRef.current.style.left = `${leftmostX - 24}px`;
-      iconElementRef.current.style.top = `${topmostY}px`;
+      containerRef.current.style.left = `${leftmostX - 24}px`;
+      containerRef.current.style.top = `${topmostY}px`;
     } catch (error) {
       // Silently handle errors (range might be invalid after DOM changes)
       console.error('[TextExplanationIcon] Error updating position:', error);
@@ -149,18 +124,11 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
     });
   }, [updatePosition]);
 
-  // Callback ref to detect when element is mounted
-  const setIconRef = useCallback((buttonElement: HTMLButtonElement | null) => {
-    iconElementRef.current = buttonElement;
-    setIsRefSet(buttonElement !== null);
-    setIsMounted(buttonElement !== null);
-    
-    // Always use fixed positioning - never try to insert into wrapper span
-    // as that breaks React's reconciliation
-    if (iconRef) {
-      iconRef(buttonElement);
-    }
-  }, [iconRef]);
+  // Callback ref for container
+  const setContainerRef = useCallback((element: HTMLDivElement | null) => {
+    containerRef.current = element;
+    setIsRefSet(element !== null);
+  }, []);
 
   // Initial position update when ref is set
   React.useLayoutEffect(() => {
@@ -170,9 +138,8 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
   }, [isRefSet, selectionRange, updatePosition]);
 
   // Set up scroll listeners when both ref and range are ready
-  // Always use scroll listeners for fixed positioning
   React.useEffect(() => {
-    if (!selectionRange || !isRefSet || !iconElementRef.current) {
+    if (!selectionRange || !isRefSet) {
       return;
     }
 
@@ -228,47 +195,33 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
     };
   }, [selectionRange, isRefSet, handleScroll, updatePosition]);
 
-  // Always use fixed positioning - the scroll listeners will update position
-  const iconStyle: React.CSSProperties = {
+  // Wrapper style for fixed positioning
+  const wrapperStyle: React.CSSProperties = {
     position: 'fixed',
     left: `${position.x}px`,
     top: `${position.y}px`,
     zIndex: 2147483647,
   };
 
-  const buttonClassName = `${getClassName('textExplanationIcon')} ${isPanelOpen ? getClassName('panelOpen') : ''}`;
-
   return (
-    <>
-      <button
-        ref={setIconRef}
-        className={buttonClassName}
-        style={iconStyle}
-        onClick={(e) => {
-          e.stopPropagation();
-          onTogglePanel();
-        }}
-        aria-label="Toggle text explanation"
-      >
-        {isSpinning ? (
-          <span 
-            className={getClassName('loadingSpinner')}
-          />
-        ) : (
-          <TealBookIcon className={getClassName('iconImage')} />
-        )}
-      </button>
-      {isMounted && iconElementRef.current && (
-        <OnHoverMessage
-          message="View explanation"
-          targetRef={iconElementRef}
-          position="left"
-          offset={10}
-        />
-      )}
-    </>
+    <div ref={setContainerRef} style={wrapperStyle}>
+      <ExplanationIconButton
+        isSpinning={isSpinning}
+        isPanelOpen={isPanelOpen}
+        isBookmarked={isBookmarked}
+        firstChunkReceived={true} // Text explanation always shows book icon (no purple icon phase)
+        onClick={onTogglePanel}
+        onBookmarkClick={onBookmarkClick}
+        iconRef={iconRef as ((element: HTMLButtonElement | null) => void) | undefined}
+        useShadowDom={useShadowDom}
+        spinnerSize="sm"
+        showPurpleIconInitially={false}
+        ariaLabel="Toggle text explanation"
+        hoverMessage="View explanation"
+        bookmarkHoverMessage="Remove bookmark"
+      />
+    </div>
   );
 };
 
 TextExplanationIcon.displayName = 'TextExplanationIcon';
-

@@ -230,13 +230,12 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
 
   // Calculate position when component mounts or sourceRef changes
   useEffect(() => {
-    if (visible && sourceRef?.current) {
-      // Wait a frame for the element to be rendered with content
-      requestAnimationFrame(() => {
-        calculatePosition();
-      });
+    if (visible && sourceRef?.current && elementRef.current) {
+      // Calculate position immediately, synchronously
+      // This must happen BEFORE the animation starts
+      calculatePosition();
     }
-  }, [visible, sourceRef, calculatePosition]);
+  }, [visible, sourceRef, elementRef, calculatePosition]);
 
   // Recalculate position when animation completes (state becomes 'visible')
   // This ensures position is correct when reopening the popover
@@ -314,9 +313,10 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
     };
   }, [visible, sourceRef, calculatePosition]);
 
-  // Sync sourceRef with animation hook
+  // Sync sourceRef with animation hook when element renders
+  // Similar to FABDisablePopover pattern
   useEffect(() => {
-    if (sourceRef?.current) {
+    if (shouldRender && sourceRef?.current) {
       (animationSourceRef as React.MutableRefObject<HTMLElement | null>).current = sourceRef.current;
       console.log('[WordExplanationPopover] Synced source ref:', {
         sourceElement: sourceRef.current,
@@ -324,22 +324,73 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
         className: sourceRef.current.className,
         textContent: sourceRef.current.textContent,
       });
-    } else {
-      console.warn('[WordExplanationPopover] sourceRef.current is null!');
     }
-  }, [sourceRef, animationSourceRef]);
+  }, [sourceRef, animationSourceRef, shouldRender]);
 
   // Handle visibility changes with animation
+  // Pattern similar to FABDisablePopover
   useEffect(() => {
     if (visible && !wasVisible.current) {
       // Opening
       wasVisible.current = true;
       console.log('[WordExplanationPopover] Opening with emerge animation');
-      emerge().catch((error) => {
-        console.error('[WordExplanationPopover] Emerge animation error:', error);
+      
+      // Wait for element to be mounted, then calculate position and animate
+      requestAnimationFrame(() => {
+        const element = elementRef.current;
+        const source = sourceRef?.current;
+        
+        if (element && source) {
+          // Calculate position synchronously
+          const sourceRect = source.getBoundingClientRect();
+          const popoverRect = element.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const viewportWidth = window.innerWidth;
+
+          // Default: position below the word, centered
+          let top = sourceRect.bottom + 8; // 8px gap
+          let left = sourceRect.left + (sourceRect.width / 2) - (popoverRect.width / 2);
+
+          // Check if popover would go off the right edge
+          if (left + popoverRect.width > viewportWidth - 20) {
+            left = viewportWidth - popoverRect.width - 20;
+          }
+
+          // Check if popover would go off the left edge
+          if (left < 20) {
+            left = 20;
+          }
+
+          // Check if popover would go off the bottom edge
+          if (top + popoverRect.height > viewportHeight - 20) {
+            // Position above the word instead
+            top = sourceRect.top - popoverRect.height - 8;
+          }
+
+          // Ensure it doesn't go above the viewport
+          if (top < 20) {
+            top = 20;
+          }
+
+          console.log('[WordExplanationPopover] Calculated position synchronously:', { top, left });
+          
+          // CRITICAL: Apply position directly to DOM BEFORE emerge() reads it
+          element.style.top = `${top}px`;
+          element.style.left = `${left}px`;
+          
+          // Also update state for subsequent renders
+          setPosition({ top, left });
+          
+          console.log('[WordExplanationPopover] Position applied to DOM, starting emerge animation');
+        }
+        
+        // Start animation - element is now at its final position
+        emerge().catch((error) => {
+          console.error('[WordExplanationPopover] Emerge animation error:', error);
+        });
       });
     } else if (!visible && wasVisible.current) {
-      // Closing - reset position for fresh calculation on next open
+      // Closing
       wasVisible.current = false;
       setPosition(null);
       console.log('[WordExplanationPopover] Closing with shrink animation');
@@ -354,7 +405,7 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
           onAnimationComplete?.();
         });
     }
-  }, [visible, emerge, shrink, onAnimationComplete]);
+  }, [visible, emerge, shrink, onAnimationComplete, sourceRef, elementRef]);
 
   // Handle outside click
   useEffect(() => {
@@ -495,16 +546,12 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
   console.log('[WordExplanationPopover] Rendering popover container');
 
   // Combine animation style with position style
-  // Only apply position when NOT animating to avoid overriding animation transforms
+  // Combine animation style with position style
   const combinedStyle: React.CSSProperties = {
     ...animationStyle,
-    // Start at scale(0) when emerging - the animation will take over
-    // This prevents a flash of full-size content before animation applies
-    ...(animationState === 'emerging' && {
-      transform: 'scale(0)',
-    }),
-    // Only override position when NOT animating to avoid overriding animation transforms
-    ...(position && animationState !== 'emerging' && animationState !== 'shrinking' && {
+    // CRITICAL: Always apply position when available - transform animation is relative to this
+    // The Web Animations API needs the element at its final position to calculate correct transforms
+    ...(position && {
       top: `${position.top}px`,
       left: `${position.left}px`,
     }),

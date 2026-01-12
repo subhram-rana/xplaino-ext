@@ -21,6 +21,9 @@ import { FolderListModal } from './components/FolderListModal';
 import { SavedParagraphIcon } from './components/SavedParagraphIcon';
 import { WelcomeModal } from './components/WelcomeModal/WelcomeModal';
 import { YouTubeAskAIButton } from './components/YouTubeAskAIButton';
+import { BookmarkSavedToast } from './components/BookmarkSavedToast';
+import { Spinner } from './components/ui/Spinner';
+import bookmarkSavedToastStyles from './styles/bookmarkSavedToast.shadow.css?inline';
 
 // Import Shadow DOM utilities
 import {
@@ -40,6 +43,7 @@ import subscriptionModalStyles from './styles/subscriptionModal.shadow.css?inlin
 import textExplanationSidePanelStyles from './styles/textExplanationSidePanel.shadow.css?inline';
 import textExplanationIconStyles from './styles/textExplanationIcon.shadow.css?inline';
 import imageExplanationIconStyles from './styles/imageExplanationIcon.shadow.css?inline';
+import explanationIconButtonStyles from './styles/explanationIconButton.shadow.css?inline';
 import wordExplanationPopoverStyles from './styles/wordExplanationPopover.shadow.css?inline';
 import wordAskAISidePanelStyles from './styles/wordAskAISidePanel.shadow.css?inline';
 import folderListModalStyles from './styles/folderListModal.shadow.css?inline';
@@ -49,10 +53,11 @@ import youtubeAskAIButtonStyles from './styles/youtubeAskAIButton.shadow.css?inl
 import highlightedCouponStyles from './styles/highlightedCoupon.shadow.css?inline';
 import minimalCouponButtonStyles from './styles/minimalCouponButton.shadow.css?inline';
 import baseSidePanelStyles from './styles/baseSidePanel.shadow.css?inline';
+import spinnerStyles from './styles/spinner.shadow.css?inline';
 
 // Import color CSS variables
 import { ALL_COLOR_VARIABLES, getAllColorVariables } from '../constants/colors.css.js';
-import { COLORS, colorWithOpacity } from '../constants/colors';
+import { COLORS } from '../constants/colors';
 import { getCurrentTheme } from '../constants/theme';
 
 // Import services and utilities
@@ -498,9 +503,10 @@ function injectFAB(): void {
 
   // Inject color CSS variables first
   injectStyles(shadow, ALL_COLOR_VARIABLES, true);
-  
+
   // Inject component styles
   injectStyles(shadow, fabStyles);
+  injectStyles(shadow, spinnerStyles);
 
   // Append to document
   document.body.appendChild(host);
@@ -1307,6 +1313,10 @@ async function handleExplainClick(
     store.set(textExplanationPanelOpenAtom, false);
   }
 
+  // Store reference to close image panel when text panel opens (for smooth transition)
+  const activeImageIdToClose = store.get(activeImageExplanationIdAtom);
+  const hasImagePanelToClose = activeImageIdToClose && store.get(imageExplanationPanelOpenAtom);
+
   // Calculate textStartIndex and textLength
   const textStartIndex = calculateTextStartIndex(range);
   const textLength = selectedText.length;
@@ -1448,6 +1458,20 @@ async function handleExplainClick(
           
           // Update UI after state is committed to atom
           if (isFirstChunk) {
+            // Close image panel first (if open) for smooth transition, then open text panel
+            if (hasImagePanelToClose && activeImageIdToClose) {
+              console.log('[Content Script] Switching from image to text explanation panel (new explanation)');
+              const imageExplanations = store.get(imageExplanationsAtom);
+              const activeImageExplanation = imageExplanations.get(activeImageIdToClose);
+              if (activeImageExplanation?.abortController) {
+                activeImageExplanation.abortController.abort();
+              }
+              store.set(imageExplanationPanelOpenAtom, false);
+              store.set(activeImageExplanationIdAtom, null);
+              updateImageExplanationPanel();
+              updateImageExplanationIconContainer();
+            }
+            
             // Open panel
             store.set(textExplanationPanelOpenAtom, true);
             updateTextExplanationPanel();
@@ -3049,7 +3073,7 @@ function createWordSpan(_word: string, range: Range): HTMLElement | null {
 }
 
 /**
- * Create purple spinner near the word span
+ * Create purple spinner near the word span using the reusable Spinner component
  */
 function createPurpleSpinner(wordSpan: HTMLElement): HTMLElement {
   const spinnerContainer = document.createElement('div');
@@ -3057,33 +3081,52 @@ function createPurpleSpinner(wordSpan: HTMLElement): HTMLElement {
   
   // Position spinner above the word span, centered horizontally
   // Use absolute positioning relative to the span so it scrolls with it
+  // Reduced top offset from -18px to -12px to be closer to the word
   spinnerContainer.style.cssText = `
     position: absolute;
     left: 50%;
-    top: -24px;
+    top: -12px;
     transform: translateX(-50%);
     z-index: 2147483647;
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #FFFFFF;
+    border-radius: 50%;
+    padding: 3px;
   `;
   
   // Append to wordSpan so it scrolls with it
   wordSpan.appendChild(spinnerContainer);
 
-  const spinner = document.createElement('div');
-  spinner.className = 'purple-spinner';
-  spinner.style.cssText = `
-    width: 18px;
-    height: 18px;
-    border: 2px solid ${colorWithOpacity(COLORS.PRIMARY, 0.2)};
-    border-top-color: ${COLORS.PRIMARY};
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+  // Create a shadow host for the spinner to use proper component styling
+  const spinnerId = `word-spinner-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: spinnerId,
+    zIndex: 2147483647,
+  });
+  
+  // Style the host element - override fixed positioning for inline use
+  host.style.cssText = `
+    all: initial;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   `;
-
-  spinnerContainer.appendChild(spinner);
+  
+  // Inject spinner styles
+  injectStyles(shadow, ALL_COLOR_VARIABLES);
+  injectStyles(shadow, spinnerStyles);
+  
+  // Create React root and render Spinner component
+  const root = ReactDOM.createRoot(mountPoint);
+  root.render(
+    React.createElement(Spinner, { size: 'sm', useShadowDom: true })
+  );
+  
+  // Append the shadow host to the spinner container
+  spinnerContainer.appendChild(host);
 
   return spinnerContainer;
 }
@@ -4583,8 +4626,27 @@ async function toggleTextExplanationPanel(explanationId: string): Promise<void> 
         await new Promise(resolve => setTimeout(resolve, 350));
       }
       
+      // Switch from image to text panel - open text panel first, then close image panel
+      // This creates a smooth content switch UX instead of close-then-open
       store.set(textExplanationPanelOpenAtom, true);
       updateTextExplanationPanel();
+      
+      // Close any open image explanation panel (after opening text panel for smooth transition)
+      const activeImageId = store.get(activeImageExplanationIdAtom);
+      if (activeImageId && store.get(imageExplanationPanelOpenAtom)) {
+        console.log('[Content Script] Switching from image to text explanation panel');
+        const imageExplanations = store.get(imageExplanationsAtom);
+        const activeImageExplanation = imageExplanations.get(activeImageId);
+        if (activeImageExplanation?.abortController) {
+          activeImageExplanation.abortController.abort();
+        }
+        store.set(imageExplanationPanelOpenAtom, false);
+        store.set(activeImageExplanationIdAtom, null);
+        // Update the image panel and icons to reflect the closed state
+        updateImageExplanationPanel();
+        updateImageExplanationIconContainer();
+      }
+      
       updateTextExplanationIconContainer();
     }
   } else {
@@ -4606,9 +4668,28 @@ async function toggleTextExplanationPanel(explanationId: string): Promise<void> 
       await new Promise(resolve => setTimeout(resolve, 350));
     }
     
+    // Switch from image to text panel - open text panel first, then close image panel
+    // This creates a smooth content switch UX instead of close-then-open
     store.set(activeTextExplanationIdAtom, explanationId);
     store.set(textExplanationPanelOpenAtom, true);
     updateTextExplanationPanel();
+    
+    // Close any open image explanation panel (after opening text panel for smooth transition)
+    const activeImageId = store.get(activeImageExplanationIdAtom);
+    if (activeImageId && store.get(imageExplanationPanelOpenAtom)) {
+      console.log('[Content Script] Switching from image to text explanation panel');
+      const imageExplanations = store.get(imageExplanationsAtom);
+      const activeImageExplanation = imageExplanations.get(activeImageId);
+      if (activeImageExplanation?.abortController) {
+        activeImageExplanation.abortController.abort();
+      }
+      store.set(imageExplanationPanelOpenAtom, false);
+      store.set(activeImageExplanationIdAtom, null);
+      // Update the image panel and icons to reflect the closed state
+      updateImageExplanationPanel();
+      updateImageExplanationIconContainer();
+    }
+    
     updateTextExplanationIconContainer();
   }
 }
@@ -4645,12 +4726,31 @@ async function toggleImageExplanationPanel(explanationId: string): Promise<void>
         await new Promise(resolve => setTimeout(resolve, 350));
       }
       
+      // Switch from text to image panel - open image panel first, then close text panel
+      // This creates a smooth content switch UX instead of close-then-open
       // Ensure panel is injected before opening
       injectImageExplanationPanel();
       
       store.set(activeImageExplanationIdAtom, explanationId);
       store.set(imageExplanationPanelOpenAtom, true);
       updateImageExplanationPanel();
+      
+      // Close any open text explanation panel (after opening image panel for smooth transition)
+      const activeTextId = store.get(activeTextExplanationIdAtom);
+      if (activeTextId && store.get(textExplanationPanelOpenAtom)) {
+        console.log('[Content Script] Switching from text to image explanation panel');
+        const textExplanations = store.get(textExplanationsAtom);
+        const activeTextExplanation = textExplanations.get(activeTextId);
+        if (activeTextExplanation?.abortController) {
+          activeTextExplanation.abortController.abort();
+        }
+        store.set(textExplanationPanelOpenAtom, false);
+        store.set(activeTextExplanationIdAtom, null);
+        // Update the text panel and icons to reflect the closed state
+        updateTextExplanationPanel();
+        updateTextExplanationIconContainer();
+      }
+      
       updateImageExplanationIconContainer();
     }
   } else {
@@ -4672,12 +4772,31 @@ async function toggleImageExplanationPanel(explanationId: string): Promise<void>
       await new Promise(resolve => setTimeout(resolve, 350));
     }
     
+    // Switch from text to image panel - open image panel first, then close text panel
+    // This creates a smooth content switch UX instead of close-then-open
     // Ensure panel is injected before opening
     injectImageExplanationPanel();
     
     store.set(activeImageExplanationIdAtom, explanationId);
     store.set(imageExplanationPanelOpenAtom, true);
     updateImageExplanationPanel();
+    
+    // Close any open text explanation panel (after opening image panel for smooth transition)
+    const activeTextId = store.get(activeTextExplanationIdAtom);
+    if (activeTextId && store.get(textExplanationPanelOpenAtom)) {
+      console.log('[Content Script] Switching from text to image explanation panel');
+      const textExplanations = store.get(textExplanationsAtom);
+      const activeTextExplanation = textExplanations.get(activeTextId);
+      if (activeTextExplanation?.abortController) {
+        activeTextExplanation.abortController.abort();
+      }
+      store.set(textExplanationPanelOpenAtom, false);
+      store.set(activeTextExplanationIdAtom, null);
+      // Update the text panel and icons to reflect the closed state
+      updateTextExplanationPanel();
+      updateTextExplanationIconContainer();
+    }
+    
     updateImageExplanationIconContainer();
   }
 }
@@ -5866,10 +5985,12 @@ function injectImageExplanationIconContainer(): void {
   
   // Inject color CSS variables first (without true flag to match text explanation)
   injectStyles(shadow, ALL_COLOR_VARIABLES);
-  
+
   // Inject component styles
   injectStyles(shadow, imageExplanationIconStyles);
-  
+  injectStyles(shadow, explanationIconButtonStyles);
+  injectStyles(shadow, spinnerStyles);
+
   document.body.appendChild(host);
   
   imageExplanationIconRoot = ReactDOM.createRoot(mountPoint);
@@ -6181,6 +6302,10 @@ async function handleImageIconClick(imageElement: HTMLImageElement): Promise<voi
     }
     store.set(imageExplanationPanelOpenAtom, false);
   }
+
+  // Store reference to close text panel when image panel opens (for smooth transition)
+  const activeTextIdToClose = store.get(activeTextExplanationIdAtom);
+  const hasTextPanelToClose = activeTextIdToClose && store.get(textExplanationPanelOpenAtom);
   
   // Update explanation with image file and set spinning
   const updateExplanationInMap = (id: string, updater: (state: ImageExplanationState) => ImageExplanationState) => {
@@ -6263,6 +6388,20 @@ async function handleImageIconClick(imageElement: HTMLImageElement): Promise<voi
             // Open panel
             store.set(imageExplanationPanelOpenAtom, true);
             console.log('[Content Script] Set imageExplanationPanelOpenAtom to true');
+            
+            // Close text panel first (if open) for smooth transition, then update image panel
+            if (hasTextPanelToClose && activeTextIdToClose) {
+              console.log('[Content Script] Switching from text to image explanation panel (new explanation)');
+              const textExplanations = store.get(textExplanationsAtom);
+              const activeTextExplanation = textExplanations.get(activeTextIdToClose);
+              if (activeTextExplanation?.abortController) {
+                activeTextExplanation.abortController.abort();
+              }
+              store.set(textExplanationPanelOpenAtom, false);
+              store.set(activeTextExplanationIdAtom, null);
+              updateTextExplanationPanel();
+              updateTextExplanationIconContainer();
+            }
             
             // Small delay to ensure state is committed
             setTimeout(() => {
@@ -7122,6 +7261,7 @@ function injectWordExplanationPopover(): void {
 
   // Inject styles
   injectStyles(hostResult.shadow, wordExplanationPopoverStyles);
+  injectStyles(hostResult.shadow, spinnerStyles);
 
   // Add spin keyframe animation (needed for spinner)
   const styleSheet = document.createElement('style');
@@ -7693,6 +7833,8 @@ function injectTextExplanationIconContainer(): void {
 
   injectStyles(shadow, ALL_COLOR_VARIABLES);
   injectStyles(shadow, textExplanationIconStyles);
+  injectStyles(shadow, explanationIconButtonStyles);
+  injectStyles(shadow, spinnerStyles);
 
   document.body.appendChild(host);
 
@@ -8175,8 +8317,7 @@ async function showBookmarkToast(type: 'word' | 'paragraph' | 'link' | 'image', 
   } else if (type === 'link') {
     shouldShow = !(await ChromeStorage.getDontShowLinkBookmarkSavedLinkToast());
   } else if (type === 'image') {
-    // For now, always show image bookmark toast (can add preference later)
-    shouldShow = true;
+    shouldShow = !(await ChromeStorage.getDontShowImageBookmarkSavedLinkToast());
   }
 
   if (!shouldShow) {
@@ -8211,105 +8352,8 @@ function injectBookmarkToast(): void {
   // Inject color CSS variables first
   injectStyles(shadow, ALL_COLOR_VARIABLES, true);
   
-  // Inject inline bookmark toast styles
-  const bookmarkToastStyles = `
-    @keyframes slideIn {
-      from {
-        transform: translateX(calc(100% + 20px));
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-    
-    @keyframes slideOut {
-      from {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateX(calc(100% + 20px));
-        opacity: 0;
-      }
-    }
-    
-    .bookmark-toast-container {
-      position: fixed;
-      top: 100px;
-      right: 20px;
-      z-index: 2147483647;
-      pointer-events: auto;
-      width: 350px;
-    }
-    
-    .bookmark-toast {
-      background: ${COLORS.WHITE};
-      border: none;
-      color: ${COLORS.PRIMARY_LIGHT};
-      padding: 1rem 1.25rem;
-      border-radius: 20px;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 0.9375rem;
-      font-weight: 500;
-      box-shadow: 0 4px 20px ${colorWithOpacity(COLORS.PRIMARY, 0.3)};
-      animation: slideIn 0.3s ease-out;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    
-    .bookmark-toast-closing {
-      animation: slideOut 0.3s ease-in forwards;
-    }
-    
-    .bookmark-toast-message {
-      line-height: 1.5;
-      word-wrap: break-word;
-    }
-    
-    .bookmark-toast-link {
-      color: ${COLORS.PRIMARY_LIGHT};
-      text-decoration: underline;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    
-    .bookmark-toast-link:hover {
-      color: ${COLORS.PRIMARY};
-    }
-    
-    .bookmark-toast-buttons {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.75rem;
-      margin-top: 0.25rem;
-    }
-    
-    .bookmark-toast-button {
-      flex: 1;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 13px;
-      background: none;
-      color: ${COLORS.PRIMARY_LIGHT};
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .bookmark-toast-button:hover {
-      background: ${COLORS.PRIMARY_VERY_LIGHT} !important;
-    }
-    
-    .bookmark-toast-button:active {
-      transform: scale(0.98);
-    }
-  `;
-  injectStyles(shadow, bookmarkToastStyles);
+  // Inject bookmark saved toast styles from CSS file
+  injectStyles(shadow, bookmarkSavedToastStyles);
 
   // Append to document
   document.body.appendChild(host);
@@ -8353,7 +8397,7 @@ function updateBookmarkToast(): void {
       } else if (bookmarkToastType === 'link') {
         await ChromeStorage.setDontShowLinkBookmarkSavedLinkToast(true);
       } else if (bookmarkToastType === 'image') {
-        // For now, just close the toast (can add preference storage later)
+        await ChromeStorage.setDontShowImageBookmarkSavedLinkToast(true);
       }
       
       bookmarkToastClosing = true;
@@ -8366,124 +8410,16 @@ function updateBookmarkToast(): void {
       }, 300);
     };
 
-    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-      e.preventDefault();
-      window.open(bookmarkToastUrl || '', '_blank');
-    };
-
-    const toastElement = React.createElement(
-      'div',
-      {
-        className: 'bookmark-toast-container',
-        style: {
-          position: 'fixed',
-          top: '100px',
-          right: '20px',
-          zIndex: 2147483647,
-          width: '350px',
-        }
-      },
-      React.createElement(
-        'div',
-        {
-          className: bookmarkToastClosing ? 'bookmark-toast bookmark-toast-closing' : 'bookmark-toast',
-          style: {
-            background: 'var(--color-white)',
-            border: 'none',
-            color: 'var(--color-primary-light)',
-            padding: '1rem 1.25rem',
-            borderRadius: '20px',
-            fontFamily: 'var(--font-family-primary)',
-            fontSize: '0.9375rem',
-            fontWeight: '500',
-            boxShadow: '0 4px 20px var(--color-primary-opacity-30)',
-            animation: bookmarkToastClosing ? 'slideOut 0.3s ease-in forwards' : 'slideIn 0.3s ease-out',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-          }
-        },
-        React.createElement(
-          'div',
-          {
-            className: 'bookmark-toast-message',
-            style: {
-              lineHeight: '1.5',
-              wordWrap: 'break-word',
-            }
-          },
-          'Your bookmarks are saved ',
-          React.createElement(
-            'a',
-            {
-              href: bookmarkToastUrl || '#',
-              onClick: handleLinkClick,
-              className: 'bookmark-toast-link',
-              style: {
-                color: 'var(--color-primary-light)',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                fontWeight: '600',
-              }
-            },
-            'here'
-          ),
-          '.'
-        ),
-        React.createElement(
-          'div',
-          {
-            className: 'bookmark-toast-buttons',
-            style: {
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: '0.75rem',
-              marginTop: '0.25rem',
-            }
-          },
-          React.createElement(
-            'button',
-            {
-              onClick: handleOkay,
-              className: 'bookmark-toast-button',
-              style: {
-                flex: 1,
-                padding: '0.5rem 1rem',
-                border: 'none',
-                borderRadius: '13px',
-                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }
-            },
-            'Okay'
-          ),
-          React.createElement(
-            'button',
-            {
-              onClick: handleDontShowAgain,
-              className: 'bookmark-toast-button',
-              style: {
-                flex: 1,
-                padding: '0.5rem 1rem',
-                border: 'none',
-                borderRadius: '13px',
-                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }
-            },
-            "Don't show again"
-          )
-        )
-      )
+    bookmarkToastRoot.render(
+      React.createElement(BookmarkSavedToast, {
+        bookmarkType: bookmarkToastType,
+        url: bookmarkToastUrl,
+        isClosing: bookmarkToastClosing,
+        onOkay: handleOkay,
+        onDontShowAgain: handleDontShowAgain,
+        useShadowDom: true,
+      })
     );
-    
-    bookmarkToastRoot.render(toastElement);
   } else {
     console.log('[Content Script] Clearing bookmark toast');
     bookmarkToastRoot.render(React.createElement(React.Fragment));

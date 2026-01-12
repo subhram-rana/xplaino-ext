@@ -1,0 +1,17 @@
+/* src/content/components/ui/Spinner/Spinner.module.css */
+
+.spinner {
+  animation: spinSpinner 0.8s linear infinite;
+  color: var(--color-primary, #9527F5);
+  flex-shrink: 0;
+  display: block;
+}
+
+@keyframes spinSpinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

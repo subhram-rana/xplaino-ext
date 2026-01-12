@@ -41,6 +41,7 @@ export class ChromeStorage {
     DONT_SHOW_XPLAINO_TEXT_BOOKMARK_SAVED_LINK_TOAST: 'dont_show_xplaino_text_bookmark_saved_link_toast',
     DONT_SHOW_XPLAINO_LINK_BOOKMARK_SAVED_LINK_TOAST: 'dont_show_xplaino_link_bookmark_saved_link_toast',
     DONT_SHOW_XPLAINO_WORD_BOOKMARK_SAVED_LINK_TOAST: 'dont_show_xplaino_word_bookmark_saved_link_toast',
+    DONT_SHOW_XPLAINO_IMAGE_BOOKMARK_SAVED_LINK_TOAST: 'dont_show_xplaino_image_bookmark_saved_link_toast',
     DONT_SHOW_WELCOME_MODAL: 'dont_show_welcome_modal',
   } as const;
 
@@ -711,6 +712,21 @@ export class ChromeStorage {
    */
   static async setDontShowWordBookmarkSavedLinkToast(dontShow: boolean): Promise<void> {
     return this.set(this.KEYS.DONT_SHOW_XPLAINO_WORD_BOOKMARK_SAVED_LINK_TOAST, dontShow);
+  }
+
+  /**
+   * Get whether to show the bookmark saved link toast for image bookmarks
+   */
+  static async getDontShowImageBookmarkSavedLinkToast(): Promise<boolean> {
+    const value = await this.get<boolean>(this.KEYS.DONT_SHOW_XPLAINO_IMAGE_BOOKMARK_SAVED_LINK_TOAST);
+    return value ?? false;
+  }
+
+  /**
+   * Set whether to show the bookmark saved link toast for image bookmarks
+   */
+  static async setDontShowImageBookmarkSavedLinkToast(dontShow: boolean): Promise<void> {
+    return this.set(this.KEYS.DONT_SHOW_XPLAINO_IMAGE_BOOKMARK_SAVED_LINK_TOAST, dontShow);
   }
 
   // --- Welcome Modal Preference ---

@@ -52,7 +52,7 @@
   max-width: 800px !important;
   background: var(--color-white) !important;
   border-radius: 30px 0 0 30px !important;
-  box-shadow: 0 4px 20px var(--color-shadow-black-10, rgba(0, 0, 0, 0.1)) !important;
+  box-shadow: none !important;
   border: none !important;
   z-index: 2147483643 !important;
   display: flex !important;
@@ -64,6 +64,10 @@
               box-shadow 0.3s ease,
               border 0.3s ease !important;
   overflow: hidden !important;
+}
+
+.textExplanationSidePanel.open {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
 
 .textExplanationSidePanel.verticallyExpanded {
@@ -309,7 +313,7 @@
   right: 0 !important;
   background: var(--color-white) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   padding: 12px !important;
   min-width: 180px !important;
   z-index: 1000 !important;
@@ -974,7 +978,7 @@
   background: var(--color-white, #FFFFFF) !important;
   border: 1px solid var(--color-border, #E2E8F0) !important;
   border-radius: 10px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
   z-index: 1000 !important;
   max-height: 200px !important;
   overflow-y: auto !important;
