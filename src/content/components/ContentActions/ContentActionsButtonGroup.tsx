@@ -111,10 +111,8 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
       clearTimeout(powerButtonTimeoutRef.current);
     }
     
-    // Delay power button appearance until after width animation completes (0.4s)
-    powerButtonTimeoutRef.current = setTimeout(() => {
-      setShowDisableButton(true);
-    }, 400);
+    // Show power button immediately for smooth width animation
+    setShowDisableButton(true);
     
     // Reset debounce flag after a short delay
     setTimeout(() => {
@@ -143,10 +141,21 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   }, [onMouseEnter]);
 
   const handleOptionsPopoverMouseLeave = useCallback((e: React.MouseEvent) => {
-    // Start timeout when leaving popover (in case moving to disable button)
-    hideTimeoutRef.current = setTimeout(() => {
-      hideOptionsAndDisableButton();
-    }, 250);
+    const relatedTarget = e.relatedTarget;
+    
+    // Check if moving to power button
+    const isMovingToPowerButton = relatedTarget && relatedTarget instanceof Node && (
+      (relatedTarget as HTMLElement).classList?.contains('powerButton') ||
+      (relatedTarget as HTMLElement).closest?.('.powerButtonWrapper')
+    );
+    
+    // Don't hide if moving to power button
+    if (!isMovingToPowerButton) {
+      hideTimeoutRef.current = setTimeout(() => {
+        hideOptionsAndDisableButton();
+      }, 250);
+    }
+    
     onMouseLeave?.(e);
   }, [hideOptionsAndDisableButton, onMouseLeave]);
 
@@ -162,8 +171,28 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   }, [onMouseEnter]);
 
   const handleDisableButtonMouseLeave = useCallback((e: React.MouseEvent) => {
-    // Hide both when leaving disable button
-    hideOptionsAndDisableButton();
+    const relatedTarget = e.relatedTarget;
+    
+    // Check if moving to options popover or back to button group
+    const isMovingToPopover = relatedTarget && relatedTarget instanceof Node && (
+      (relatedTarget as HTMLElement).classList?.contains('actionButtonOptionsPopover') ||
+      (relatedTarget as HTMLElement).closest?.('.actionButtonOptionsPopover')
+    );
+    
+    const isMovingToButtonGroup = relatedTarget && relatedTarget instanceof Node && (
+      (relatedTarget as HTMLElement).classList?.contains('contentActionsButtonGroup') ||
+      (relatedTarget as HTMLElement).classList?.contains('contentActionButton') ||
+      (relatedTarget as HTMLElement).closest?.('.contentActionsButtonGroup')
+    );
+    
+    // Only hide if truly leaving the area
+    if (!isMovingToPopover && !isMovingToButtonGroup) {
+      // Delay hiding to allow smooth transition
+      hideTimeoutRef.current = setTimeout(() => {
+        hideOptionsAndDisableButton();
+      }, 200);
+    }
+    
     onMouseLeave?.(e);
   }, [hideOptionsAndDisableButton, onMouseLeave]);
 
@@ -226,15 +255,19 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
         
         const widthExpansionDuration = 400; // ms - time for button group to fully expand
         
+        // Calculate width of first button only
+        // 1.5px border + 3px padding + 2px margin + 18px button + 2px margin + 3px padding + 1.5px border = 30px
+        const firstButtonWidth = 30;
+        
         // Restore max-width first
         element.style.maxWidth = savedMaxWidth || '500px';
         element.style.width = ''; // Clear inline width, use CSS variable
         
-        // If this is the initial appearance (currentWidth is 0), start from 0
+        // If this is the initial appearance (currentWidth is 0), start from first button width
         if (currentWidth === 0) {
-          // Initial appearance - animate from 0
-          element.style.setProperty('--button-group-width', '0px');
-          // Force layout to ensure 0px is applied
+          // Initial appearance - show first button immediately, then grow to reveal others
+          element.style.setProperty('--button-group-width', `${firstButtonWidth}px`);
+          // Force layout to ensure first button width is applied
           void element.offsetWidth;
         }
         

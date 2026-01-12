@@ -17,10 +17,11 @@
 
 /* Color variable fallbacks */
 :host {
-  --color-primary: #9527F5 !important;
-  --color-primary-light: #BF7EFA !important;
-  --color-primary-very-light: #eaddf8 !important;
-  --color-primary-dark: #8607f5 !important;
+  --color-primary: #0d8070 !important;
+  --color-primary-light: #14a08a !important;
+  --color-primary-very-light: #e0f2ef !important;
+  --color-primary-dark: #0a5f54 !important;
+  --color-primary-opacity-20: rgba(13, 128, 112, 0.2) !important;
   --color-white: #FFFFFF !important;
   --color-secondary-medium: #34D399 !important;
   --color-secondary-light: #D1FAE5 !important;
@@ -68,6 +69,11 @@
   animation: iconButtonShrink 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
 }
 
+/* Ensure icon stays non-interactive when button group is visible to prevent hover conflicts */
+.contentActionsContainer:has(.contentActionsButtonGroup.visible) .xplainoIconButton {
+  pointer-events: none !important;
+}
+
 .xplainoIcon {
   width: 14px !important;
   height: 14px !important;
@@ -87,17 +93,17 @@
   background: var(--color-white) !important;
   border-radius: 999px !important;
   padding: 3px !important;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3) !important;
+  border: 1.5px solid var(--color-primary-opacity-20) !important;
   opacity: 0 !important;
   visibility: hidden !important;
-  transform: translateX(-14px) translateY(-50%) !important;
-  width: var(--button-group-width, 0px) !important;
+  transform: translateX(-16px) translateY(-7px) !important;
+  width: var(--button-group-width, 30px) !important;
   max-width: 500px !important;
   overflow: hidden !important; /* Clip icons during width expansion animation */
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
   position: absolute !important;
   left: 0 !important;
-  top: 50% !important;
+  top: 0 !important;
   transform-origin: left center !important;
   white-space: nowrap !important;
 }
@@ -105,7 +111,7 @@
 .contentActionsButtonGroup.visible {
   opacity: 1 !important;
   visibility: visible !important;
-  transform: translateX(-14px) translateY(-50%) !important;
+  transform: translateX(-16px) translateY(-7px) !important;
   /* Width will be set via CSS variable by JavaScript */
   max-width: 500px !important;
   overflow: hidden !important; /* Keep hidden during expansion for progressive reveal */
@@ -160,6 +166,12 @@
   /* Visible state - transition will animate these */
   opacity: 1 !important;
   transform: translateX(0) scale(1) !important;
+}
+
+/* First button (AI explanation) appears immediately without delay */
+.contentActionsButtonGroup.visible .contentActionButton:first-child {
+  transition: opacity 0.1s ease, transform 0.1s ease !important;
+  transition-delay: 0s !important;
 }
 
 .contentActionButton:hover {
@@ -368,7 +380,7 @@
   background: var(--color-white) !important;
   border-radius: 15px !important;
   padding: 4px !important;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3) !important;
+  border: 1.5px solid var(--color-primary-opacity-20) !important;
   /* Animation is handled by JavaScript useEmergeAnimation hook */
   z-index: 20 !important;
   width: fit-content !important;

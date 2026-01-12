@@ -87,16 +87,15 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     if (rect.width === 0 && rect.height === 0) return null;
 
     if (isDoubleClick) {
-      // For word double-click: position above the word (not overlapping)
-      // Position slightly to the right of center, above the word
+      // For word double-click: position at bottom-right of the word
       return {
-        x: rect.left + rect.width / 2 + 15, // 15px to the right of center
-        y: rect.top - 8, // Position above the word with 8px gap
+        x: rect.right + 8, // 8px to the right of the word
+        y: rect.bottom + 4, // 4px below the word
       };
     } else {
       // For text selection: position lower-right of mouse release point
       return {
-        x: lastMousePosition.current.x + 12, // 12px to the right
+        x: lastMousePosition.current.x + 24, // 24px to the right (increased from 12px to prevent immediate hover)
         y: lastMousePosition.current.y + 8,  // 8px below mouse
       };
     }
@@ -303,89 +302,44 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
       clearTimeout(hideTimeoutRef.current);
     }
     setIsHovering(true);
-    // Small delay before showing button group for smoother transition
-    setTimeout(() => {
-      setShowButtonGroup(true);
-    }, 50);
+    // Show button group immediately to prevent flickering
+    setShowButtonGroup(true);
   }, []);
 
   // Handle mouse leave from container
   const handleContainerMouseLeave = useCallback((e: React.MouseEvent) => {
     const relatedTarget = e.relatedTarget;
-    const currentTarget = e.currentTarget as HTMLElement;
     
-    // Check if we're leaving from the button group specifically
-    // Check both currentTarget and the actual target that triggered the event
-    const target = (e.target as HTMLElement) || currentTarget;
-    const isLeavingButtonGroup = 
-      target.classList?.contains('contentActionsButtonGroup') ||
-      target.closest?.('.contentActionsButtonGroup') ||
-      currentTarget.classList?.contains('contentActionsButtonGroup') ||
-      currentTarget.closest?.('.contentActionsButtonGroup');
-    
-    // Check if we're leaving from the popover
-    const isLeavingPopover = 
-      target.classList?.contains('disablePopover') ||
-      target.closest?.('.disablePopover') ||
-      currentTarget.classList?.contains('disablePopover') ||
-      currentTarget.closest?.('.disablePopover');
-    
-    // Check if moving to popover
+    // Check if moving to popover (disable popover or options popover)
     const isMovingToPopover = relatedTarget && relatedTarget instanceof Node && containerRef.current && (
       (relatedTarget as HTMLElement).classList?.contains('disablePopover') ||
       (relatedTarget as HTMLElement).closest?.('.disablePopover') ||
-      (containerRef.current.querySelector('.disablePopover')?.contains(relatedTarget) ?? false)
+      (relatedTarget as HTMLElement).classList?.contains('actionButtonOptionsPopover') ||
+      (relatedTarget as HTMLElement).closest?.('.actionButtonOptionsPopover') ||
+      (containerRef.current.querySelector('.disablePopover')?.contains(relatedTarget) ?? false) ||
+      (containerRef.current.querySelector('.actionButtonOptionsPopover')?.contains(relatedTarget) ?? false)
     );
     
     // Check if moving to text explanation icon container
     const textExplanationIconHost = document.getElementById('xplaino-text-explanation-icon-host');
     const isMovingToTextExplanationIcon = relatedTarget && relatedTarget instanceof Node && textExplanationIconHost?.shadowRoot?.contains(relatedTarget);
     
-    // Special case: leaving popover and moving to button group - don't hide
-    if (isLeavingPopover && !isMovingToPopover) {
-      // Only return early if moving to button group, otherwise continue to hide logic
-      const isMovingToButtonGroup = relatedTarget && relatedTarget instanceof Node && containerRef.current && (
-        (relatedTarget as HTMLElement).classList?.contains('contentActionsButtonGroup') ||
-        (relatedTarget as HTMLElement).closest?.('.contentActionsButtonGroup') ||
-        (containerRef.current.querySelector('.contentActionsButtonGroup')?.contains(relatedTarget) ?? false)
-      );
-      if (isMovingToButtonGroup) {
-        return;
-      }
-    }
-    
-    // Special case: leaving button group and moving to popover - don't hide
-    if (isLeavingButtonGroup && isMovingToPopover) {
+    // Don't hide if moving to popover or text explanation icon
+    if (isMovingToPopover || isMovingToTextExplanationIcon) {
       return;
     }
     
-    // Special case: moving to text explanation icon - don't hide
-    if (isMovingToTextExplanationIcon) {
-      return;
-    }
+    // Check if still within the container (including both icon and button group)
+    const isStillInContainer = relatedTarget && relatedTarget instanceof Node && containerRef.current?.contains(relatedTarget);
     
-    // If leaving button group (and not moving to popover or text explanation icon) - hide
-    if (isLeavingButtonGroup) {
+    // Only hide if truly leaving the container entirely
+    if (!isStillInContainer) {
       const delay = popoverOpenRef.current ? 300 : 200;
       hideTimeoutRef.current = setTimeout(() => {
         setShowButtonGroup(false);
-        setIsHovering(false); // This will show the icon
+        setIsHovering(false);
         popoverOpenRef.current = false;
       }, delay);
-      return;
-    }
-    
-    // If leaving container entirely
-    if (!relatedTarget || !(relatedTarget instanceof Node) || !containerRef.current?.contains(relatedTarget)) {
-      // Also check if moving to text explanation icon container
-      if (!isMovingToTextExplanationIcon) {
-        const delay = popoverOpenRef.current ? 300 : 200;
-        hideTimeoutRef.current = setTimeout(() => {
-          setShowButtonGroup(false);
-          setIsHovering(false);
-          popoverOpenRef.current = false;
-        }, delay);
-      }
     }
   }, []);
 
