@@ -1,7 +1,6 @@
 // src/content/components/ContentActions/ContentActionsButtonGroup.tsx
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ContentActionButton } from './ContentActionButton';
-import { DisablePopover } from './DisablePopover';
 import { ActionButtonOptionsPopover } from './ActionButtonOptionsPopover';
 
 export interface ContentActionsButtonGroupProps {
@@ -45,20 +44,25 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   onMouseEnter,
   onMouseLeave,
   onKeepActive,
-  onShowModal,
+  onShowModal: _onShowModal, // Keep for backward compatibility but don't use
   onActionComplete,
 }) => {
-  const [showDisablePopover, setShowDisablePopover] = useState(false);
   const [showOptionsPopover, setShowOptionsPopover] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false); // Track when width animation completes
+  const [isClosing, setIsClosing] = useState(false); // Track closing animation state
   const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const buttonGroupRef = useRef<HTMLDivElement>(null);
+  const lastMeasuredWidth = useRef<number>(0); // Store the last measured width for closing animation
 
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (animationTimeoutRef.current) {
         clearTimeout(animationTimeoutRef.current);
+      }
+      if (closingTimeoutRef.current) {
+        clearTimeout(closingTimeoutRef.current);
       }
     };
   }, []);
@@ -68,61 +72,72 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
     setShowOptionsPopover((prev) => {
       const newValue = !prev;
       if (newValue) {
-        // Popover is opening - ensure states stay active and close disable popover
-        setShowDisablePopover(false);
+        // Popover is opening - ensure states stay active
         onKeepActive?.();
       }
       return newValue;
     });
   }, [onKeepActive]);
-
-  // Handle click on power/disable button - toggle popover
-  const handleDisableExtensionButtonClick = useCallback(() => {
-    setShowDisablePopover((prev) => {
-      const newValue = !prev;
-      if (newValue) {
-        // Popover is opening - ensure states stay active and close options popover
-        setShowOptionsPopover(false);
-        onKeepActive?.();
-      }
-      return newValue;
-    });
-  }, [onKeepActive]);
-
-  const handleDisabled = useCallback(() => {
-    setShowDisablePopover(false);
-  }, []);
 
   const handleHideButtonGroup = useCallback(() => {
-    // Hide all popovers when an option is clicked
+    // Hide popover when an option is clicked
     setShowOptionsPopover(false);
-    setShowDisablePopover(false);
     // Trigger action complete to clear selection
     onActionComplete?.();
   }, [onActionComplete]);
 
-  // Measure actual content width and set it dynamically for smooth expansion animation
+  // Measure actual content width and set it dynamically for smooth expansion/collapse animation
   useEffect(() => {
     if (!buttonGroupRef.current) {
       return;
     }
 
     const element = buttonGroupRef.current;
+    const widthAnimationDuration = 400; // ms
     
     if (!visible) {
-      // Reset CSS variable and animation state when hidden
-      element.style.setProperty('--button-group-width', '0px');
+      // CLOSING: Animate width from current size to 0
       setAnimationComplete(false);
+      setShowOptionsPopover(false); // Close any open popovers
+      
       // Clear any pending animation timeout
       if (animationTimeoutRef.current) {
         clearTimeout(animationTimeoutRef.current);
         animationTimeoutRef.current = null;
       }
+      
+      // Start from the last measured width (or current width)
+      const currentWidthValue = element.style.getPropertyValue('--button-group-width');
+      const currentWidth = currentWidthValue ? parseFloat(currentWidthValue) : lastMeasuredWidth.current;
+      
+      if (currentWidth > 0) {
+        // Set closing state to keep element visible during animation
+        setIsClosing(true);
+        
+        // Set current width first to ensure smooth transition
+        element.style.setProperty('--button-group-width', `${currentWidth}px`);
+        void element.offsetWidth; // Force reflow
+        
+        // Then animate to 0
+        requestAnimationFrame(() => {
+          element.style.setProperty('--button-group-width', '0px');
+        });
+        
+        // Clear closing state after animation completes
+        closingTimeoutRef.current = setTimeout(() => {
+          setIsClosing(false);
+        }, widthAnimationDuration + 50);
+      } else {
+        element.style.setProperty('--button-group-width', '0px');
+        setIsClosing(false);
+      }
+      
       return;
     }
 
-    // Reset animation complete state when visibility changes
+    // OPENING: Animate width from 0 to natural size
     setAnimationComplete(false);
+    setIsClosing(false);
 
     // Wait for DOM to be ready
     const rafId1 = requestAnimationFrame(() => {
@@ -144,8 +159,8 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
         
         // Measure the natural width
         const naturalWidth = element.scrollWidth;
+        lastMeasuredWidth.current = naturalWidth; // Store for closing animation
         
-        const widthExpansionDuration = 400; // ms
         const firstButtonWidth = 30;
         
         // Restore max-width
@@ -158,14 +173,14 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
           void element.offsetWidth;
         }
         
-        // Trigger width animation
+        // Trigger width animation to expand
         requestAnimationFrame(() => {
           if (!element) return;
           element.style.setProperty('--button-group-width', `${naturalWidth}px`);
           
           animationTimeoutRef.current = setTimeout(() => {
             setAnimationComplete(true);
-          }, widthExpansionDuration + 100);
+          }, widthAnimationDuration + 100);
         });
       });
     });
@@ -182,7 +197,7 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   return (
     <div
       ref={buttonGroupRef}
-      className={`contentActionsButtonGroup ${visible ? 'visible' : ''} ${animationComplete ? 'animationComplete' : ''} ${!isWordSelection ? 'hasBookmark' : ''}`}
+      className={`contentActionsButtonGroup ${visible ? 'visible' : ''} ${isClosing ? 'closing' : ''} ${animationComplete ? 'animationComplete' : ''} ${!isWordSelection ? 'hasBookmark' : ''}`}
       onMouseDown={(e) => e.stopPropagation()}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -225,24 +240,6 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
             onSynonym={onSynonym}
             onOpposite={onOpposite}
             onHideButtonGroup={handleHideButtonGroup}
-          />
-        </ContentActionButton>
-      </div>
-      
-      {/* Power button with disable popover - CLICK to toggle */}
-      <div className="powerButtonWrapper visible">
-        <ContentActionButton
-          icon="power"
-          tooltip="Disable extension"
-          onClick={handleDisableExtensionButtonClick}
-          delay={3}
-          className="powerButton"
-          hideTooltip={showDisablePopover}
-        >
-          <DisablePopover
-            visible={showDisablePopover}
-            onDisabled={handleDisabled}
-            onShowModal={onShowModal}
           />
         </ContentActionButton>
       </div>

@@ -21,14 +21,13 @@
 
 .toast {
   background: var(--color-white, #FFFFFF) !important;
-  border: none !important;
+  border: 1.5px solid var(--color-primary-opacity-20, rgba(13, 128, 112, 0.2)) !important;
   color: var(--color-primary-light, #14a08a) !important;
   padding: 1rem 1.25rem !important;
   border-radius: 20px !important;
   font-family: var(--font-family-primary, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
   font-size: 0.9375rem !important;
   font-weight: 500 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important; /* Grey shadow like word modal */
   animation: slideIn 0.3s ease-out !important;
   display: flex !important;
   flex-direction: column !important;

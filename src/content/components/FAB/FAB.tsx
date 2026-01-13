@@ -119,9 +119,9 @@ export const FAB: React.FC<FABProps> = ({
   // Handle parent container mouse leave - hides actions after delay
   const handleParentMouseLeave = useCallback(() => {
     isHoveringRef.current = false;
-    // Don't hide if summarising, translating, or if actions shouldn't be hidden yet
+    // Don't hide if summarising, translating, if actions shouldn't be hidden yet, or if any popover is open
     const isTranslating = translationState === 'translating';
-    if (isSummarising || isTranslating || !canHideActions) {
+    if (isSummarising || isTranslating || !canHideActions || showDisablePopover || showTranslationPopover) {
       return;
     }
     clearHideTimeout();
@@ -130,7 +130,7 @@ export const FAB: React.FC<FABProps> = ({
         setActionsVisible(false);
       }
     }, 300); // Small delay before hiding
-  }, [clearHideTimeout, isSummarising, translationState, canHideActions]);
+  }, [clearHideTimeout, isSummarising, translationState, canHideActions, showDisablePopover, showTranslationPopover]);
 
   // Hide actions immediately when any panel opens
   useEffect(() => {
@@ -139,13 +139,17 @@ export const FAB: React.FC<FABProps> = ({
     }
   }, [isPanelOpen]);
 
-  // Hide popovers when actions are hidden
+  // Don't hide actions if any popover is visible
   useEffect(() => {
-    if (!actionsVisible) {
-      setShowTranslationPopover(false);
-      setShowDisablePopover(false);
+    if (showDisablePopover || showTranslationPopover) {
+      // Keep actions visible when popover is open
+      clearHideTimeout();
+      isHoveringRef.current = true;
+      if (!actionsVisible) {
+        setActionsVisible(true);
+      }
     }
-  }, [actionsVisible]);
+  }, [showDisablePopover, showTranslationPopover, clearHideTimeout, actionsVisible]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -217,6 +221,11 @@ export const FAB: React.FC<FABProps> = ({
   }, [clearHideTimeout]);
 
   const handleDisabled = useCallback(() => {
+    setShowDisablePopover(false);
+  }, []);
+
+  const handleDisablePopoverMouseLeave = useCallback(() => {
+    // Hide popover when mouse leaves
     setShowDisablePopover(false);
   }, []);
 
@@ -311,7 +320,7 @@ export const FAB: React.FC<FABProps> = ({
             visible={showDisablePopover}
             onDisabled={handleDisabled}
             onMouseEnter={handleParentMouseEnter}
-            onMouseLeave={handleParentMouseLeave}
+            onMouseLeave={handleDisablePopoverMouseLeave}
             onShowModal={onShowModal}
           />
         </ActionButton>

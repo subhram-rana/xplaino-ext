@@ -759,9 +759,31 @@ export class ChromeStorage {
 
   /**
    * Set user account settings (from backend API response)
+   * Also syncs nested values to flat keys for backward compatibility
    */
   static async setUserAccountSettings(settings: UserAccountSettingsDTO): Promise<void> {
-    return this.set('xplaino-user-account-settings', settings);
+    // Store the full response
+    await this.set('xplaino-user-account-settings', settings);
+    
+    // Sync nested values to flat keys for backward compatibility
+    if (settings.settings) {
+      // Sync native language
+      if (settings.settings.nativeLanguage) {
+        await this.set(this.KEYS.USER_SETTING_NATIVE_LANGUAGE, settings.settings.nativeLanguage);
+      }
+      
+      // Sync page translation view (convert uppercase to lowercase)
+      if (settings.settings.pageTranslationView) {
+        const view = settings.settings.pageTranslationView.toLowerCase() as 'append' | 'replace';
+        await this.set(this.KEYS.USER_SETTING_PAGE_TRANSLATION_VIEW, view);
+      }
+      
+      // Sync theme (convert uppercase to lowercase)
+      if (settings.settings.theme) {
+        const theme = settings.settings.theme.toLowerCase() as 'light' | 'dark';
+        await this.set(this.KEYS.USER_SETTING_GLOBAL_THEME, theme);
+      }
+    }
   }
 
   // ============================================

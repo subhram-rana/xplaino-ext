@@ -137,6 +137,7 @@ const WORD_EXPLANATION_POPOVER_HOST_ID = 'xplaino-word-explanation-popover-host'
 const WORD_ASK_AI_PANEL_HOST_ID = 'xplaino-word-ask-ai-panel-host';
 const TOAST_HOST_ID = 'xplaino-toast-host';
 const BOOKMARK_TOAST_HOST_ID = 'xplaino-bookmark-toast-host';
+const WARNING_TOAST_HOST_ID = 'xplaino-warning-toast-host';
 const FOLDER_LIST_MODAL_HOST_ID = 'xplaino-folder-list-modal-host';
 const WELCOME_MODAL_HOST_ID = 'xplaino-welcome-modal-host';
 const YOUTUBE_ASK_AI_BUTTON_HOST_ID = 'xplaino-youtube-ask-ai-button-host';
@@ -190,6 +191,11 @@ let bookmarkToastUrl: string | null = null;
 let bookmarkToastClosing: boolean = false;
 let bookmarkToastType: 'word' | 'paragraph' | 'link' | 'image' | null = null;
 let bookmarkToastRoot: ReactDOM.Root | null = null;
+
+// Warning toast state
+let warningToastVisible: boolean = false;
+let warningToastClosing: boolean = false;
+let warningToastRoot: ReactDOM.Root | null = null;
 let youtubeAskAIButtonRoot: ReactDOM.Root | null = null;
 
 // Folder List Modal state
@@ -755,7 +761,7 @@ async function handleTranslateClick(): Promise<void> {
 
     if (!nativeLanguage) {
       console.error('[Content Script] No native language set');
-      alert('Please set your native language in the extension settings before translating.');
+      showWarningToast();
       return;
     }
 
@@ -8423,6 +8429,234 @@ function updateBookmarkToast(): void {
   } else {
     console.log('[Content Script] Clearing bookmark toast');
     bookmarkToastRoot.render(React.createElement(React.Fragment));
+  }
+}
+
+// =============================================================================
+// WARNING TOAST INJECTION
+// =============================================================================
+
+/**
+ * Show warning toast for native language setting
+ */
+function showWarningToast(): void {
+  warningToastVisible = true;
+  warningToastClosing = false;
+  
+  injectWarningToast();
+  updateWarningToast();
+}
+
+/**
+ * Inject Warning Toast into the page with Shadow DOM
+ */
+function injectWarningToast(): void {
+  // Check if already injected
+  if (shadowHostExists(WARNING_TOAST_HOST_ID)) {
+    return;
+  }
+
+  // Create Shadow DOM host
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: WARNING_TOAST_HOST_ID,
+    zIndex: 2147483649, // Higher than regular toast
+  });
+
+  // Inject styles for animations
+  const styles = `
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+  `;
+  injectStyles(shadow, styles);
+
+  // Append to document
+  document.body.appendChild(host);
+
+  // Render React component
+  warningToastRoot = ReactDOM.createRoot(mountPoint);
+  updateWarningToast();
+
+  console.log('[Content Script] Warning Toast injected successfully');
+}
+
+/**
+ * Update warning toast visibility based on state
+ */
+function updateWarningToast(): void {
+  if (!warningToastRoot) {
+    console.warn('[Content Script] warningToastRoot is null, cannot update warning toast');
+    return;
+  }
+
+  if (warningToastVisible) {
+    console.log('[Content Script] Rendering warning toast, closing:', warningToastClosing);
+    
+    const handleClose = () => {
+      warningToastClosing = true;
+      updateWarningToast();
+      setTimeout(() => {
+        warningToastVisible = false;
+        warningToastClosing = false;
+        updateWarningToast();
+      }, 300);
+    };
+
+    const settingsUrl = `${ENV.XPLAINO_WEBSITE_BASE_URL}/user/account/settings`;
+    
+    const handleLinkClick = (e: MouseEvent) => {
+      e.preventDefault();
+      window.open(settingsUrl, '_blank');
+    };
+
+    // Create Settings icon SVG (from lucide-react Settings icon)
+    const settingsIcon = React.createElement(
+      'svg',
+      {
+        width: '16',
+        height: '16',
+        viewBox: '0 0 24 24',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: '2.5',
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+        style: { display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }
+      },
+      React.createElement('path', { d: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z' }),
+      React.createElement('circle', { cx: '12', cy: '12', r: '3' })
+    );
+
+    // Create X icon for close button
+    const closeIcon = React.createElement(
+      'svg',
+      {
+        width: '16',
+        height: '16',
+        viewBox: '0 0 24 24',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: '2.5',
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      },
+      React.createElement('path', { d: 'M18 6 6 18' }),
+      React.createElement('path', { d: 'M6 6l12 12' })
+    );
+
+    // Use bright yellow color
+    const yellowColor = '#F59E0B'; // Bright amber/yellow
+
+    const toastElement = React.createElement(
+      'div',
+      {
+        style: {
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 2147483649,
+        }
+      },
+      React.createElement(
+        'div',
+        {
+          style: {
+            background: 'white',
+            border: `2px solid ${yellowColor}`,
+            color: yellowColor,
+            padding: '0.75rem 1rem',
+            borderRadius: '13px',
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            fontSize: '0.9375rem',
+            fontWeight: '500',
+            animation: warningToastClosing ? 'slideOut 0.3s ease-in forwards' : 'slideIn 0.3s ease-out',
+            maxWidth: '400px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }
+        },
+        React.createElement(
+          'div',
+          { style: { flex: '1', lineHeight: '1.5' } },
+          'Set your native language  ',
+          React.createElement(
+            'a',
+            {
+              href: settingsUrl,
+              onClick: handleLinkClick,
+              style: {
+                color: yellowColor,
+                textDecoration: 'none',
+                fontWeight: '600',
+                display: 'inline-flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+              },
+              onMouseEnter: (e: React.MouseEvent<HTMLAnchorElement>) => {
+                e.currentTarget.style.opacity = '0.8';
+                e.currentTarget.style.textDecoration = 'underline';
+              },
+              onMouseLeave: (e: React.MouseEvent<HTMLAnchorElement>) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.textDecoration = 'none';
+              },
+            },
+            settingsIcon
+          )
+        ),
+        React.createElement(
+          'button',
+          {
+            onClick: handleClose,
+            style: {
+              flexShrink: '0',
+              background: 'transparent',
+              border: 'none',
+              color: yellowColor,
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '4px',
+              opacity: '0.7',
+            },
+            onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
+              e.currentTarget.style.backgroundColor = `rgba(245, 158, 11, 0.1)`;
+              e.currentTarget.style.opacity = '1';
+            },
+            onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.opacity = '0.7';
+            },
+          },
+          closeIcon
+        )
+      )
+    );
+    
+    warningToastRoot.render(toastElement);
+  } else {
+    console.log('[Content Script] Clearing warning toast');
+    warningToastRoot.render(React.createElement(React.Fragment));
   }
 }
 

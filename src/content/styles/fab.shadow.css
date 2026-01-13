@@ -346,12 +346,13 @@
   background: var(--color-white) !important;
   border-radius: 15px !important;
   padding: 4px !important;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(13, 128, 112, 0.2) !important;
   /* Animation is handled by JavaScript useEmergeAnimation hook */
   z-index: 20 !important;
   width: fit-content !important;
 }
 
+/* Arrow pointing upward (toward the button) */
 .fabDisablePopover::before {
   content: '' !important;
   position: absolute !important;
@@ -359,6 +360,17 @@
   right: 10px !important;
   border: 6px solid transparent !important;
   border-bottom-color: var(--color-white) !important;
+}
+
+/* Arrow border (creates the border effect on the arrow) */
+.fabDisablePopover::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 100% !important;
+  right: 10px !important;
+  border: 6px solid transparent !important;
+  border-bottom-color: rgba(13, 128, 112, 0.2) !important;
+  margin-bottom: -1px !important;
 }
 
 /* FAB Disable Popover Option Button */
@@ -462,7 +474,7 @@
   background: var(--color-white) !important;
   border-radius: 15px !important;
   padding: 12px !important;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(13, 128, 112, 0.2) !important;
   min-width: 220px !important;
 }
 
@@ -475,7 +487,18 @@
   transform: translateY(-50%) !important;
   border: 8px solid transparent !important;
   border-left-color: var(--color-white) !important;
-  filter: drop-shadow(2px 0 2px var(--color-primary-opacity-15)) !important;
+}
+
+/* Arrow border (creates the border effect on the arrow) */
+.translationControlPopover::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 100% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border: 8px solid transparent !important;
+  border-left-color: rgba(13, 128, 112, 0.2) !important;
+  margin-left: 1px !important;
 }
 
 .translationControlPopoverToggleContainer {

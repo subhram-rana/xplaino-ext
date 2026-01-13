@@ -10,8 +10,8 @@ export interface FABDisablePopoverProps {
   onDisabled?: () => void;
   /** Callback when mouse enters (to keep container active) */
   onMouseEnter?: () => void;
-  /** Callback when mouse leaves (to hide container) */
-  onMouseLeave?: (e: React.MouseEvent) => void;
+  /** Callback when mouse leaves (to hide popover) */
+  onMouseLeave?: () => void;
   /** Callback to show disable notification modal */
   onShowModal?: () => void;
 }
@@ -135,6 +135,11 @@ export const FABDisablePopover: React.FC<FABDisablePopoverProps> = ({
   // Don't render if animation is complete and not visible
   if (!shouldRender && !visible) return null;
 
+  const handleMouseLeave = useCallback(() => {
+    // Close the popover when mouse leaves
+    onMouseLeave?.();
+  }, [onMouseLeave]);
+
   return (
     <div
       ref={elementRef as React.RefObject<HTMLDivElement>}
@@ -142,7 +147,7 @@ export const FABDisablePopover: React.FC<FABDisablePopoverProps> = ({
       style={animationStyle}
       onMouseDown={(e) => e.stopPropagation()}
       onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseLeave={handleMouseLeave}
     >
       {/* This site first, then All sites */}
       <button

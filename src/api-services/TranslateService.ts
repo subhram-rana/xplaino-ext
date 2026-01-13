@@ -102,8 +102,19 @@ const LANGUAGE_CODE_MAP: Record<string, string> = {
 
 /**
  * Convert language display name to ISO 639-1 code
+ * Also handles cases where the input is already a language code
  */
 export function getLanguageCode(languageName: string): string | null {
+  // If input is already a valid 2-letter uppercase code (from backend API), return it
+  if (languageName && languageName.length === 2 && languageName === languageName.toUpperCase()) {
+    // Verify it's a valid code by checking if it exists in the map values
+    const validCodes = Object.values(LANGUAGE_CODE_MAP);
+    if (validCodes.includes(languageName)) {
+      return languageName;
+    }
+  }
+  
+  // Otherwise, look up the language name in the map
   return LANGUAGE_CODE_MAP[languageName] || null;
 }
 
