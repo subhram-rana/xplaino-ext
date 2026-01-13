@@ -139,6 +139,11 @@
               visibility 0s linear 0s !important;
 }
 
+/* Ensure wrapper divs with popovers stay visible even when container is hidden */
+.actionsContainer > div {
+  visibility: visible !important;
+}
+
 /* Action button styles - Circular, smaller size, no border */
 .actionButton {
   width: 24px !important;
@@ -350,6 +355,10 @@
   /* Animation is handled by JavaScript useEmergeAnimation hook */
   z-index: 20 !important;
   width: fit-content !important;
+  /* Override parent container visibility */
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* Arrow pointing upward (toward the button) */
@@ -476,6 +485,10 @@
   padding: 12px !important;
   border: 1px solid rgba(13, 128, 112, 0.2) !important;
   min-width: 220px !important;
+  /* Override parent container visibility */
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* Arrow pointing to the right (toward the button) */

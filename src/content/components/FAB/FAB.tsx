@@ -215,6 +215,7 @@ export const FAB: React.FC<FABProps> = ({
         // Popover is opening - ensure actions stay visible
         clearHideTimeout();
         isHoveringRef.current = true;
+        setActionsVisible(true);
       }
       return newValue;
     });
@@ -281,14 +282,16 @@ export const FAB: React.FC<FABProps> = ({
             disabled={false}
             hideTooltip={showTranslationPopover}
           />
-          <TranslationControlPopover
-            viewMode={viewMode}
-            onToggleView={handleToggleView}
-            onClear={handleClearTranslations}
-            visible={showTranslationPopover}
-            useShadowDom={useShadowDom}
-            onMouseLeave={handleTranslatePopoverMouseLeave}
-          />
+          {showTranslationPopover && (
+            <TranslationControlPopover
+              viewMode={viewMode}
+              onToggleView={handleToggleView}
+              onClear={handleClearTranslations}
+              visible={showTranslationPopover}
+              useShadowDom={useShadowDom}
+              onMouseLeave={handleTranslatePopoverMouseLeave}
+            />
+          )}
         </div>
         <ActionButton
           icon="bookmark"
@@ -309,21 +312,24 @@ export const FAB: React.FC<FABProps> = ({
           onClick={handleGoToWebsite}
           className={actionButtonClass}
         />
-        <ActionButton
-          icon="disable"
-          tooltip="Disable extension"
-          onClick={handleDisableExtensionButtonClick}
-          className={actionButtonClass}
-          hideTooltip={showDisablePopover}
-        >
-          <FABDisablePopover
-            visible={showDisablePopover}
-            onDisabled={handleDisabled}
-            onMouseEnter={handleParentMouseEnter}
-            onMouseLeave={handleDisablePopoverMouseLeave}
-            onShowModal={onShowModal}
+        <div style={{ position: 'relative' }}>
+          <ActionButton
+            icon="disable"
+            tooltip="Disable extension"
+            onClick={handleDisableExtensionButtonClick}
+            className={actionButtonClass}
+            hideTooltip={showDisablePopover}
           />
-        </ActionButton>
+          {showDisablePopover && (
+            <FABDisablePopover
+              visible={showDisablePopover}
+              onDisabled={handleDisabled}
+              onMouseEnter={handleParentMouseEnter}
+              onMouseLeave={handleDisablePopoverMouseLeave}
+              onShowModal={onShowModal}
+            />
+          )}
+        </div>
       </div>
 
       {/* FAB Container - on the right */}
