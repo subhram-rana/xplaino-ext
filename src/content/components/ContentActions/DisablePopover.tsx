@@ -85,28 +85,36 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
     transformOrigin: 'top right', // Animate from top-right (near the button)
   });
 
-  // Find the source button from DOM (parent button element)
-  // This is more reliable than ref passing which has timing issues
-  useEffect(() => {
-    // The popover is rendered inside ContentActionButton's div wrapper
-    // which contains the button as a sibling
-    const popoverElement = elementRef.current;
-    if (popoverElement) {
-      // Find the closest button sibling or ancestor
-      const wrapper = popoverElement.parentElement;
+  // Callback ref that sets BOTH element ref AND finds source button synchronously
+  const setPopoverRef = useCallback((element: HTMLDivElement | null) => {
+    (elementRef as React.MutableRefObject<HTMLElement | null>).current = element;
+    
+    if (element) {
+      // CRITICAL: Set initial transform to scale(0) via inline style
+      // This ensures the element is hidden BEFORE the animation starts
+      element.style.transform = 'scale(0)';
+      element.style.transformOrigin = 'top right';
+      
+      // Find and set source button IMMEDIATELY when element mounts
+      const wrapper = element.closest('.powerButtonWrapper');
       const button = wrapper?.querySelector('button.contentActionButton');
       if (button) {
         (sourceRef as React.MutableRefObject<HTMLElement | null>).current = button as HTMLElement;
       }
     }
-  }, [elementRef, sourceRef, shouldRender]); // Re-run when element renders
+  }, [elementRef, sourceRef]);
 
   // Handle visibility changes with animation
   useEffect(() => {
     if (visible && !wasVisible.current) {
       // Opening
       wasVisible.current = true;
-      emerge();
+      // Use double RAF to ensure refs are set before animation
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          emerge();
+        });
+      });
     } else if (!visible && wasVisible.current) {
       // Closing
       wasVisible.current = false;
@@ -136,7 +144,7 @@ export const DisablePopover: React.FC<DisablePopoverProps> = ({
 
   return (
     <div
-      ref={elementRef as React.RefObject<HTMLDivElement>}
+      ref={setPopoverRef}
       className={`disablePopover ${animationState === 'shrinking' ? 'closing' : ''}`}
       style={animationStyle}
       onMouseDown={(e) => e.stopPropagation()}

@@ -67,7 +67,7 @@ export const ContentActionButton: React.FC<ContentActionButtonProps> = ({
     <div className={`contentActionButtonWrapper ${className}`}>
       <button
         ref={buttonRef}
-        className="contentActionButton"
+        className={`contentActionButton ${className}`}
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();

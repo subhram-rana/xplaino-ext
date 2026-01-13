@@ -14,10 +14,6 @@ export interface ActionButtonOptionsPopoverProps {
   onSynonym?: () => void;
   /** Callback when Opposite is clicked */
   onOpposite?: () => void;
-  /** Callback when mouse enters (to keep container active) */
-  onMouseEnter?: () => void;
-  /** Callback when mouse leaves (to hide container) */
-  onMouseLeave?: (e: React.MouseEvent) => void;
   /** Callback to hide the action button group */
   onHideButtonGroup?: () => void;
 }
@@ -28,8 +24,6 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
   onTranslate,
   onSynonym,
   onOpposite,
-  onMouseEnter,
-  onMouseLeave,
   onHideButtonGroup,
 }) => {
   const wasVisible = useRef(false);
@@ -49,25 +43,38 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
     transformOrigin: 'top center', // Animate from top-center (near the button above)
   });
 
-  // Find the source button from DOM (parent button element)
-  useEffect(() => {
-    const popoverElement = elementRef.current;
-    if (popoverElement) {
-      // Find the closest button sibling or ancestor
-      const wrapper = popoverElement.parentElement;
+  // Callback ref that sets BOTH element ref AND finds source button synchronously
+  const setPopoverRef = useCallback((element: HTMLDivElement | null) => {
+    // Set the element ref from the hook
+    (elementRef as React.MutableRefObject<HTMLElement | null>).current = element;
+    
+    if (element) {
+      // Set initial transform to scale(0) via inline style
+      // This ensures the element is hidden BEFORE the animation starts
+      element.style.transform = 'scale(0)';
+      element.style.transformOrigin = 'top center';
+      
+      // Find and set source button IMMEDIATELY when element mounts
+      const wrapper = element.closest('.optionsButtonWrapper');
       const button = wrapper?.querySelector('button.contentActionButton');
+
       if (button) {
         (sourceRef as React.MutableRefObject<HTMLElement | null>).current = button as HTMLElement;
       }
     }
-  }, [elementRef, sourceRef, shouldRender]);
+  }, [elementRef, sourceRef]);
 
   // Handle visibility changes with animation
   useEffect(() => {
     if (visible && !wasVisible.current) {
       // Opening
       wasVisible.current = true;
-      emerge();
+      // Use double RAF to ensure refs are set before animation
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          emerge();
+        });
+      });
     } else if (!visible && wasVisible.current) {
       // Closing
       wasVisible.current = false;
@@ -76,19 +83,16 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
   }, [visible, emerge, shrink]);
 
   const handleTranslateClick = useCallback(() => {
-    console.log('[ActionButtonOptionsPopover] Translate clicked');
     onTranslate?.();
     onHideButtonGroup?.();
   }, [onTranslate, onHideButtonGroup]);
 
   const handleSynonymClick = useCallback(() => {
-    console.log('[ActionButtonOptionsPopover] Synonym clicked');
     onSynonym?.();
     onHideButtonGroup?.();
   }, [onSynonym, onHideButtonGroup]);
 
   const handleOppositeClick = useCallback(() => {
-    console.log('[ActionButtonOptionsPopover] Opposite clicked');
     onOpposite?.();
     onHideButtonGroup?.();
   }, [onOpposite, onHideButtonGroup]);
@@ -98,12 +102,10 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
 
   return (
     <div
-      ref={elementRef as React.RefObject<HTMLDivElement>}
+      ref={setPopoverRef}
       className={`actionButtonOptionsPopover ${animationState === 'shrinking' ? 'closing' : ''}`}
       style={animationStyle}
       onMouseDown={(e) => e.stopPropagation()}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     >
       {/* Translate - always visible */}
       <button
@@ -152,4 +154,3 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
 };
 
 ActionButtonOptionsPopover.displayName = 'ActionButtonOptionsPopover';
-
