@@ -282,16 +282,14 @@ export const FAB: React.FC<FABProps> = ({
             disabled={false}
             hideTooltip={showTranslationPopover}
           />
-          {showTranslationPopover && (
-            <TranslationControlPopover
-              viewMode={viewMode}
-              onToggleView={handleToggleView}
-              onClear={handleClearTranslations}
-              visible={showTranslationPopover}
-              useShadowDom={useShadowDom}
-              onMouseLeave={handleTranslatePopoverMouseLeave}
-            />
-          )}
+          <TranslationControlPopover
+            viewMode={viewMode}
+            onToggleView={handleToggleView}
+            onClear={handleClearTranslations}
+            visible={showTranslationPopover}
+            useShadowDom={useShadowDom}
+            onMouseLeave={handleTranslatePopoverMouseLeave}
+          />
         </div>
         <ActionButton
           icon="bookmark"
@@ -320,15 +318,13 @@ export const FAB: React.FC<FABProps> = ({
             className={actionButtonClass}
             hideTooltip={showDisablePopover}
           />
-          {showDisablePopover && (
-            <FABDisablePopover
-              visible={showDisablePopover}
-              onDisabled={handleDisabled}
-              onMouseEnter={handleParentMouseEnter}
-              onMouseLeave={handleDisablePopoverMouseLeave}
-              onShowModal={onShowModal}
-            />
-          )}
+          <FABDisablePopover
+            visible={showDisablePopover}
+            onDisabled={handleDisabled}
+            onMouseEnter={handleParentMouseEnter}
+            onMouseLeave={handleDisablePopoverMouseLeave}
+            onShowModal={onShowModal}
+          />
         </div>
       </div>
 

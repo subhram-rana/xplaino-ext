@@ -19,6 +19,8 @@ export interface EmergeAnimationOptions {
   transformOrigin?: string;
   /** Initial visibility state (default: false) */
   initialVisible?: boolean;
+  /** Animation mode: 'emerge' (from source) or 'simple' (fade+scale) (default: 'emerge') */
+  mode?: 'emerge' | 'simple';
 }
 
 /**
@@ -117,6 +119,7 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
     easing = 'cubic-bezier(0.4, 0, 0.2, 1)',
     transformOrigin = 'center center',
     initialVisible = false,
+    mode = 'emerge',
   } = options;
 
   const elementRef = useRef<HTMLElement>(null);
@@ -174,10 +177,76 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       animationRef.current.cancel();
     }
 
+    // Update ref synchronously FIRST to ensure shouldRender is immediately true
+    // This prevents premature unmount before async setState takes effect
+    animationStateRef.current = 'emerging';
     setAnimationState('emerging');
     setIsVisible(true);
 
-    // Wait for element and source to be available
+    // Simple mode: Just fade + scale animation (no source needed)
+    if (mode === 'simple') {
+      // Wait for element to be available
+      let element = elementRef.current;
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      while (!element && attempts < maxAttempts) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        element = elementRef.current;
+        attempts++;
+      }
+
+      if (!element) {
+        console.warn('[useEmergeAnimation] emerge() (simple) - missing element, setting to visible');
+        setAnimationState('visible');
+        return;
+      }
+
+      // Simple animation: fade + scale from 0.95
+      const initialTransform = 'scale(0.95)';
+      element.style.transform = initialTransform;
+      element.style.opacity = '0';
+      void element.offsetHeight; // Force reflow
+
+      animationStartedRef.current = true;
+      console.log('[useEmergeAnimation] emerge() (simple) - starting animation');
+
+      // Use Web Animations API
+      animationRef.current = element.animate(
+        [
+          { transform: 'scale(0.95)', opacity: 0 },
+          { transform: 'scale(1)', opacity: 1 },
+        ],
+        {
+          duration,
+          easing,
+          fill: 'forwards',
+        }
+      );
+
+      const currentAnimation = animationRef.current;
+
+      try {
+        await currentAnimation.finished;
+        if (element) {
+          element.style.transform = 'scale(1)';
+          element.style.opacity = '1';
+        }
+        setAnimationState('visible');
+      } catch (error) {
+        console.error('[useEmergeAnimation] emerge() (simple) - animation error:', error);
+        if (animationRef.current === currentAnimation) {
+          if (element) {
+            element.style.transform = 'scale(1)';
+            element.style.opacity = '1';
+          }
+          setAnimationState('visible');
+        }
+      }
+      return;
+    }
+
+    // Emerge mode: Wait for element and source to be available
     // Poll until both are rendered (with a timeout to prevent infinite wait)
     console.log('[useEmergeAnimation] emerge() - waiting for element and source to be available');
     let element = elementRef.current;
@@ -312,7 +381,7 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       }
       // Otherwise: shrink cancelled us - silently let shrink manage state
     }
-  }, [animationState, duration, easing, transformOrigin, isVisible]);
+  }, [duration, easing, transformOrigin]);
 
   /**
    * Trigger shrink animation (disappear into source)
@@ -328,9 +397,58 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       animationRef.current.cancel();
     }
 
+    // Update ref synchronously FIRST to ensure shouldRender remains true
+    animationStateRef.current = 'shrinking';
     setAnimationState('shrinking');
 
     const element = elementRef.current;
+
+    // Simple mode: Just fade + scale animation (no source needed)
+    if (mode === 'simple') {
+      console.log('[useEmergeAnimation] shrink() (simple) - starting animation');
+
+      if (!element) {
+        console.warn('[useEmergeAnimation] shrink() (simple) - missing element');
+        setAnimationState('hidden');
+        setIsVisible(false);
+        return;
+      }
+
+      // Reset any existing transform
+      element.style.transform = 'scale(1)';
+      element.style.opacity = '1';
+      void element.offsetHeight;
+
+      try {
+        // Simple animation: fade out + scale to 0.95
+        console.log('[useEmergeAnimation] shrink() (simple) - starting animation');
+        animationRef.current = element.animate(
+          [
+            { transform: 'scale(1)', opacity: 1 },
+            { transform: 'scale(0.95)', opacity: 0 },
+          ],
+          {
+            duration,
+            easing,
+            fill: 'forwards',
+          }
+        );
+
+        console.log('[useEmergeAnimation] shrink() (simple) - animation created, waiting for finish');
+        await animationRef.current.finished;
+        console.log('[useEmergeAnimation] shrink() (simple) - animation finished successfully');
+        setAnimationState('hidden');
+        setIsVisible(false);
+      } catch (error) {
+        // Animation was cancelled or failed - set to hidden as fallback
+        console.error('[useEmergeAnimation] shrink() (simple) - animation error:', error);
+        setAnimationState('hidden');
+        setIsVisible(false);
+      }
+      return;
+    }
+
+    // Emerge mode: Need source element
     const source = sourceRef.current;
 
     console.log('[useEmergeAnimation] shrink() - element and source check:', {
@@ -455,7 +573,12 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       : '';
 
   // Determine if element should be rendered
-  const shouldRender = isVisible || animationState === 'emerging' || animationState === 'shrinking';
+  // Include ref values to handle the case where setState hasn't re-rendered yet
+  const shouldRender = isVisible || 
+    animationState === 'emerging' || 
+    animationState === 'shrinking' ||
+    animationStateRef.current === 'emerging' ||
+    animationStateRef.current === 'shrinking';
 
   return {
     elementRef,

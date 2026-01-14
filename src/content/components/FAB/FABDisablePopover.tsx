@@ -80,9 +80,10 @@ export const FABDisablePopover: React.FC<FABDisablePopoverProps> = ({
     style: animationStyle,
     animationState,
   } = useEmergeAnimation({
-    duration: 300,
-    easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Slight overshoot for playful feel
-    transformOrigin: 'top right', // Animate from top-right (near the button)
+    duration: 200,
+    easing: 'cubic-bezier(0.4, 0, 0.2, 1)', // Smooth ease-out
+    transformOrigin: 'top right',
+    mode: 'simple', // Use simple fade+scale animation
   });
 
   // Find the source button from DOM (parent button element)

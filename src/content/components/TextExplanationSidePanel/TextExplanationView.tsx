@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { ArrowUp, Trash2, Plus, Square, Loader2, Check } from 'lucide-react';
 import { Dropdown, type DropdownOption } from '../SidePanel/Dropdown';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
+import { getLanguageName } from '@/api-services/TranslateService';
 import styles from './TextExplanationView.module.css';
 
 export interface TextExplanationViewProps {
@@ -163,7 +164,21 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
           
           // If native language is set and not "As per website", auto-select it
           if (lang && lang !== 'As per website' && lang.trim() !== '') {
-            setSelectedLanguage(lang);
+            // Check if lang is a 2-letter code (from backend API)
+            if (lang.length === 2 && lang === lang.toUpperCase()) {
+              // Convert code to language name (e.g., 'OR' -> 'ଓଡ଼ିଆ')
+              const languageName = getLanguageName(lang);
+              if (languageName) {
+                setSelectedLanguage(languageName);
+                console.log('[TextExplanationView] Converted language code to name:', lang, '->', languageName);
+              } else {
+                console.warn('[TextExplanationView] Could not find language name for code:', lang);
+                setSelectedLanguage(undefined);
+              }
+            } else {
+              // Already a language name, use as-is
+              setSelectedLanguage(lang);
+            }
           } else {
             setSelectedLanguage(undefined);
           }

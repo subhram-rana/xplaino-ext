@@ -101,6 +101,22 @@ const LANGUAGE_CODE_MAP: Record<string, string> = {
 };
 
 /**
+ * Reverse mapping: ISO 639-1 code to language name
+ * Generated from LANGUAGE_CODE_MAP
+ */
+const CODE_TO_LANGUAGE_MAP: Record<string, string> = Object.entries(LANGUAGE_CODE_MAP).reduce(
+  (acc, [languageName, code]) => {
+    // Handle duplicate codes (e.g., 'Filipino' and 'Tagalog' both map to 'TL')
+    // Keep the first occurrence
+    if (!acc[code]) {
+      acc[code] = languageName;
+    }
+    return acc;
+  },
+  {} as Record<string, string>
+);
+
+/**
  * Convert language display name to ISO 639-1 code
  * Also handles cases where the input is already a language code
  */
@@ -116,6 +132,20 @@ export function getLanguageCode(languageName: string): string | null {
   
   // Otherwise, look up the language name in the map
   return LANGUAGE_CODE_MAP[languageName] || null;
+}
+
+/**
+ * Convert ISO 639-1 code to language display name
+ * @param languageCode - Two-letter language code (e.g., 'OR', 'HI', 'EN')
+ * @returns Language name (e.g., 'ଓଡ଼ିଆ', 'हिन्दी', 'English') or null if not found
+ */
+export function getLanguageName(languageCode: string): string | null {
+  if (!languageCode) return null;
+  
+  // Normalize to uppercase for lookup
+  const normalizedCode = languageCode.toUpperCase();
+  
+  return CODE_TO_LANGUAGE_MAP[normalizedCode] || null;
 }
 
 /**

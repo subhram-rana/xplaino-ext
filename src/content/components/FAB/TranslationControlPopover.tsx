@@ -39,9 +39,10 @@ export const TranslationControlPopover: React.FC<TranslationControlPopoverProps>
     style: animationStyle,
     animationState,
   } = useEmergeAnimation({
-    duration: 300,
+    duration: 200,
     easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-    transformOrigin: 'center right', // Animate from the right (near the button)
+    transformOrigin: 'center right',
+    mode: 'simple', // Use simple fade+scale animation
   });
 
   // Find the source button from DOM
