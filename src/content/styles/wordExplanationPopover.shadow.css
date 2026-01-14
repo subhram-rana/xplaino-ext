@@ -216,12 +216,15 @@
   flex: 1 !important;
   overflow-y: auto !important;
   max-height: 400px !important;
+  min-height: 0 !important;
   color: var(--color-text-primary) !important;
   font-family: var(--font-family-primary) !important;
   font-size: 14px !important;
   line-height: 1.6 !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
+  transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: height !important;
 }
 
 .mainContent p {
@@ -633,6 +636,7 @@
   flex-direction: column !important;
   gap: 16px !important;
   padding: 4px 0 !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .vocabularyGrid {

@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSetAtom, useAtomValue } from 'jotai';
 import styles from './SidePanel.module.css';
 import { Header } from './Header';
-import { Footer } from './Footer';
+import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
 import { SummaryView } from './SummaryView';
 import { SettingsView } from './SettingsView';
 import { SaveLinkModal } from '../SaveLinkModal/SaveLinkModal';
@@ -374,10 +374,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         )}
       </div>
 
-      {/* Footer */}
-      <Footer
-        useShadowDom={useShadowDom}
-      />
+      {/* Upgrade Footer */}
+      <UpgradeFooter useShadowDom={useShadowDom} />
 
       {/* Save Link Modal */}
       <SaveLinkModal

@@ -1149,7 +1149,7 @@
   }
 }
 
-/* Footer */
+/* Footer (Tab Group) */
 .footer {
   border-top: 1px solid var(--color-border-default) !important;
   padding: 0 !important;
@@ -1157,7 +1157,6 @@
   display: flex !important;
   justify-content: center !important;
   width: calc(100% + 30px) !important;
-  border-radius: 0 0 30px 30px !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
   background: var(--color-white) !important;
@@ -1197,5 +1196,12 @@
   height: 50% !important;
   width: 1px !important;
   background: var(--color-border-default) !important;
+}
+
+/* Upgrade Footer - positioned at the bottom with rounded corners */
+.upgradeFooter {
+  border-radius: 0 0 30px 30px !important;
+  margin: 0 -15px 0 -15px !important;
+  width: calc(100% + 30px) !important;
 }
 

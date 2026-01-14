@@ -8,7 +8,7 @@ import styles from './WordAskAISidePanel.module.css';
 import { ChatMessage } from '@/store/wordExplanationAtoms';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
-import { Footer } from '../SidePanel/Footer';
+import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
 
 // Custom expand icon - arrows pointing away from center (up and down)
 const ExpandVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
@@ -615,8 +615,8 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
           )}
         </div>
 
-        {/* Footer with Upgrade and Coupon buttons */}
-        <Footer useShadowDom={useShadowDom} />
+        {/* Upgrade Footer with Upgrade and Coupon buttons */}
+        <UpgradeFooter useShadowDom={useShadowDom} />
       </div>
     </div>
   );

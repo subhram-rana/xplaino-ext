@@ -74,10 +74,8 @@ export interface TextExplanationSidePanelProps {
   onCloseHandlerReady?: (handler: () => void) => void;
   /** Whether the text is bookmarked */
   isBookmarked?: boolean;
-  /** Whether to hide the footer (used for image explanations) */
+  /** Whether to hide the tab group footer (used for image explanations) */
   hideFooter?: boolean;
-  /** Whether to show the upgrade footer with coupon and upgrade buttons (used for image explanations) */
-  showUpgradeFooter?: boolean;
 }
 
 const MIN_WIDTH = 300;
@@ -117,7 +115,6 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   onCloseHandlerReady,
   isBookmarked = false,
   hideFooter = false,
-  showUpgradeFooter = false,
 }) => {
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
@@ -436,7 +433,7 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         />
       </div>
 
-      {/* Footer (hidden when hideFooter is true, e.g. for image explanations) */}
+      {/* Tab Group (hidden when hideFooter is true, e.g. for image explanations) */}
       {!hideFooter && (
         <TextExplanationFooter
           useShadowDom={useShadowDom}
@@ -445,10 +442,8 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         />
       )}
 
-      {/* Upgrade Footer with coupon and upgrade buttons (shown for image explanations) */}
-      {showUpgradeFooter && (
-        <UpgradeFooter useShadowDom={useShadowDom} />
-      )}
+      {/* Upgrade Footer with coupon and upgrade buttons (always shown) */}
+      <UpgradeFooter useShadowDom={useShadowDom} />
     </div>
   );
 };

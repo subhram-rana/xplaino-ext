@@ -260,28 +260,32 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       easing,
     });
 
-    try {
-      // Use Web Animations API for smooth animation
-      // Start from the initial transform (already applied above)
-      // Web Animation will override the inline style
-      animationRef.current = element.animate(
-        [
-          {
-            transform: initialTransform,
-          },
-          {
-            transform: 'translate(0, 0) scale(1)',
-          },
-        ],
+    // Use Web Animations API for smooth animation
+    // Start from the initial transform (already applied above)
+    // Web Animation will override the inline style
+    animationRef.current = element.animate(
+      [
         {
-          duration,
-          easing,
-          fill: 'forwards',
-        }
-      );
+          transform: initialTransform,
+        },
+        {
+          transform: 'translate(0, 0) scale(1)',
+        },
+      ],
+      {
+        duration,
+        easing,
+        fill: 'forwards',
+      }
+    );
 
-      console.log('[useEmergeAnimation] emerge() - animation created, waiting for finish');
-      await animationRef.current.finished;
+    // Capture reference to detect if shrink() replaces it later
+    const currentAnimation = animationRef.current;
+
+    console.log('[useEmergeAnimation] emerge() - animation created, waiting for finish');
+
+    try {
+      await currentAnimation.finished;
       console.log('[useEmergeAnimation] emerge() - animation finished, setting to visible');
       
       // CRITICAL: Clear the inline transform style that was set before animation
@@ -294,12 +298,19 @@ export function useEmergeAnimation(options: EmergeAnimationOptions = {}): Emerge
       
       setAnimationState('visible');
     } catch (error) {
-      // Animation was cancelled or failed - set to visible as fallback
+      // Animation was cancelled or failed
       console.error('[useEmergeAnimation] emerge() - animation error:', error);
-      if (element) {
-        element.style.transform = 'translate(0, 0) scale(1)';
+      
+      // Only recover if this animation is still the current one.
+      // If shrink() was called, it creates a new animation and replaces animationRef.current,
+      // so we should let shrink handle the state transition instead of interfering.
+      if (animationRef.current === currentAnimation) {
+        if (element) {
+          element.style.transform = 'translate(0, 0) scale(1)';
+        }
+        setAnimationState('visible');
       }
-      setAnimationState('visible');
+      // Otherwise: shrink cancelled us - silently let shrink manage state
     }
   }, [animationState, duration, easing, transformOrigin, isVisible]);
 

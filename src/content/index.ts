@@ -1072,10 +1072,12 @@ function injectSidePanel(): void {
   
   // Inject component styles
   injectStyles(shadow, sidePanelStyles);
-  
+
   // Inject highlighted coupon styles
   injectStyles(shadow, highlightedCouponStyles);
   injectStyles(shadow, minimalCouponButtonStyles);
+  // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
+  injectStyles(shadow, baseSidePanelStyles);
 
   // Append to document
   document.body.appendChild(host);
@@ -5655,6 +5657,8 @@ function injectTextExplanationPanel(): void {
   // Inject highlighted coupon styles
   injectStyles(shadow, highlightedCouponStyles);
   injectStyles(shadow, minimalCouponButtonStyles);
+  // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
+  injectStyles(shadow, baseSidePanelStyles);
 
   document.body.appendChild(host);
 
@@ -7052,7 +7056,6 @@ function updateImageExplanationPanel(): void {
           onBookmark: handleImageBookmarkCallback,
           isBookmarked: !!activeExplanation.savedImageId,
           hideFooter: true,
-          showUpgradeFooter: true,
           firstChunkReceived,
           onCloseHandlerReady: (handler) => {
             console.log('[index.ts] Close handler registered from ImageExplanationSidePanel');
@@ -7624,6 +7627,8 @@ function injectWordAskAISidePanel(): void {
   // Inject highlighted coupon styles
   injectStyles(hostResult.shadow, highlightedCouponStyles);
   injectStyles(hostResult.shadow, minimalCouponButtonStyles);
+  // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
+  injectStyles(hostResult.shadow, baseSidePanelStyles);
 
   // Append host to document body
   document.body.appendChild(hostResult.host);

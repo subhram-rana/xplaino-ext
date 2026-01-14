@@ -8,7 +8,6 @@
   display: flex;
   justify-content: center;
   width: calc(100% + 30px);
-  border-radius: 0 0 30px 30px;
   overflow: hidden;
   box-sizing: border-box;
   flex-shrink: 0;

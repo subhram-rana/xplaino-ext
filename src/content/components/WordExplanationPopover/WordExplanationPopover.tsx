@@ -162,6 +162,45 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
     return () => clearTimeout(timer);
   }, [activeTab]);
 
+  // Smooth height transition when tab changes
+  useEffect(() => {
+    const mainContent = mainContentRef.current;
+    if (!mainContent) return;
+
+    // Get the current height before content changes
+    const currentHeight = mainContent.scrollHeight;
+    
+    // Set explicit height to current height (to enable transition)
+    mainContent.style.height = `${currentHeight}px`;
+    
+    // Use requestAnimationFrame to allow DOM to update with new content
+    requestAnimationFrame(() => {
+      // Allow content to render with auto height temporarily
+      mainContent.style.height = 'auto';
+      
+      // Get the new height after content change
+      const newHeight = mainContent.scrollHeight;
+      
+      // Set back to old height (without transition)
+      mainContent.style.height = `${currentHeight}px`;
+      
+      // Force reflow
+      mainContent.offsetHeight;
+      
+      // Now animate to new height
+      requestAnimationFrame(() => {
+        mainContent.style.height = `${newHeight}px`;
+        
+        // After transition completes, set back to auto for flexibility
+        const transitionEnd = () => {
+          mainContent.style.height = 'auto';
+          mainContent.removeEventListener('transitionend', transitionEnd);
+        };
+        mainContent.addEventListener('transitionend', transitionEnd);
+      });
+    });
+  }, [activeTab, content, synonyms, antonyms, translations]);
+
   console.log('[WordExplanationPopover] Render with props:', {
     visible,
     contentLength: content?.length || 0,
@@ -679,7 +718,8 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
       </div>
 
       {/* Main Content */}
-      <div 
+      <div
+        ref={mainContentRef}
         className={getClassName('mainContent')}
         style={activeTab === 'grammar' && !isLoading && !errorMessage && !synonyms.length && !antonyms.length && !translations.length ? { minHeight: 0 } : undefined}
       >
