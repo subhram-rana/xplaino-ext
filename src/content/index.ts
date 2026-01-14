@@ -213,6 +213,8 @@ let folderModalRememberChecked: boolean = false; // Track remember folder checkb
 let folderModalRememberCheckedInitialized: boolean = false; // Track if checkbox state has been initialized
 // Folder modal mode: 'paragraph' for paragraph saving, 'link' for link saving, 'word' for word saving, 'image' for image saving
 let folderModalMode: 'paragraph' | 'link' | 'word' | 'image' | null = null;
+// Track if paragraph bookmark is from ContentActions (to prevent panel from opening)
+let folderModalParagraphSource: 'contentactions' | 'panel' | null = null;
 // Link-specific state variables
 let folderModalLinkUrl: string = '';
 let folderModalLinkName: string = '';
@@ -1265,6 +1267,7 @@ async function handleContentActionsBookmarkClick(selectedText: string): Promise<
     range = selection.getRangeAt(0).cloneRange();
   }
   folderModalRange = range;
+  folderModalParagraphSource = 'contentactions'; // Mark as ContentActions bookmark to prevent panel from opening
   
   console.log('[Content Script] Calling FolderService.getAllFolders');
   
@@ -2898,6 +2901,7 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
             isSpinning: false,
             firstChunkReceived: true,
             translations: [{ language: nativeLanguage, translated_content: translatedText }],
+            abortController: null, // Clear abortController after translation completes
           };
           
           const map = new Map(store.get(textExplanationsAtom));
@@ -2919,6 +2923,7 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
                 mapWithUnderline.set(explanationId, {
                   ...stateWithUnderline,
                   underlineState,
+                  abortController: null, // Ensure abortController remains cleared
                 });
                 store.set(textExplanationsAtom, mapWithUnderline);
               }
@@ -2938,7 +2943,12 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
           // Stop translating flag
           isTranslating = false;
           
-          // Remove the explanation
+          // Abort controller and remove the explanation
+          const currentState = store.get(textExplanationsAtom).get(explanationId);
+          if (currentState?.abortController) {
+            currentState.abortController.abort();
+          }
+          
           const newMap = new Map(store.get(textExplanationsAtom));
           newMap.delete(explanationId);
           store.set(textExplanationsAtom, newMap);
@@ -2978,7 +2988,12 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
           // Stop translating flag
           isTranslating = false;
           
-          // Remove the explanation
+          // Abort controller and remove the explanation
+          const currentState = store.get(textExplanationsAtom).get(explanationId);
+          if (currentState?.abortController) {
+            currentState.abortController.abort();
+          }
+          
           const newMap = new Map(store.get(textExplanationsAtom));
           newMap.delete(explanationId);
           store.set(textExplanationsAtom, newMap);
@@ -3006,7 +3021,12 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
           // Stop translating flag
           isTranslating = false;
           
-          // Remove the explanation
+          // Abort controller and remove the explanation
+          const currentState = store.get(textExplanationsAtom).get(explanationId);
+          if (currentState?.abortController) {
+            currentState.abortController.abort();
+          }
+          
           const newMap = new Map(store.get(textExplanationsAtom));
           newMap.delete(explanationId);
           store.set(textExplanationsAtom, newMap);
@@ -3035,6 +3055,33 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
     
     // Stop translating flag
     isTranslating = false;
+    
+    // Abort controller and remove the explanation if it was created
+    const explanations = store.get(textExplanationsAtom);
+    const explanationId = store.get(activeTextExplanationIdAtom);
+    if (explanationId && explanations.has(explanationId)) {
+      const currentState = explanations.get(explanationId);
+      if (currentState?.abortController) {
+        currentState.abortController.abort();
+      }
+      
+      // Remove the explanation
+      const newMap = new Map(explanations);
+      newMap.delete(explanationId);
+      store.set(textExplanationsAtom, newMap);
+      
+      // Clear active explanation
+      store.set(activeTextExplanationIdAtom, null);
+      store.set(textExplanationPanelOpenAtom, false);
+      
+      // Update icon container
+      updateTextExplanationIconContainer();
+      
+      // Remove icon container if no explanations left
+      if (newMap.size === 0) {
+        removeTextExplanationIconContainer();
+      }
+    }
     
     showToast('An error occurred', 'error');
     
@@ -5538,6 +5585,9 @@ function updateTextExplanationPanel(): void {
     if (activeExplanation.range) {
       folderModalRange = activeExplanation.range.cloneRange();
     }
+    
+    // Mark as panel bookmark (so panel will open after save)
+    folderModalParagraphSource = 'panel';
     
     // Get folders and show modal
     FolderService.getAllFolders(
@@ -8791,9 +8841,11 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
         showToast('Text saved successfully!', 'success');
         showBookmarkToast('paragraph', '/user/saved-paragraphs');
         
-        // Preserve folderModalText and folderModalRange before closing modal (which clears them)
+        // Preserve folderModalText, folderModalRange, and folderModalParagraphSource before closing modal (which clears them)
         const savedText = folderModalText;
         const savedRange = folderModalRange;
+        const savedParagraphSource = folderModalParagraphSource; // Preserve flag before modal closes
+        console.log('[Content Script] Preserved paragraph source before closing modal:', savedParagraphSource);
         
         closeFolderListModal();
         
@@ -8951,23 +9003,30 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
             // Update icon container again to ensure it renders
             updateTextExplanationIconContainer();
             
-            // Use requestAnimationFrame to ensure iconRef is set before opening panel
-            requestAnimationFrame(() => {
+            // Only open panel if bookmark is NOT from ContentActions
+            const isFromContentActions = savedParagraphSource === 'contentactions';
+            console.log('[Content Script] Checking bookmark source:', { savedParagraphSource, isFromContentActions });
+            if (!isFromContentActions) {
+              // Use requestAnimationFrame to ensure iconRef is set before opening panel
               requestAnimationFrame(() => {
-                // Verify iconRef is set before opening panel
-                if (iconRef.current) {
-                  console.log('[Content Script] IconRef is set, opening panel');
-                } else {
-                  console.warn('[Content Script] IconRef not set yet');
-                }
-                
-                // Open panel
-                store.set(textExplanationPanelOpenAtom, true);
-                
-                // Update panel
-                updateTextExplanationPanel();
+                requestAnimationFrame(() => {
+                  // Verify iconRef is set before opening panel
+                  if (iconRef.current) {
+                    console.log('[Content Script] IconRef is set, opening panel');
+                  } else {
+                    console.warn('[Content Script] IconRef not set yet');
+                  }
+                  
+                  // Open panel
+                  store.set(textExplanationPanelOpenAtom, true);
+                  
+                  // Update panel
+                  updateTextExplanationPanel();
+                });
               });
-            });
+            } else {
+              console.log('[Content Script] Bookmark from ContentActions - panel will not open');
+            }
           }, 100);
           
           // Note: savedRange and savedText are local variables, no need to clear folderModalRange here
@@ -9600,6 +9659,8 @@ function closeFolderListModal(): void {
   folderModalLinkName = '';
   folderModalLinkSummary = null;
   folderModalLinkSource = null;
+  // Clear paragraph source flag
+  folderModalParagraphSource = null;
   // Clear word-specific state
   folderModalWord = null;
   folderModalWordContextualMeaning = null;
