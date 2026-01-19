@@ -50,8 +50,6 @@ import folderListModalStyles from './styles/folderListModal.shadow.css?inline';
 import savedParagraphIconStyles from './styles/savedParagraphIcon.shadow.css?inline';
 import welcomeModalStyles from './styles/welcomeModal.shadow.css?inline';
 import youtubeAskAIButtonStyles from './styles/youtubeAskAIButton.shadow.css?inline';
-import highlightedCouponStyles from './styles/highlightedCoupon.shadow.css?inline';
-import minimalCouponButtonStyles from './styles/minimalCouponButton.shadow.css?inline';
 import baseSidePanelStyles from './styles/baseSidePanel.shadow.css?inline';
 import spinnerStyles from './styles/spinner.shadow.css?inline';
 
@@ -1075,9 +1073,6 @@ function injectSidePanel(): void {
   // Inject component styles
   injectStyles(shadow, sidePanelStyles);
 
-  // Inject highlighted coupon styles
-  injectStyles(shadow, highlightedCouponStyles);
-  injectStyles(shadow, minimalCouponButtonStyles);
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
 
@@ -5729,9 +5724,6 @@ function injectTextExplanationPanel(): void {
   injectStyles(shadow, textExplanationSidePanelStyles);
   // Then inject color variables to override/ensure they're set
   injectStyles(shadow, ALL_COLOR_VARIABLES);
-  // Inject highlighted coupon styles
-  injectStyles(shadow, highlightedCouponStyles);
-  injectStyles(shadow, minimalCouponButtonStyles);
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
 
@@ -7169,9 +7161,6 @@ function injectImageExplanationPanel(): void {
   injectStyles(shadow, textExplanationSidePanelStyles);
   // Then inject color variables to override/ensure they're set
   injectStyles(shadow, ALL_COLOR_VARIABLES);
-  // Inject highlighted coupon styles
-  injectStyles(shadow, highlightedCouponStyles);
-  injectStyles(shadow, minimalCouponButtonStyles);
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
   
@@ -7735,9 +7724,6 @@ function injectWordAskAISidePanel(): void {
 
   // Inject styles
   injectStyles(hostResult.shadow, wordAskAISidePanelStyles);
-  // Inject highlighted coupon styles
-  injectStyles(hostResult.shadow, highlightedCouponStyles);
-  injectStyles(hostResult.shadow, minimalCouponButtonStyles);
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(hostResult.shadow, baseSidePanelStyles);
 

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { RefObject } from 'react';
 import styles from './BaseSidePanel.module.css';
-import { HighlightedCoupon } from '../HighlightedCoupon';
 import { UpgradeFooter } from './UpgradeFooter';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
@@ -25,8 +24,6 @@ export interface BaseSidePanelProps {
   content: React.ReactNode;
   /** Optional footer content - pass a React node for custom footer */
   footer?: React.ReactNode;
-  /** Whether to show the highlighted coupon below header */
-  showHighlightedCoupon?: boolean;
   /** Whether to show the upgrade footer with coupon and upgrade buttons */
   showUpgradeFooter?: boolean;
   /** Whether to use emerge/shrink animation */
@@ -54,7 +51,6 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
   header,
   content,
   footer,
-  showHighlightedCoupon = false,
   showUpgradeFooter = false,
   useAnimation = false,
   animationSourceRef,
@@ -275,9 +271,6 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
 
       {/* Header Slot */}
       {header}
-
-      {/* Highlighted Coupon (optional) */}
-      {showHighlightedCoupon && <HighlightedCoupon useShadowDom={useShadowDom} />}
 
       {/* Content Slot */}
       <div className={contentClass}>
