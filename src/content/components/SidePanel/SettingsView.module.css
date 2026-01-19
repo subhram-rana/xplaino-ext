@@ -5,8 +5,8 @@
   padding: 16px !important;
   height: 100% !important;
   overflow-y: auto !important;
-  background: #FFFFFF !important;
-  color: #4A5568 !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .loading {
@@ -14,7 +14,7 @@
   align-items: center !important;
   justify-content: center !important;
   height: 100% !important;
-  color: #718096 !important;
+  color: var(--color-text-secondary-theme) !important;
 }
 
 .section {
@@ -24,7 +24,7 @@
 
 .sectionDivider {
   height: 1px !important;
-  background: #E2E8F0 !important;
+  background: var(--color-border-default-theme) !important;
   margin: 0 0 20px 0 !important;
 }
 
@@ -47,7 +47,7 @@
 .sectionTitle {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #4A5568 !important;
+  color: var(--color-text-primary-theme) !important;
   margin: 0 !important;
   flex-shrink: 0 !important;
 }
@@ -94,7 +94,7 @@
 .settingLabel {
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: #4A5568 !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .languageSettingRow {
@@ -164,7 +164,7 @@
   width: 44px !important;
   height: 20px !important;
   border-radius: 10px !important;
-  background: #E2E8F0 !important;
+  background: var(--color-border-default-theme) !important;
   transition: background-color 0.2s ease !important;
 }
 
@@ -179,7 +179,7 @@
   width: 12px !important;
   height: 12px !important;
   border-radius: 50% !important;
-  background: #FFFFFF !important;
+  background: var(--color-white) !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
   transition: transform 150ms ease !important;
   transform: translateX(0) !important;
@@ -200,7 +200,7 @@
 .toggleLabel {
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: #4A5568 !important;
+  color: var(--color-text-primary-theme) !important;
   user-select: none !important;
 }
 
@@ -257,7 +257,7 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: #E2E8F0 !important;
+  background: var(--color-border-default-theme) !important;
 }
 
 .accountPicture {
@@ -295,14 +295,14 @@
 .accountName {
   font-size: 16px !important;
   font-weight: 700 !important;
-  color: #2D3748 !important;
+  color: var(--color-text-primary-theme) !important;
   line-height: 1.5 !important;
 }
 
 .accountEmail {
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: #2D3748 !important;
+  color: var(--color-text-primary-theme) !important;
   line-height: 1.5 !important;
 }
 
@@ -445,7 +445,7 @@
 .accountLoginText {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #4A5568 !important;
+  color: var(--color-text-primary-theme) !important;
   text-align: center !important;
   line-height: 1.5 !important;
 }

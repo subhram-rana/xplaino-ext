@@ -34,7 +34,7 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
          PRIMARY COLORS
          ============================================ */
       --color-primary: ${COLORS.PRIMARY} !important;
-      --color-primary-light: ${COLORS.PRIMARY_LIGHT} !important;
+      --color-primary-light: ${activeTheme === 'dark' ? COLORS.DARK_ACCENT : COLORS.PRIMARY_LIGHT} !important;
       --color-primary-light-alt: ${COLORS.PRIMARY_LIGHT_ALT} !important;
       --color-primary-very-light: ${COLORS.PRIMARY_VERY_LIGHT} !important;
       --color-primary-dark: ${COLORS.PRIMARY_DARK} !important;
@@ -257,6 +257,8 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
       --color-text-secondary-theme: ${textSecondary} !important;
       --color-text-muted-theme: ${textMuted} !important;
       --color-border-default-theme: ${borderDefault} !important;
+      --color-bg-selected-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_SELECTED : COLORS.BACKGROUND_GREEN_TINT_1} !important;
+      --color-bg-header-footer-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_HEADER_FOOTER : COLORS.WHITE} !important;
       
       /* ============================================
          FONT FAMILY
@@ -280,7 +282,7 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
          PRIMARY COLORS
          ============================================ */
       --color-primary: ${COLORS.PRIMARY} !important;
-      --color-primary-light: ${COLORS.PRIMARY_LIGHT} !important;
+      --color-primary-light: ${activeTheme === 'dark' ? COLORS.DARK_ACCENT : COLORS.PRIMARY_LIGHT} !important;
       --color-primary-light-alt: ${COLORS.PRIMARY_LIGHT_ALT} !important;
       --color-primary-very-light: ${COLORS.PRIMARY_VERY_LIGHT} !important;
       --color-primary-dark: ${COLORS.PRIMARY_DARK} !important;
@@ -483,6 +485,7 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
       --color-bg-dark-secondary: ${COLORS.DARK_BG_SECONDARY} !important;
       --color-bg-dark-tertiary: ${COLORS.DARK_BG_TERTIARY} !important;
       --color-bg-dark-hover: ${COLORS.DARK_BG_HOVER} !important;
+      --color-bg-dark-header-footer: ${COLORS.DARK_BG_HEADER_FOOTER} !important;
       --color-text-dark-primary: ${COLORS.DARK_TEXT_PRIMARY} !important;
       --color-text-dark-secondary: ${COLORS.DARK_TEXT_SECONDARY} !important;
       --color-text-dark-muted: ${COLORS.DARK_TEXT_MUTED} !important;
@@ -503,6 +506,8 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
       --color-text-secondary-theme: ${THEMES[activeTheme]['text-secondary']} !important;
       --color-text-muted-theme: ${THEMES[activeTheme]['text-muted']} !important;
       --color-border-default-theme: ${THEMES[activeTheme]['border-default']} !important;
+      --color-bg-selected-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_SELECTED : COLORS.BACKGROUND_GREEN_TINT_1} !important;
+      --color-bg-header-footer-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_HEADER_FOOTER : COLORS.WHITE} !important;
       
       /* ============================================
          FONT FAMILY

@@ -62,7 +62,8 @@
 .subscriptionModalContainer {
   background: var(--color-bg-primary-theme) !important;
   border-radius: 30px !important;
-  box-shadow: 0 0 30px var(--color-shadow-black-30) !important;
+  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3) !important;
   padding: 40px !important;
   max-width: 400px !important;
   width: 90% !important;
@@ -138,7 +139,7 @@
   object-fit: contain !important;
 }
 
-/* Pricing Button - Matching "+ Add folder" button style */
+/* Pricing Button - Matching Save text / Add folder button style */
 .pricingButton {
   width: 100% !important;
   display: flex !important;
@@ -146,19 +147,21 @@
   justify-content: center !important;
   gap: 12px !important;
   padding: 14px 24px !important;
-  border: none !important;
+  /* Transparent background with teal border */
+  border: 1.5px solid var(--color-primary-light, #14a08a) !important;
+  background: transparent !important;
   border-radius: 12px !important;
-  background-color: var(--color-bg-green-tint-3) !important;
   cursor: pointer !important;
   transition: all 0.15s ease !important;
   font-size: 16px !important;
   font-weight: 500 !important;
-  color: var(--color-gray-600-alt) !important;
+  color: var(--color-primary-light, #14a08a) !important;
 }
 
 .pricingButton:hover:not(:disabled) {
-  background-color: var(--color-primary) !important;
-  color: var(--color-white) !important;
+  /* Teal background on hover */
+  background-color: var(--color-primary-light, #14a08a) !important;
+  color: var(--color-white, #FFFFFF) !important;
 }
 
 .pricingButton:active:not(:disabled) {
@@ -166,8 +169,10 @@
 }
 
 .pricingButton:disabled {
-  opacity: 0.7 !important;
+  opacity: 0.6 !important;
   cursor: not-allowed !important;
+  border-color: var(--color-text-secondary-theme, #718096) !important;
+  color: var(--color-text-secondary-theme, #718096) !important;
 }
 
 .pricingButtonText {

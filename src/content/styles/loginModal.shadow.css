@@ -62,7 +62,8 @@
 .loginModalContainer {
   background: var(--color-bg-primary-theme) !important;
   border-radius: 30px !important;
-  box-shadow: 0 0 30px var(--color-shadow-black-30) !important;
+  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3) !important;
   padding: 40px !important;
   max-width: 400px !important;
   width: 90% !important;
@@ -119,7 +120,7 @@
 /* Error Message */
 .loginModalError {
   background: var(--color-error-opacity-10-alt) !important;
-  border: 1px solid var(--color-error-opacity-30) !important;
+  border: 1.5px solid var(--color-error-opacity-30) !important;
   border-radius: 8px !important;
   padding: 12px 16px !important;
   margin-bottom: 24px !important;
@@ -136,7 +137,7 @@
   justify-content: center !important;
   gap: 12px !important;
   padding: 14px 24px !important;
-  border: 1px solid var(--color-border-default-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
   border-radius: 12px !important;
   background: var(--color-bg-secondary-theme) !important;
   cursor: pointer !important;

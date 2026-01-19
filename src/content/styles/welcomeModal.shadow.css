@@ -52,6 +52,7 @@
 .welcomeModalContent {
   background: var(--color-bg-primary-theme) !important;
   border-radius: 30px !important;
+  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
   padding: 32px 24px !important;
   box-shadow: 0 0 20px var(--color-shadow-black-20) !important;
   min-width: 320px !important;
@@ -98,10 +99,12 @@
   width: 100% !important;
 }
 
-/* Button Base Styles */
+/* Button Base Styles - Matching Save text / Add folder button style */
 .welcomeModalButton {
   padding: 10px 16px !important;
-  border: none !important;
+  /* Transparent background with teal border */
+  border: 1.5px solid var(--color-primary-light, #14a08a) !important;
+  background: transparent !important;
   border-radius: 8px !important;
   font-family: var(--font-family-primary) !important;
   font-size: 14px !important;
@@ -109,16 +112,15 @@
   cursor: pointer !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   outline: none !important;
-  background: var(--color-primary-very-light) !important;
-  color: var(--color-primary-light) !important;
+  color: var(--color-primary-light, #14a08a) !important;
   text-decoration: none !important;
   white-space: nowrap !important;
 }
 
-/* Button Hover States */
+/* Button Hover States - Teal background on hover */
 .welcomeModalButton:hover {
-  background: var(--color-primary-light) !important;
-  color: var(--color-white) !important;
+  background: var(--color-primary-light, #14a08a) !important;
+  color: var(--color-white, #FFFFFF) !important;
   text-decoration: none !important;
 }
 

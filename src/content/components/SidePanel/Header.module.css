@@ -15,16 +15,16 @@
   align-items: center !important;
   justify-content: space-between !important;
   padding: 8px 12px !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
   height: 48px !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
-  border-bottom: 1px solid var(--color-primary-hover-bg, rgba(13, 128, 112, 0.1)) !important;
+  border-bottom: 1.5px solid var(--color-primary-hover-bg, rgba(13, 128, 112, 0.1)) !important;
 }
 
-/* Settings tab header - light teal background (same as footer) */
+/* Settings tab header - same background as header */
 .headerSettings {
-  background: rgba(13, 128, 112, 0.05) !important;
+  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
 }
 
 /* Left Section: Action Icons */

@@ -24,7 +24,7 @@
   gap: 8px !important;
   padding: 10px 12px !important;
   background: var(--color-bg-primary-theme) !important;
-  border: 1px solid var(--color-border-default) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
   border-radius: 15px !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
@@ -61,7 +61,7 @@
 .linkRefIcon {
   width: 16px !important;
   height: 16px !important;
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
   flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;

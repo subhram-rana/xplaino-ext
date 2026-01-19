@@ -24,9 +24,10 @@
   width: var(--panel-width, var(--panel-default-width)) !important;
   min-width: var(--panel-min-width) !important;
   max-width: var(--panel-max-width) !important;
-  background: var(--panel-white) !important;
+  background: var(--color-bg-primary-theme, #FFFFFF) !important;
   border-radius: var(--panel-border-radius) 0 0 var(--panel-border-radius) !important;
   box-shadow: none !important;
+  border-left: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
   z-index: 2147483641 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -40,7 +41,7 @@
 
 .sidePanel.open {
   transform: translateX(0) !important;
-  box-shadow: var(--panel-shadow) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 .sidePanel.slidingOut {
@@ -96,8 +97,8 @@
 
 /* Footer */
 .footer {
-  background: var(--panel-white) !important;
-  border-top: 1px solid var(--panel-primary-light) !important;
+  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
+  border-top: 1.5px solid var(--panel-primary-light) !important;
   padding: 0 !important;
   display: flex !important;
   flex-shrink: 0 !important;
@@ -136,7 +137,7 @@
 }
 
 .tab:not(:last-child) {
-  border-right: 1px solid var(--panel-primary-light) !important;
+  border-right: 1.5px solid var(--panel-primary-light) !important;
 }
 
 /* Scrollbar Styling */

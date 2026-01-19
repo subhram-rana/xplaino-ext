@@ -200,21 +200,26 @@ export const COLORS = {
   SHADOW_BLACK_30: 'rgba(0, 0, 0, 0.3)',
 
   // ============================================
-  // DARK THEME COLORS
+  // DARK THEME COLORS - Teal-based Dark Mode
   // ============================================
-  DARK_BG_PRIMARY: '#1E1E1E',        // Card/primary background
-  DARK_BG_SECONDARY: '#2A2A2A',      // Secondary background (slightly lighter for layering)
-  DARK_BG_TERTIARY: '#252525',       // Tertiary background
-  DARK_BG_HOVER: '#252525',          // Hover state background
-  DARK_TEXT_PRIMARY: '#E6E6E6',      // Primary text color
-  DARK_TEXT_SECONDARY: '#9FA6A4',    // Secondary text color
-  DARK_TEXT_MUTED: '#6B7370',        // Muted text (between secondary and borders)
-  DARK_TEXT_INVERSE: '#1E1E1E',      // Inverse text (for light backgrounds)
-  DARK_BORDER_DEFAULT: '#243332',    // Default border color
-  DARK_BORDER_FOCUS: '#14B8A6',      // Focus border (accent hover)
-  DARK_ACCENT: '#0FA89A',            // Link/accent color
-  DARK_ACCENT_HOVER: '#14B8A6',      // Accent hover state
-  DARK_OVERLAY: 'rgba(30, 30, 30, 0.9)', // Dark overlay
+  DARK_BG_PRIMARY: '#303030',        // Medium dark gray - main background
+  DARK_BG_SECONDARY: '#1c1c1c',      // Very dark gray - secondary sections
+  DARK_BG_TERTIARY: '#1c1c1c',       // Same as secondary for consistency
+  DARK_BG_HOVER: '#252525',          // Slightly lighter for hover states
+  DARK_BG_HEADER_FOOTER: '#2a3835',  // Dark with teal undertone - for headers/footers
+  DARK_TEXT_PRIMARY: '#e0e0e0',      // Light gray - main text
+  DARK_TEXT_SECONDARY: '#b0b0b0',    // Muted gray - secondary text
+  DARK_TEXT_MUTED: '#999999',        // More muted - placeholders
+  DARK_TEXT_INVERSE: '#303030',      // Inverse text (matches primary bg)
+  DARK_BORDER_DEFAULT: 'rgba(13, 128, 112, 0.25)',    // Very light teal - visible borders
+  DARK_BORDER_SUBTLE: 'rgba(13, 128, 112, 0.20)',     // Light teal - subtle border variant
+  DARK_BORDER_FOCUS: '#0fa38d',      // Bright teal - focus/active states
+  DARK_ACCENT: '#0fa38d',            // Bright teal - links/accents
+  DARK_ACCENT_HOVER: '#00b3a5',      // Cyan green - hover states
+  DARK_OVERLAY: 'rgba(18, 18, 18, 0.9)', // Dark overlay matching primary bg
+  DARK_DISABLED: '#666666',          // Gray - disabled elements
+  DARK_ERROR: '#ff6347',             // Tomato red - errors/warnings
+  DARK_BG_SELECTED: 'rgba(15, 163, 141, 0.15)', // Selected item background in dark theme
 } as const;
 
 // Type for color keys

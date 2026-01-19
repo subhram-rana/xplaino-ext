@@ -21,7 +21,9 @@ export type ThemeColorToken =
   | 'text-secondary'
   | 'text-muted'
   | 'text-inverse'
+  | 'text-disabled'
   | 'border-default'
+  | 'border-subtle'
   | 'border-focus'
   | 'border-error';
 
@@ -38,22 +40,26 @@ export const THEMES: Record<Theme, Record<ThemeColorToken, string>> = {
     'text-secondary': COLORS.GRAY_600,
     'text-muted': COLORS.GRAY_500,
     'text-inverse': COLORS.WHITE,
+    'text-disabled': COLORS.GRAY_400,
     'border-default': COLORS.GRAY_300,
+    'border-subtle': COLORS.GRAY_200,
     'border-focus': COLORS.PRIMARY,
     'border-error': COLORS.ERROR,
   },
   dark: {
-    'bg-primary': COLORS.DARK_BG_PRIMARY,        // #1E1E1E
-    'bg-secondary': COLORS.DARK_BG_SECONDARY,    // #2A2A2A
-    'bg-tertiary': COLORS.DARK_BG_TERTIARY,      // #252525
-    'bg-hover': COLORS.DARK_BG_HOVER,            // #252525
-    'text-primary': COLORS.DARK_TEXT_PRIMARY,    // #E6E6E6
-    'text-secondary': COLORS.DARK_TEXT_SECONDARY,// #9FA6A4
-    'text-muted': COLORS.DARK_TEXT_MUTED,        // #6B7370
-    'text-inverse': COLORS.DARK_TEXT_INVERSE,    // #1E1E1E
-    'border-default': COLORS.DARK_BORDER_DEFAULT,// #243332
-    'border-focus': COLORS.DARK_BORDER_FOCUS,    // #14B8A6
-    'border-error': COLORS.ERROR_MEDIUM,         // Keep existing
+    'bg-primary': COLORS.DARK_BG_PRIMARY,           // #121212
+    'bg-secondary': COLORS.DARK_BG_SECONDARY,       // #1c1c1c
+    'bg-tertiary': COLORS.DARK_BG_TERTIARY,         // #1c1c1c
+    'bg-hover': COLORS.DARK_BG_HOVER,               // #252525
+    'text-primary': COLORS.DARK_TEXT_PRIMARY,       // #e0e0e0
+    'text-secondary': COLORS.DARK_TEXT_SECONDARY,   // #b0b0b0
+    'text-muted': COLORS.DARK_TEXT_MUTED,           // #999999
+    'text-inverse': COLORS.DARK_TEXT_INVERSE,       // #121212
+    'text-disabled': COLORS.DARK_DISABLED,          // #666666
+    'border-default': COLORS.DARK_BORDER_DEFAULT,   // #333333
+    'border-subtle': COLORS.DARK_BORDER_SUBTLE,     // #444444
+    'border-focus': COLORS.DARK_BORDER_FOCUS,       // #0fa38d
+    'border-error': COLORS.DARK_ERROR,              // #ff6347
   },
 } as const;
 

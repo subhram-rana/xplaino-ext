@@ -476,7 +476,7 @@ export const FolderListModal: React.FC<FolderListModalProps> = ({
           )}
           <div className={getClassName('folderList')} onClick={handleFolderListClick}>
             {/* Folder list label */}
-            {folders.length > 0 && !editingFolderId && (
+            {folders.length > 0 && (
               <div className={getClassName('folderListLabel')}>Choose folder</div>
             )}
             {/* Folder tree */}

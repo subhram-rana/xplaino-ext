@@ -32,7 +32,8 @@
   background: var(--color-bg-primary-theme) !important;
   border-radius: 30px 0 0 30px !important;
   box-shadow: none !important;
-  border: none !important;
+  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
+  border-right: none !important;
   z-index: 2147483641 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -48,7 +49,7 @@
 
 .sidePanel.open {
   transform: translateX(0) !important;
-  box-shadow: 0 4px 12px var(--color-shadow-black-20) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 .sidePanel.slidingOut {
@@ -60,9 +61,6 @@
   top: 0 !important;
   bottom: 0 !important;
   border-radius: 0 !important;
-  box-shadow: none !important;
-  border: 3px solid var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1)) !important;
-  border-right: none !important;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -99,7 +97,7 @@
 
 /* Header */
 .header {
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
   padding: 8px 12px !important;
   display: flex !important;
   align-items: center !important;
@@ -107,12 +105,12 @@
   flex-shrink: 0 !important;
   height: 48px !important;
   box-sizing: border-box !important;
-  border-bottom: 1px solid var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1)) !important;
+  border-bottom: 1.5px solid var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1)) !important;
 }
 
-/* Settings tab header - light teal background (same as footer) */
+/* Settings tab header - same background as header */
 .headerSettings {
-  background: rgba(13, 128, 112, 0.05) !important;
+  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
 }
 
 /* Header Left - Action Icons */
@@ -229,7 +227,7 @@
   color: var(--color-text-primary) !important;
   margin-bottom: 12px !important;
   padding-bottom: 12px !important;
-  border-bottom: 1px solid var(--color-border-default) !important;
+  border-bottom: 1.5px solid var(--color-border-default) !important;
   word-break: break-word !important;
 }
 
@@ -280,7 +278,8 @@
   overflow-x: hidden !important;
   padding: 10px 15px !important;
   position: relative !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 /* UpgradeFooter styles are now in baseSidePanel.shadow.css */
@@ -615,7 +614,7 @@
   flex-direction: column !important;
   height: 100% !important;
   overflow: hidden !important;
-  background: var(--color-white) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 /* Scrollable Content Area */
@@ -624,7 +623,7 @@
   overflow-y: auto !important;
   overflow-x: hidden !important;
   padding: 16px !important;
-  background: var(--color-white) !important;
+  background: var(--color-bg-primary-theme) !important;
   scrollbar-width: thin !important;
   scrollbar-color: var(--color-primary-light) transparent !important;
 }
@@ -645,7 +644,7 @@
 /* Summary Content */
 .summaryContent {
   margin-bottom: 16px !important;
-  background: var(--color-white) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 /* Summary Header */
@@ -660,7 +659,7 @@
 .summaryText {
   font-size: 14px !important;
   line-height: 1.6 !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
   word-wrap: break-word !important;
 }
 
@@ -668,7 +667,7 @@
 .markdownH1 {
   font-size: 20px !important;
   font-weight: 700 !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
   margin: 16px 0 8px 0 !important;
   line-height: 1.3 !important;
 }
@@ -676,7 +675,7 @@
 .markdownH2 {
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
   margin: 14px 0 6px 0 !important;
   line-height: 1.3 !important;
 }
@@ -684,7 +683,7 @@
 .markdownH3 {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
   margin: 12px 0 4px 0 !important;
   line-height: 1.3 !important;
 }
@@ -707,7 +706,7 @@
 
 .markdownStrong {
   font-weight: 600 !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .markdownEm {
@@ -777,7 +776,7 @@
   gap: 8px !important;
   margin-top: 16px !important;
   padding-top: 16px !important;
-  border-top: 1px solid var(--color-border-default) !important;
+  border-top: 1.5px solid var(--color-border-default) !important;
   animation: fadeInSlideUp 0.3s ease-out !important;
 }
 
@@ -825,7 +824,7 @@
 
 .questionText {
   font-size: 13px !important;
-  color: var(--color-gray-700) !important;
+  color: var(--color-text-secondary-theme) !important;
   line-height: 1.4 !important;
   transition: color 0.2s ease !important;
 }
@@ -849,14 +848,14 @@
 
 .userMessage {
   background: var(--color-primary-opacity-10) !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
   align-self: flex-end !important;
   border-radius: 20px 20px 0 20px !important;
 }
 
 .assistantMessage {
-  background: var(--color-white) !important;
-  color: var(--color-text-primary) !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
   align-self: flex-start !important;
   border-bottom-left-radius: 4px !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
@@ -916,7 +915,7 @@
   display: flex !important;
   justify-content: flex-end !important;
   padding: 8px 16px !important;
-  background: var(--color-white) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 .summariseButton {
@@ -1006,7 +1005,7 @@
   align-items: center !important;
   gap: 8px !important;
   padding: 12px 16px !important;
-  background: var(--color-white) !important;
+  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
 }
 
 .inputWrapper {
@@ -1018,18 +1017,18 @@
 
 .input {
   width: 100% !important;
-  border: 1px solid var(--color-border-default) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
   border-radius: 20px !important;
   padding: 10px 40px 10px 14px !important;
   font-size: 14px !important;
   outline: none !important;
   transition: border-color 0.2s ease !important;
-  background: var(--color-white) !important;
-  color: var(--color-text-primary) !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .input::placeholder {
-  color: #A0AEC0 !important;
+  color: var(--color-text-muted-theme) !important;
 }
 
 .input:focus {
@@ -1228,8 +1227,8 @@
   align-items: center !important;
   gap: 8px !important;
   padding: 10px 12px !important;
-  background: var(--color-white) !important;
-  border: 1px solid var(--color-border-default) !important;
+  background: var(--color-bg-primary-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
   border-radius: 15px !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
@@ -1258,7 +1257,7 @@
 
 .linkText {
   flex: 1 !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
 }
@@ -1266,7 +1265,7 @@
 .linkRefIcon {
   width: 16px !important;
   height: 16px !important;
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
   flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -1290,8 +1289,8 @@
   padding: 16px !important;
   height: 100% !important;
   overflow-y: auto !important;
-  background: var(--color-white) !important;
-  color: var(--color-gray-700) !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .loading {
@@ -1299,7 +1298,7 @@
   align-items: center !important;
   justify-content: center !important;
   height: 100% !important;
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
 }
 
 .section {
@@ -1309,7 +1308,7 @@
 
 .sectionDivider {
   height: 1px !important;
-  background: var(--color-border-default, #E2E8F0) !important;
+  background: var(--color-border-default-theme) !important;
   margin: 0 0 20px 0 !important;
 }
 
@@ -1332,7 +1331,7 @@
 .sectionTitle {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: var(--color-gray-700) !important;
+  color: var(--color-text-primary-theme) !important;
   margin: 0 !important;
   flex-shrink: 0 !important;
 }
@@ -1379,7 +1378,7 @@
 .settingLabel {
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: var(--color-gray-700) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .languageSettingRow {
@@ -1485,7 +1484,7 @@
 .toggleLabel {
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: var(--color-gray-700) !important;
+  color: var(--color-text-primary-theme) !important;
   user-select: none !important;
 }
 
@@ -1752,7 +1751,7 @@
   margin-bottom: 8px !important;
   font-size: 14px !important;
   font-weight: 500 !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .dropdown {
@@ -1763,8 +1762,8 @@
 .dropdownButton {
   width: 100% !important;
   padding: 10px 12px !important;
-  background: var(--color-white) !important;
-  border: 1px solid var(--color-border-default) !important;
+  background: var(--color-bg-primary-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
   border-radius: 10px !important;
   display: flex !important;
   align-items: center !important;
@@ -1772,7 +1771,7 @@
   cursor: pointer !important;
   transition: all 0.2s ease !important;
   font-size: 14px !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .dropdownButton:hover {
@@ -1787,18 +1786,18 @@
 .dropdownValue {
   flex: 1 !important;
   text-align: left !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .dropdownValue:empty::before {
   content: attr(data-placeholder) !important;
-  color: #A0AEC0 !important;
+  color: var(--color-text-muted-theme) !important;
 }
 
 .chevron {
   width: 16px !important;
   height: 16px !important;
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
   transition: transform 0.2s ease !important;
   flex-shrink: 0 !important;
 }
@@ -1812,8 +1811,8 @@
   top: calc(100% + 4px) !important;
   left: 0 !important;
   right: 0 !important;
-  background: var(--color-white) !important;
-  border: 1px solid var(--color-border-default) !important;
+  background: var(--color-bg-primary-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
   border-radius: 10px !important;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
   z-index: 1000 !important;
@@ -1840,7 +1839,7 @@
   cursor: pointer !important;
   transition: background-color 0.2s ease !important;
   font-size: 14px !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .dropdownItem:hover {
@@ -1848,7 +1847,7 @@
 }
 
 .dropdownItem.selected {
-  background: rgba(13, 128, 112, 0.15) !important;
+  background: var(--color-bg-selected-theme) !important;
   color: #0d8070 !important;
   font-weight: 500 !important;
 }

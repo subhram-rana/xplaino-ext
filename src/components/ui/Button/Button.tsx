@@ -1,5 +1,5 @@
 // src/components/ui/Button/Button.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { COLORS } from '@/constants/colors';
 import { BORDER_RADIUS } from '@/constants/styles';
 
@@ -22,32 +22,45 @@ interface ButtonProps {
 
 export const Button: React.FC<ButtonProps> = ({
   children,
-  variant = 'primary',
+  variant: _variant = 'primary', // Kept for backward compatibility but unused in dark theme
   size = 'medium',
   onClick,
   disabled = false,
   fullWidth = false,
   type = 'button',
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   const getBackgroundColor = () => {
     if (disabled) return COLORS.GRAY_400;
-    switch (variant) {
-      case 'primary':
-        return COLORS.PRIMARY;
-      case 'secondary':
-        return COLORS.SECONDARY;
-      case 'danger':
-        return COLORS.ERROR;
-      case 'ghost':
-        return 'transparent';
-      default:
-        return COLORS.PRIMARY;
+    
+    // Dark theme: transparent background for all variants except when hovered
+    if (isHovered && !disabled) {
+      // On hover, use the primary-light color (theme-aware)
+      return 'var(--color-primary-light, #14a08a)';
     }
+    
+    // Default: transparent background
+    return 'transparent';
   };
 
   const getTextColor = () => {
-    if (variant === 'ghost') return COLORS.PRIMARY;
-    return COLORS.WHITE;
+    if (disabled) return COLORS.WHITE;
+    
+    // On hover: white text
+    if (isHovered && !disabled) {
+      return 'var(--color-white, #FFFFFF)';
+    }
+    
+    // Default: theme-aware primary light color
+    return 'var(--color-primary-light, #14a08a)';
+  };
+
+  const getBorder = () => {
+    if (disabled) return 'none';
+    
+    // Dark theme: medium teal border for all variants
+    return '1.5px solid var(--color-primary-light, #14a08a)';
   };
 
   const getPadding = () => {
@@ -68,12 +81,14 @@ export const Button: React.FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         backgroundColor: getBackgroundColor(),
         color: getTextColor(),
         borderRadius: BORDER_RADIUS.MEDIUM,
         padding: getPadding(),
-        border: variant === 'ghost' ? `1px solid ${COLORS.PRIMARY}` : 'none',
+        border: getBorder(),
         cursor: disabled ? 'not-allowed' : 'pointer',
         width: fullWidth ? '100%' : 'auto',
         fontSize: '14px',

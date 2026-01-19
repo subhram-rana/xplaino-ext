@@ -43,7 +43,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1.5px solid var(--color-border-default-theme, #e5e7eb);
 }
 
 .modalTitle {
@@ -62,7 +62,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary);
+  color: var(--color-text-primary-theme);
   border-radius: 6px;
   transition: background-color 0.15s ease;
   flex-shrink: 0;
@@ -97,17 +97,18 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-gray-700-alt);
+  color: var(--color-text-primary-theme);
 }
 
 .nameInput {
   width: 100%;
-  border: 1px solid var(--color-gray-300-alt);
+  border: 1.5px solid var(--color-primary-opacity-30);
   border-radius: 8px;
   padding: 10px 12px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.9375rem;
-  color: var(--color-gray-700-alt);
+  color: var(--color-text-primary-theme);
+  background-color: var(--color-bg-primary-theme);
   outline: none;
   transition: border-color 0.15s ease;
   box-sizing: border-box;
@@ -126,7 +127,7 @@
 .nameInputCounter {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.75rem;
-  color: var(--color-gray-600-alt);
+  color: var(--color-text-primary-theme);
   text-align: right;
   margin-top: -4px;
 }
@@ -151,7 +152,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-gray-700-alt);
+  color: var(--color-text-primary-theme);
   margin-bottom: 12px;
 }
 
@@ -170,21 +171,21 @@
 }
 
 .folderItem:hover {
-  background-color: var(--color-background-gray-50);
+  background-color: var(--color-bg-hover-theme);
 }
 
 .folderItemSelected {
-  background-color: var(--color-background-teal-tint-1);
-  color: var(--color-primary);
+  background-color: var(--color-bg-selected-theme);
+  color: var(--color-primary-light);
 }
 
 .folderItemSelected:hover {
-  background-color: var(--color-background-teal-tint-2);
+  background-color: var(--color-bg-selected-theme);
 }
 
 .rootFolder {
   font-weight: 500;
-  border-bottom: 1px solid var(--color-border-default-theme);
+  border-bottom: 1.5px solid var(--color-border-default-theme);
   margin-bottom: 4px;
 }
 
@@ -220,12 +221,12 @@
   align-items: center;
   justify-content: center;
   margin-right: 8px;
-  color: var(--color-primary);
+  color: var(--color-primary-light);
   flex-shrink: 0;
 }
 
 .folderItemSelected .folderIcon {
-  color: var(--color-primary);
+  color: var(--color-primary-light);
 }
 
 .folderName {
@@ -233,6 +234,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-primary-light);
 }
 
 .folderItemActions {
@@ -291,15 +293,16 @@
 }
 
 .addFolderButtonRootButton {
-  background-color: var(--color-background-teal-tint-3);
-  border: none;
+  /* Dark theme: medium teal border, transparent background */
+  background-color: transparent;
+  border: 1.5px solid var(--color-primary-light, #14a08a);
   padding: 8px 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: var(--color-gray-600-alt);
+  color: var(--color-primary-light, #14a08a);
   border-radius: 12px;
   transition: all 0.15s ease;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -307,12 +310,13 @@
 }
 
 .addFolderButtonRootButton:hover {
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  /* Dark theme: teal background on hover */
+  background-color: var(--color-primary-light, #14a08a);
+  color: var(--color-white, #FFFFFF);
 }
 
 .addFolderButtonRootButton:hover svg {
-  color: var(--color-white);
+  color: var(--color-white, #FFFFFF);
 }
 
 .editingFolderItem {
@@ -321,12 +325,13 @@
 
 .editingFolderInput {
   flex: 1;
-  border: 1px solid var(--color-gray-300-alt);
+  border: 1.5px solid var(--color-gray-300-alt);
   border-radius: 8px;
   padding: 6px 10px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.9375rem;
-  color: var(--color-gray-700-alt);
+  color: var(--color-text-primary-theme);
+  background-color: var(--color-bg-secondary-theme);
   outline: none;
   transition: border-color 0.15s ease;
   margin-right: 8px;
@@ -408,7 +413,7 @@
   user-select: none;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.9375rem;
-  color: var(--color-gray-700-alt);
+  color: var(--color-text-primary-theme);
   transition: color 0.15s ease;
 }
 
@@ -422,6 +427,31 @@
   cursor: pointer;
   accent-color: var(--color-primary);
   flex-shrink: 0;
+  background-color: var(--color-bg-primary-theme);
+  border: 1.5px solid var(--color-primary-light);
+  border-radius: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.rememberFolderCheckbox:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.rememberFolderCheckbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--color-white);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 
@@ -440,19 +470,22 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
+  /* Dark theme: medium teal border, transparent background */
+  border: 1.5px solid var(--color-primary-light, #14a08a);
   display: flex;
   align-items: center;
   gap: 6px;
+  background-color: transparent;
 }
 
 .cancelButton {
-  background-color: var(--color-background-gray-100);
-  color: var(--color-gray-700-alt);
+  color: var(--color-primary-light, #14a08a);
 }
 
 .cancelButton:hover:not(:disabled) {
-  background-color: var(--color-gray-200-alt);
+  /* Dark theme: teal background on hover */
+  background-color: var(--color-primary-light, #14a08a);
+  color: var(--color-white, #FFFFFF);
 }
 
 .cancelButton:disabled {
@@ -461,14 +494,13 @@
 }
 
 .saveButton {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  box-shadow: 0 2px 8px var(--color-shadow-black-20);
+  color: var(--color-primary-light, #14a08a);
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: var(--color-primary-hover-dark);
-  box-shadow: 0 4px 12px var(--color-shadow-black-30);
+  /* Dark theme: teal background on hover */
+  background-color: var(--color-primary-light, #14a08a);
+  color: var(--color-white, #FFFFFF);
 }
 
 .saveButton:disabled {

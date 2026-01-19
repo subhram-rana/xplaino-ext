@@ -1481,7 +1481,7 @@ async function handleExplainClick(
         },
       ],
       {
-        onChunk: (_chunk, accumulated) => {
+        onChunk: async (_chunk, accumulated) => {
           let isFirstChunk = false;
           
           updateExplanationInMap(explanationId, (state) => {
@@ -1822,7 +1822,7 @@ async function handleWordExplain(
       word,
       contextText, // Pass surrounding context instead of empty string
       {
-        onEvent: (wordInfo: WordInfo) => {
+        onEvent: async (wordInfo: WordInfo) => {
           const state = wordExplanationsMap.get(wordId);
           if (!state) return;
 
@@ -1936,7 +1936,7 @@ async function handleWordExplain(
             console.log('[Content Script] Opening word explanation popover for wordId:', wordId);
             console.log('[Content Script] Word span element:', state.wordSpanElement);
             console.log('[Content Script] Source ref current:', state.sourceRef.current);
-            injectWordExplanationPopover();
+            await injectWordExplanationPopover();
             updateWordExplanationPopover();
             console.log('[Content Script] Popover injection and update completed');
           } else {
@@ -2154,7 +2154,7 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
     await WordSynonymsService.getSynonyms(
       { words: [selectedText] },
       {
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           console.log('[Content Script] Synonyms received:', response);
           const currentState = store.get(wordExplanationsAtom).get(wordId);
           if (!currentState) return;
@@ -2238,7 +2238,7 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
             
             // Open popover
             localState.popoverVisible = true;
-            injectWordExplanationPopover();
+            await injectWordExplanationPopover();
             updateWordExplanationPopover();
           }
         },
@@ -2390,7 +2390,7 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
     await WordAntonymsService.getAntonyms(
       { words: [selectedText] },
       {
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           console.log('[Content Script] Antonyms received:', response);
           const currentState = store.get(wordExplanationsAtom).get(wordId);
           if (!currentState) return;
@@ -2474,7 +2474,7 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
             
             // Open popover
             localState.popoverVisible = true;
-            injectWordExplanationPopover();
+            await injectWordExplanationPopover();
             updateWordExplanationPopover();
           }
         },
@@ -2644,7 +2644,7 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
         texts: [{ id: '1', text: selectedText }],
       },
       {
-        onSuccess: (translatedTexts) => {
+        onSuccess: async (translatedTexts) => {
           console.log('[Content Script] Translation received:', translatedTexts);
           const currentState = store.get(wordExplanationsAtom).get(wordId);
           if (!currentState) return;
@@ -2728,7 +2728,7 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
             
             // Open popover with Grammar tab
             localState.popoverVisible = true;
-            injectWordExplanationPopover();
+            await injectWordExplanationPopover();
             updateWordExplanationPopover();
           }
         },
@@ -3447,7 +3447,7 @@ function injectWordSpanStyles(): void {
 /**
  * Toggle word popover visibility
  */
-function toggleWordPopover(wordId: string): void {
+async function toggleWordPopover(wordId: string): Promise<void> {
   const state = wordExplanationsMap.get(wordId);
   if (!state) {
     console.log('[Content Script] toggleWordPopover - no state found for wordId:', wordId);
@@ -3468,7 +3468,7 @@ function toggleWordPopover(wordId: string): void {
 
   if (state.popoverVisible) {
     console.log('[Content Script] toggleWordPopover - opening popover, calling injectWordExplanationPopover');
-    injectWordExplanationPopover();
+    await injectWordExplanationPopover();
   } else {
     console.log('[Content Script] toggleWordPopover - closing popover');
   }
@@ -7272,7 +7272,7 @@ function setupImageHoverDetection(): void {
 /**
  * Inject Word Explanation Popover into the page with Shadow DOM
  */
-function injectWordExplanationPopover(): void {
+async function injectWordExplanationPopover(): Promise<void> {
   console.log('[Content Script] injectWordExplanationPopover called');
   
   if (shadowHostExists(WORD_EXPLANATION_POPOVER_HOST_ID)) {
@@ -7287,7 +7287,11 @@ function injectWordExplanationPopover(): void {
     zIndex: 2147483640,
   });
 
-  // Inject styles
+  // CRITICAL: Inject theme-aware color variables FIRST
+  const colorVariables = await getAllColorVariables();
+  injectStyles(hostResult.shadow, colorVariables, true);
+
+  // Then inject component styles
   injectStyles(hostResult.shadow, wordExplanationPopoverStyles);
   injectStyles(hostResult.shadow, spinnerStyles);
 
@@ -7714,7 +7718,7 @@ function removeWordExplanationPopover(): void {
 /**
  * Inject Word Ask AI Side Panel into the page with Shadow DOM
  */
-function injectWordAskAISidePanel(): void {
+async function injectWordAskAISidePanel(): Promise<void> {
   console.log('[Content Script] injectWordAskAISidePanel called');
   
   if (shadowHostExists(WORD_ASK_AI_PANEL_HOST_ID)) {
@@ -7729,7 +7733,11 @@ function injectWordAskAISidePanel(): void {
     zIndex: 2147483642,
   });
 
-  // Inject styles
+  // CRITICAL: Inject theme-aware color variables FIRST
+  const colorVariables = await getAllColorVariables();
+  injectStyles(hostResult.shadow, colorVariables, true);
+
+  // Then inject component styles
   injectStyles(hostResult.shadow, wordAskAISidePanelStyles);
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(hostResult.shadow, baseSidePanelStyles);

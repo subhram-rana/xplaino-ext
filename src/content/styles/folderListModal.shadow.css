@@ -18,12 +18,13 @@
   position: relative;
   background: var(--color-bg-primary-theme) !important;
   border-radius: 30px;
+  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 16px var(--color-shadow-black-15) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
   animation: modalSlideIn 0.25s ease-out;
   overflow-x: hidden;
   transition: opacity 0.2s ease-out, transform 0.2s ease-out !important;
@@ -60,7 +61,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--color-border-default-theme) !important;
+  border-bottom: 1.5px solid var(--color-border-default-theme) !important;
 }
 
 .modalTitle {
@@ -79,7 +80,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary) !important;
+  color: var(--color-text-primary-theme) !important;
   border-radius: 6px;
   transition: background-color 0.15s ease;
   flex-shrink: 0;
@@ -114,17 +115,18 @@
   font-family: var(--font-family-primary) !important;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-gray-700-alt) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .nameInput {
   width: 100%;
-  border: 1px solid var(--color-border-gray-300) !important;
+  border: 1.5px solid var(--color-primary-opacity-30) !important;
   border-radius: 8px;
   padding: 10px 12px;
   font-family: var(--font-family-primary) !important;
   font-size: 0.9375rem;
-  color: var(--color-gray-700-alt) !important;
+  color: var(--color-text-primary-theme) !important;
+  background-color: var(--color-bg-primary-theme) !important;
   outline: none;
   transition: border-color 0.15s ease;
   box-sizing: border-box;
@@ -143,7 +145,7 @@
 .nameInputCounter {
   font-family: var(--font-family-primary) !important;
   font-size: 0.75rem;
-  color: var(--color-gray-600-alt) !important;
+  color: var(--color-text-primary-theme) !important;
   text-align: right;
   margin-top: -4px;
 }
@@ -168,7 +170,7 @@
   font-family: var(--font-family-primary) !important;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-gray-700-alt) !important;
+  color: var(--color-text-primary-theme) !important;
   margin-bottom: 12px;
 }
 
@@ -187,21 +189,21 @@
 }
 
 .folderItem:hover {
-  background-color: var(--color-gray-50) !important;
+  background-color: var(--color-bg-hover-theme) !important;
 }
 
 .folderItemSelected {
-  background-color: var(--color-bg-green-tint-1) !important;
-  color: var(--color-primary) !important;
+  background-color: var(--color-bg-selected-theme) !important;
+  color: var(--color-primary-light) !important;
 }
 
 .folderItemSelected:hover {
-  background-color: var(--color-bg-green-tint-2) !important;
+  background-color: var(--color-bg-selected-theme) !important;
 }
 
 .rootFolder {
   font-weight: 500;
-  border-bottom: 1px solid var(--color-border-gray-200) !important;
+  border-bottom: 1.5px solid var(--color-border-gray-200) !important;
   margin-bottom: 4px;
 }
 
@@ -237,12 +239,12 @@
   align-items: center;
   justify-content: center;
   margin-right: 8px;
-  color: var(--color-primary) !important;
+  color: var(--color-primary-light) !important;
   flex-shrink: 0;
 }
 
 .folderItemSelected .folderIcon {
-  color: var(--color-primary) !important;
+  color: var(--color-primary-light) !important;
 }
 
 .folderName {
@@ -250,6 +252,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-primary-light) !important;
 }
 
 .folderItemActions {
@@ -308,15 +311,15 @@
 }
 
 .addFolderButtonRootButton {
-  background-color: var(--color-bg-green-tint-3) !important;
-  border: none;
+  background-color: transparent !important;
+  border: 1.5px solid var(--color-primary-light) !important;
   padding: 8px 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: var(--color-gray-600-alt) !important;
+  color: var(--color-primary-light) !important;
   border-radius: 12px;
   transition: all 0.15s ease;
   font-family: var(--font-family-primary) !important;
@@ -324,7 +327,7 @@
 }
 
 .addFolderButtonRootButton:hover {
-  background-color: var(--color-primary) !important;
+  background-color: var(--color-primary-light) !important;
   color: var(--color-white) !important;
 }
 
@@ -338,12 +341,13 @@
 
 .editingFolderInput {
   flex: 1;
-  border: 1px solid var(--color-border-gray-300) !important;
+  border: 1.5px solid var(--color-border-gray-300) !important;
   border-radius: 8px;
   padding: 6px 10px;
   font-family: var(--font-family-primary) !important;
   font-size: 0.9375rem;
-  color: var(--color-gray-700-alt) !important;
+  color: var(--color-text-primary-theme) !important;
+  background-color: var(--color-bg-secondary-theme) !important;
   outline: none;
   transition: border-color 0.15s ease;
   margin-right: 8px;
@@ -425,7 +429,7 @@
   user-select: none;
   font-family: var(--font-family-primary) !important;
   font-size: 0.9375rem;
-  color: var(--color-gray-700-alt) !important;
+  color: var(--color-text-primary-theme) !important;
   transition: color 0.15s ease;
 }
 
@@ -439,6 +443,31 @@
   cursor: pointer;
   accent-color: var(--color-primary) !important;
   flex-shrink: 0;
+  background-color: var(--color-bg-primary-theme) !important;
+  border: 1.5px solid var(--color-primary-light) !important;
+  border-radius: 4px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  position: relative !important;
+  transition: all 0.15s ease !important;
+}
+
+.rememberFolderCheckbox:checked {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.rememberFolderCheckbox:checked::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 5px !important;
+  top: 2px !important;
+  width: 4px !important;
+  height: 8px !important;
+  border: solid var(--color-white) !important;
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(45deg) !important;
 }
 
 
@@ -457,19 +486,20 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
+  border: 1.5px solid var(--color-primary-light) !important;
   display: flex;
   align-items: center;
   gap: 6px;
+  background-color: transparent !important;
 }
 
 .cancelButton {
-  background-color: var(--color-bg-gray-100) !important;
-  color: var(--color-gray-700-alt) !important;
+  color: var(--color-primary-light) !important;
 }
 
 .cancelButton:hover:not(:disabled) {
-  background-color: var(--color-border-gray-200) !important;
+  background-color: var(--color-primary-light) !important;
+  color: var(--color-white) !important;
 }
 
 .cancelButton:disabled {
@@ -478,14 +508,12 @@
 }
 
 .saveButton {
-  background-color: var(--color-primary) !important;
-  color: var(--color-white) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  color: var(--color-primary-light) !important;
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: var(--color-primary-hover-dark) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  background-color: var(--color-primary-light) !important;
+  color: var(--color-white) !important;
 }
 
 .saveButton:disabled {

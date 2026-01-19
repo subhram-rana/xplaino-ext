@@ -41,7 +41,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--color-border-default-theme);
+  border-bottom: 1.5px solid var(--color-border-default-theme);
 }
 
 .modalTitle {
@@ -89,7 +89,7 @@
 
 .nameInput {
   width: 100%;
-  border: 1px solid var(--color-gray-300-alt);
+  border: 1.5px solid var(--color-gray-300-alt);
   border-radius: 10px;
   padding: 12px 16px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -122,7 +122,7 @@
   align-items: center;
   justify-content: flex-end;
   padding: 16px 24px;
-  border-top: 1px solid var(--color-border-default-theme);
+  border-top: 1.5px solid var(--color-border-default-theme);
   gap: 12px;
 }
 
@@ -135,16 +135,19 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
+  /* Dark theme: medium teal border, transparent background */
+  border: 1.5px solid var(--color-primary-light, #14a08a);
+  background-color: transparent;
 }
 
 .cancelButton {
-  background-color: var(--color-bg-gray-100);
-  color: var(--color-text-secondary-theme);
+  color: var(--color-primary-light, #14a08a);
 }
 
 .cancelButton:hover:not(:disabled) {
-  background-color: var(--color-gray-200-alt);
+  /* Dark theme: teal background on hover */
+  background-color: var(--color-primary-light, #14a08a);
+  color: var(--color-white, #FFFFFF);
 }
 
 .cancelButton:disabled {
@@ -153,14 +156,13 @@
 }
 
 .saveButton {
-  background-color: var(--color-primary);
-  color: white;
-  box-shadow: 0 2px 8px var(--color-primary-opacity-25);
+  color: var(--color-primary-light, #14a08a);
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: var(--color-primary-dark);
-  box-shadow: 0 4px 12px var(--color-primary-opacity-35);
+  /* Dark theme: teal background on hover */
+  background-color: var(--color-primary-light, #14a08a);
+  color: var(--color-white, #FFFFFF);
 }
 
 .saveButton:disabled {

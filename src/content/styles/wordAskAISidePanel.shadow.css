@@ -7,16 +7,15 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
-/* CSS Variables */
+/* CSS Variables - These are fallbacks, actual theme variables are injected dynamically */
 :host {
   --color-primary: #0d8070;
   --color-primary-dark: #0a5f54;
   --color-primary-light: #14a08a;
   --color-white: #FFFFFF;
-  --color-text: #2D3748;
-  --color-text-secondary: #718096;
   --color-disabled: #CBD5E0;
   --color-error: #EF4444;
+  --color-error-dark: #DC2626;
 }
 
 /* Reset all elements for font isolation */
@@ -36,7 +35,8 @@
   background: var(--color-bg-primary-theme) !important;
   border-radius: 30px 0 0 30px !important;
   box-shadow: none !important;
-  border: none !important;
+  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
+  border-right: none !important;
   z-index: 2147483642 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -63,9 +63,6 @@
   top: 0 !important;
   bottom: 0 !important;
   border-radius: 0 !important;
-  box-shadow: none !important;
-  border: 3px solid var(--color-primary-opacity-10, rgba(13, 128, 112, 0.1)) !important;
-  border-right: none !important;
 }
 
 .resizeHandle {
@@ -98,9 +95,9 @@
   align-items: center !important;
   justify-content: space-between !important;
   padding: 8px 12px !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
   height: 48px !important;
-  border-bottom: 1px solid var(--color-primary-opacity-10) !important;
+  border-bottom: 1.5px solid var(--color-primary-opacity-10) !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
 }
@@ -175,7 +172,7 @@
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 .chatContainer {
@@ -214,14 +211,14 @@
 
 .userMessage {
   background: var(--color-primary-opacity-8) !important;
-  color: var(--color-text, #2D3748) !important;
+  color: var(--color-text-primary-theme) !important;
   align-self: flex-end !important;
   border-radius: 20px 20px 0 20px !important;
 }
 
 .assistantMessage {
   background: none !important;
-  color: var(--color-text, #2D3748) !important;
+  color: var(--color-text-primary-theme) !important;
   align-self: center !important;
   max-width: 100% !important;
 }
@@ -300,9 +297,9 @@
 
 .promptButton {
   padding: 8px 16px !important;
-  background: var(--color-white, #FFFFFF) !important;
-  color: var(--color-gray-700) !important;
-  border: 1px solid var(--color-border-default) !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
   border-radius: 999px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
@@ -330,7 +327,7 @@
   gap: 8px !important;
   margin-top: 12px !important;
   padding-top: 12px !important;
-  border-top: 1px solid var(--color-border-default) !important;
+  border-top: 1.5px solid var(--color-border-default-theme) !important;
 }
 
 .questionItem {
@@ -371,7 +368,7 @@
 
 .questionText {
   font-size: 13px !important;
-  color: var(--color-text-secondary, #718096) !important;
+  color: var(--color-text-secondary-theme) !important;
   line-height: 1.4 !important;
   transition: color 0.2s ease !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
@@ -384,19 +381,20 @@
   gap: 8px !important;
   align-items: center !important;
   flex-shrink: 0 !important;
+  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
 }
 
 .input {
   flex: 1 !important;
   padding: 10px 14px !important;
-  border: 1px solid var(--color-border-default) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
   border-radius: 20px !important;
   font-size: 14px !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-  color: var(--color-text, #2D3748) !important;
+  color: var(--color-text-primary-theme) !important;
   outline: none !important;
   transition: border-color 0.2s ease !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 .input:focus {
@@ -404,13 +402,13 @@
 }
 
 .input:disabled {
-  background: var(--color-bg-secondary) !important;
+  background: var(--color-bg-secondary-theme) !important;
   cursor: not-allowed !important;
   opacity: 0.6 !important;
 }
 
 .input::placeholder {
-  color: var(--color-text-secondary, #A0AEC0) !important;
+  color: var(--color-text-muted-theme) !important;
 }
 
 .sendButton {
@@ -491,7 +489,7 @@
   border-radius: 50% !important;
   background: transparent !important;
   border: none !important;
-  color: var(--color-text-muted) !important;
+  color: var(--color-text-muted-theme) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
