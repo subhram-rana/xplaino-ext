@@ -17,10 +17,10 @@
 
 /* Color variable fallbacks */
 :host {
-  --color-primary: #9527F5 !important;
-  --color-primary-light: #BF7EFA !important;
-  --color-primary-very-light: #eaddf8 !important;
-  --color-primary-dark: #8607f5 !important;
+  --color-primary: #0d8070 !important;
+  --color-primary-light: #14a08a !important;
+  --color-primary-very-light: #e0f2ef !important;
+  --color-primary-dark: #0a5f54 !important;
   --color-white: #FFFFFF !important;
 }
 
@@ -59,10 +59,10 @@
 
 /* Modal Content Container */
 .disableNotificationModalContent {
-  background: var(--color-white) !important;
+  background: var(--color-bg-primary-theme) !important;
   border-radius: 30px !important;
   padding: 16px 20px !important;
-  box-shadow: 0 0 16px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 0 16px var(--color-shadow-black-30) !important;
   min-width: 240px !important;
   display: flex !important;
   flex-direction: column !important;

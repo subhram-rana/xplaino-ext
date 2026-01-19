@@ -184,7 +184,7 @@
   width: 18px;
   height: 18px;
   border: 2px solid rgba(13, 128, 112, 0.2);
-  border-top-color: var(--color-primary, #9527F5);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -223,7 +223,7 @@
 .mainContent strong.sectionTitle,
 .grammarContent strong.sectionTitle {
   font-weight: 700 !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
 }
 
 .mainContent ul,
@@ -303,7 +303,7 @@
 
 .utilityButton:hover svg {
   color: var(--color-primary, #0d8070);
-  stroke: var(--color-primary, #9527F5);
+  stroke: var(--color-primary);
 }
 
 .utilityTooltip {
@@ -312,7 +312,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: #e0f2ef;
-  color: #BF7EFA;
+  color: var(--color-primary-light);
   padding: 4px 12px;
   border-radius: 999px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -406,7 +406,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid rgba(13, 128, 112, 0.2);
-  border-top-color: var(--color-primary, #9527F5);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -544,7 +544,7 @@
 .sectionTitle {
   font-size: 14px;
   font-weight: 700 !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }

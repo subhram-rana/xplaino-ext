@@ -8,7 +8,7 @@
   flex-direction: column !important;
   height: 100% !important;
   overflow: hidden !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 /* Scrollable Content Area */
@@ -17,9 +17,9 @@
   overflow-y: auto !important;
   overflow-x: hidden !important;
   padding: 16px !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-primary-theme) !important;
   scrollbar-width: thin !important;
-  scrollbar-color: var(--color-primary-light, #B66DFF) transparent !important;
+  scrollbar-color: var(--color-primary-light) transparent !important;
 }
 
 .chatContainer::-webkit-scrollbar {
@@ -31,21 +31,21 @@
 }
 
 .chatContainer::-webkit-scrollbar-thumb {
-  background-color: var(--color-primary-light, #B66DFF) !important;
+  background-color: var(--color-primary-light) !important;
   border-radius: 3px !important;
 }
 
 /* Summary Content */
 .summaryContent {
   margin-bottom: 16px !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 /* Summary Header */
 .summaryHeader {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
   margin: 0 0 12px 0 !important;
   padding-bottom: 8px !important;
 }
@@ -53,7 +53,7 @@
 .summaryText {
   font-size: 14px !important;
   line-height: 1.6 !important;
-  color: var(--color-text, #1A202C) !important;
+  color: var(--color-text-primary-theme) !important;
   word-wrap: break-word !important;
 }
 
@@ -61,7 +61,7 @@
 .markdownH1 {
   font-size: 20px !important;
   font-weight: 700 !important;
-  color: var(--color-text, #1A202C) !important;
+  color: var(--color-text-primary-theme) !important;
   margin: 16px 0 8px 0 !important;
   line-height: 1.3 !important;
 }
@@ -69,7 +69,7 @@
 .markdownH2 {
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: var(--color-text, #1A202C) !important;
+  color: var(--color-text-primary-theme) !important;
   margin: 14px 0 6px 0 !important;
   line-height: 1.3 !important;
 }
@@ -77,7 +77,7 @@
 .markdownH3 {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: var(--color-text, #1A202C) !important;
+  color: var(--color-text-primary-theme) !important;
   margin: 12px 0 4px 0 !important;
   line-height: 1.3 !important;
 }
@@ -100,7 +100,7 @@
 
 .markdownStrong {
   font-weight: 600 !important;
-  color: var(--color-text, #1A202C) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .markdownEm {
@@ -108,8 +108,8 @@
 }
 
 .markdownCode {
-  background: var(--color-primary-hover-bg, rgba(149, 39, 245, 0.1)) !important;
-  color: var(--color-primary, #9527F5) !important;
+  background: var(--color-primary-hover-bg, var(--color-primary-opacity-10)) !important;
+  color: var(--color-primary) !important;
   padding: 2px 6px !important;
   border-radius: 4px !important;
   font-family: 'Courier New', Courier, monospace !important;
@@ -119,7 +119,7 @@
 /* Blinking cursor for streaming */
 .cursor {
   animation: blink 1s step-end infinite !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
   font-weight: bold !important;
 }
 
@@ -139,8 +139,8 @@
   margin: 0 2px !important;
   border: none !important;
   border-radius: 50% !important;
-  background: var(--color-primary, #9527F5) !important;
-  color: var(--color-white, #FFFFFF) !important;
+  background: var(--color-primary) !important;
+  color: var(--color-white) !important;
   font-size: 11px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
@@ -155,7 +155,7 @@
 
 .refButtonActive {
   background: #4CAF50 !important; /* Medium green */
-  color: var(--color-white, #FFFFFF) !important;
+  color: var(--color-white) !important;
 }
 
 .refButtonActive:hover {
@@ -203,11 +203,11 @@
 }
 
 .questionItem:hover .questionIcon {
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
 }
 
 .questionItem:hover .questionText {
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
 }
 
 .questionIcon {
@@ -241,15 +241,15 @@
 }
 
 .userMessage {
-  background: rgba(149, 39, 245, 0.1) !important;
-  color: var(--color-text, #1A202C) !important;
+  background: var(--color-primary-opacity-10) !important;
+  color: var(--color-text-primary-theme) !important;
   align-self: flex-end !important;
   border-radius: 20px 20px 0 20px !important;
 }
 
 .assistantMessage {
-  background: var(--color-white, #FFFFFF) !important;
-  color: var(--color-text, #1A202C) !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
   align-self: flex-start !important;
   border-bottom-left-radius: 4px !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
@@ -262,7 +262,7 @@
   align-items: center !important;
   padding: 16px 0 !important;
   font-size: 24px !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
   font-weight: 600 !important;
 }
 
@@ -303,15 +303,15 @@
   display: flex !important;
   justify-content: flex-end !important;
   padding: 8px 16px !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 .summariseButton {
   padding: 8px 16px !important;
   border: none !important;
   border-radius: 8px !important;
-  background: var(--color-primary, #9527F5) !important;
-  color: var(--color-white, #FFFFFF) !important;
+  background: var(--color-primary) !important;
+  color: var(--color-white) !important;
   font-size: 13px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
@@ -357,7 +357,7 @@
   border-radius: 50% !important;
   background: var(--color-error, #EF4444) !important;
   border: none !important;
-  color: var(--color-white, #FFFFFF) !important;
+  color: var(--color-white) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
@@ -393,7 +393,7 @@
   align-items: center !important;
   gap: 8px !important;
   padding: 12px 16px !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-primary-theme) !important;
 }
 
 .inputWrapper {
@@ -411,8 +411,8 @@
   font-size: 14px !important;
   outline: none !important;
   transition: border-color 0.2s ease !important;
-  background: var(--color-white, #FFFFFF) !important;
-  color: var(--color-text, #1A202C) !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
 }
 
 .input::placeholder {
@@ -420,7 +420,7 @@
 }
 
 .input:focus {
-  border-color: var(--color-primary, #9527F5) !important;
+  border-color: var(--color-primary) !important;
 }
 
 /* Mic button inside input */
@@ -442,8 +442,8 @@
 }
 
 .micButton:hover {
-  background: var(--color-primary-hover-bg, rgba(149, 39, 245, 0.1)) !important;
-  color: var(--color-primary, #9527F5) !important;
+  background: var(--color-primary-hover-bg, var(--color-primary-opacity-10)) !important;
+  color: var(--color-primary) !important;
 }
 
 .micButton svg {
@@ -471,9 +471,9 @@
   width: 36px !important;
   height: 36px !important;
   border-radius: 50% !important;
-  background: var(--color-primary, #9527F5) !important;
+  background: var(--color-primary) !important;
   border: none !important;
-  color: var(--color-white, #FFFFFF) !important;
+  color: var(--color-white) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;

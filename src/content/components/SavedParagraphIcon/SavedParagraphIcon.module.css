@@ -36,11 +36,11 @@
 }
 
 .bookmarkButton {
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.3);
+  box-shadow: 0 2px 8px rgba(13, 128, 112, 0.3);
 }
 
 .bookmarkButton:hover {
-  box-shadow: 0 4px 12px rgba(149, 39, 245, 0.5);
+  box-shadow: 0 4px 12px rgba(13, 128, 112, 0.5);
   transform: scale(1.1);
 }
 

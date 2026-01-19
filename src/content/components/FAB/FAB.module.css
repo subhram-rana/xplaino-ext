@@ -9,8 +9,8 @@
 :host {
   /* Colors from src/constants/colors.ts */
   --color-primary: var(--color-primary, #0d8070) !important;
-  --color-primary-light: var(--color-primary-light, #BF7EFA) !important;
-  --color-primary-dark: var(--color-primary-dark, #8607f5) !important;
+  --color-primary-light: var(--color-primary-light, #14a08a) !important;
+  --color-primary-dark: var(--color-primary-dark, #0a5f54) !important;
   --color-white: var(--color-white, #FFFFFF) !important;
   
   /* Font from src/constants/styles.ts */
@@ -177,7 +177,7 @@
   transform: scale(0.9) !important;
 }
 
-/* Action button icons - Medium purple color, thick */
+/* Action button icons - Medium primary color, thick */
 .actionButton svg {
   width: 18px !important;
   height: 18px !important;
@@ -188,7 +188,7 @@
   transition: color var(--fab-transition), stroke var(--fab-transition) !important;
 }
 
-/* Icon color changes to darker purple on hover (but not spinner) */
+/* Icon color changes to darker primary on hover (but not spinner) */
 .actionButton:hover svg:not(:global(.loadingSpinner)) {
   color: var(--color-primary) !important;
   stroke: var(--color-primary) !important;
@@ -222,7 +222,7 @@
   stroke: #cc0000 !important;
 }
 
-/* Bookmarked icon - purple filled */
+/* Bookmarked icon - primary filled */
 .actionButton.bookmarked svg {
   fill: var(--color-primary, #0d8070) !important;
   color: var(--color-primary, #0d8070) !important;
@@ -238,8 +238,8 @@
 /* Spinner stays primary color */
 .actionButton :global(.loadingSpinner) {
   animation: spinSpinner 0.8s linear infinite !important;
-  color: var(--color-primary, #9527F5) !important;
-  stroke: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
 }
 
 /* Initial state for buttons - above center animate upward, below center animate downward */
@@ -406,8 +406,8 @@
 
 :global(.loadingSpinner) {
   animation: spinSpinner 0.8s linear infinite !important;
-  color: var(--color-primary, #9527F5) !important;
-  stroke: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
   flex-shrink: 0 !important;
   will-change: transform !important;
 }

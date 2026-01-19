@@ -7,7 +7,7 @@
   align-items: center !important;
   padding: 16px 0 !important;
   font-size: 24px !important;
-  color: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
   font-weight: 600 !important;
 }
 

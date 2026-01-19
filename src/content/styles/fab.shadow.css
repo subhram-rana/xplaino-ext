@@ -18,16 +18,16 @@
 /* Color variables will be injected via JavaScript from src/constants/colors.css.ts */
 /* These fallback values should match the constants but are overridden by injection */
 :host {
-  --color-primary: #9527F5 !important;
-  --color-primary-light: #BF7EFA !important;
-  --color-primary-very-light: #eaddf8 !important;
-  --color-primary-dark: #8607f5 !important;
-  --color-primary-hover-dark: #7c1ed9 !important;
-  --color-primary-opacity-5: rgba(149, 39, 245, 0.05) !important;
-  --color-primary-opacity-15: rgba(149, 39, 245, 0.15) !important;
-  --color-primary-opacity-30: rgba(149, 39, 245, 0.3) !important;
-  --color-primary-opacity-35: rgba(149, 39, 245, 0.35) !important;
-  --color-primary-opacity-80: rgba(149, 39, 245, 0.8) !important;
+  --color-primary: #0d8070 !important;
+  --color-primary-light: #14a08a !important;
+  --color-primary-very-light: #e0f2ef !important;
+  --color-primary-dark: #0a5f54 !important;
+  --color-primary-hover-dark: #0a5f54 !important;
+  --color-primary-opacity-5: rgba(13, 128, 112, 0.05) !important;
+  --color-primary-opacity-15: rgba(13, 128, 112, 0.15) !important;
+  --color-primary-opacity-30: rgba(13, 128, 112, 0.3) !important;
+  --color-primary-opacity-35: rgba(13, 128, 112, 0.35) !important;
+  --color-primary-opacity-80: rgba(13, 128, 112, 0.8) !important;
   --color-white: #FFFFFF !important;
   --color-error-alt: #ff4444 !important;
   --color-error-opacity-10: rgba(255, 68, 68, 0.1) !important;
@@ -231,7 +231,7 @@
   transform: translateY(0) scale(0.9) !important;
 }
 
-/* Action button icons - Medium purple color, thick */
+/* Action button icons - Medium primary color, thick */
 .actionButton svg {
   width: 14px !important;
   height: 14px !important;
@@ -245,21 +245,21 @@
 /* Ensure spinner inside action button works correctly */
 .actionButton .loadingSpinner {
   animation: spinSpinner 0.8s linear infinite !important;
-  color: var(--color-primary, #9527F5) !important;
-  stroke: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
 }
 
-/* Icon color changes to darker purple on hover */
+/* Icon color changes to darker primary on hover */
 .actionButton:hover svg:not(.loadingSpinner) {
   color: var(--color-primary) !important;
   stroke: var(--color-primary) !important;
 }
 
-/* Bookmarked icon - purple filled */
+/* Bookmarked icon - primary filled */
 .actionButton.bookmarked svg {
-  fill: var(--color-primary, #9527F5) !important;
-  color: var(--color-primary, #9527F5) !important;
-  stroke: var(--color-primary, #9527F5) !important;
+  fill: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
 }
 
 .actionButton.bookmarked:hover svg {
@@ -401,8 +401,8 @@
 /* Loading Spinner for ActionButton - Loader2 icon */
 .loadingSpinner {
   animation: spinSpinner 0.8s linear infinite !important;
-  color: var(--color-primary, #9527F5) !important;
-  stroke: var(--color-primary, #9527F5) !important;
+  color: var(--color-primary) !important;
+  stroke: var(--color-primary) !important;
   flex-shrink: 0 !important;
   will-change: transform !important;
 }

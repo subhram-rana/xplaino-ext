@@ -15,28 +15,28 @@
 }
 
 .resizeHandle:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: var(--color-primary-opacity-10) !important;
 }
 
 .resizeHandle.resizing {
-  background: rgba(149, 39, 245, 0.2) !important;
+  background: var(--color-primary-opacity-20) !important;
 }
 
 .strip {
   width: 3px !important;
   height: 20px !important;
-  background: #9527F5 !important;
+  background: var(--color-primary) !important;
   border-radius: 2px !important;
   transition: all 0.2s ease !important;
 }
 
 .resizeHandle:hover .strip {
-  background: #8607f5 !important;
+  background: var(--color-primary-dark) !important;
   width: 4px !important;
 }
 
 .resizeHandle.resizing .strip {
-  background: #8607f5 !important;
+  background: var(--color-primary-dark) !important;
   width: 4px !important;
 }
 

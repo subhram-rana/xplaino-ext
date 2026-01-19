@@ -9,8 +9,8 @@
 
 /* Color variable fallbacks */
 :host {
-  --color-primary: #9527F5 !important;
-  --color-primary-light: #BF7EFA !important;
+  --color-primary: #0d8070 !important;
+  --color-primary-light: #14a08a !important;
   --color-white: #FFFFFF !important;
 }
 

@@ -17,7 +17,7 @@ export interface UnderlineState {
  * @returns The wrapper element and original range, or null if failed
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function addTextUnderline(range: Range, _color: 'green' | 'purple' = 'green'): UnderlineState | null {
+export function addTextUnderline(range: Range, _color: 'green' | 'primary' = 'green'): UnderlineState | null {
   if (!range || range.collapsed) {
     return null;
   }
@@ -147,7 +147,7 @@ export function findAllUnderlinedElements(): HTMLElement[] {
     const inlineStyle = (span as HTMLElement).style;
     const textDecorationColor = inlineStyle.textDecorationColor || style.textDecorationColor;
     
-    // Check for teal, green, or purple underlines
+    // Check for teal, green, or primary underlines
     if (style.textDecoration.includes('underline')) {
       const isTeal = textDecorationColor.includes('13, 128, 112') || 
                      textDecorationColor.includes('0d8070') ||
@@ -155,10 +155,10 @@ export function findAllUnderlinedElements(): HTMLElement[] {
       const isGreen = textDecorationColor.includes('0, 200, 0') || 
                      textDecorationColor.includes('00C800') ||
                      textDecorationColor.includes(COLORS.SUCCESS_GREEN.replace('#', ''));
-      const isPurple = textDecorationColor.includes('149, 39, 245') || 
-                      textDecorationColor.includes('9527F5');
+      const isPrimary = textDecorationColor.includes('13, 128, 112') || 
+                      textDecorationColor.includes('0d8070');
       
-      if (isTeal || isGreen || isPurple) {
+      if (isTeal || isGreen || isPrimary) {
         elements.push(span);
         return;
       }
@@ -181,9 +181,9 @@ export function findAllUnderlinedElements(): HTMLElement[] {
 /**
  * Change the color of an existing underline
  * @param underlineState - The underline state containing the wrapper element
- * @param color - The new color for the underline ('green', 'purple', or 'teal')
+ * @param color - The new color for the underline ('green', 'primary', or 'teal')
  */
-export function changeUnderlineColor(underlineState: UnderlineState | null, color: 'green' | 'purple' | 'teal'): void {
+export function changeUnderlineColor(underlineState: UnderlineState | null, color: 'green' | 'primary' | 'teal'): void {
   if (!underlineState || !underlineState.wrapperElement) {
     return;
   }
@@ -191,7 +191,7 @@ export function changeUnderlineColor(underlineState: UnderlineState | null, colo
   const wrapper = underlineState.wrapperElement;
   
   // Update text-decoration color
-  if (color === 'purple') {
+  if (color === 'primary') {
     wrapper.style.textDecorationColor = colorWithOpacity(COLORS.PRIMARY, 0.8);
   } else if (color === 'teal') {
     wrapper.style.textDecorationColor = COLORS.PRIMARY;
@@ -201,7 +201,7 @@ export function changeUnderlineColor(underlineState: UnderlineState | null, colo
 }
 
 /**
- * Check if a range overlaps with any underlined text (purple, green, or teal)
+ * Check if a range overlaps with any underlined text (primary, green, or teal)
  * @param range - The selection range to check
  * @returns true if the range overlaps with underlined text, false otherwise
  */
@@ -224,10 +224,10 @@ export function isRangeOverlappingUnderlinedText(range: Range): boolean {
       const hasUnderline = style.textDecoration.includes('underline');
       
       if (hasUnderline) {
-        // Check if it's purple, green, or teal underline
+        // Check if it's primary, green, or teal underline
         const textDecorationColor = inlineStyle.textDecorationColor || style.textDecorationColor;
-        const isPurple = textDecorationColor.includes('149, 39, 245') || 
-                         textDecorationColor.includes('9527F5');
+        const isPrimary = textDecorationColor.includes('13, 128, 112') || 
+                         textDecorationColor.includes('0d8070');
         const isGreen = textDecorationColor.includes('0, 200, 0') || 
                        textDecorationColor.includes('00C800') ||
                        textDecorationColor.includes(COLORS.SUCCESS_GREEN.replace('#', ''));
@@ -235,7 +235,7 @@ export function isRangeOverlappingUnderlinedText(range: Range): boolean {
                        textDecorationColor.includes('0d8070') ||
                        textDecorationColor.includes(COLORS.PRIMARY.replace('#', ''));
         
-        if (!isPurple && !isGreen && !isTeal) {
+        if (!isPrimary && !isGreen && !isTeal) {
           continue;
         }
       } else {

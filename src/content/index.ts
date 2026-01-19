@@ -1416,7 +1416,7 @@ async function handleExplainClick(
   // Update icon container to show spinner
   updateTextExplanationIconContainer();
 
-  // Clear text selection immediately to hide purple action button
+  // Clear text selection immediately to hide action button
   window.getSelection()?.removeAllRanges();
 
   // Set up 30-second timeout - if no first chunk received, revert everything
@@ -1454,7 +1454,7 @@ async function handleExplainClick(
         removeTextExplanationIconContainer();
       }
       
-      // Restore text selection so purple button shows again
+      // Restore text selection so action button shows again
       if (range) {
         try {
           const selection = window.getSelection();
@@ -1619,7 +1619,7 @@ async function handleExplainClick(
             removeTextExplanationIconContainer();
           }
           
-          // Restore text selection so purple button shows again
+          // Restore text selection so action button shows again
           if (range) {
             try {
               const selection = window.getSelection();
@@ -1725,8 +1725,8 @@ async function handleWordExplain(
       return;
     }
 
-    // Create purple spinner near the word
-    const spinner = createPurpleSpinner(wordSpan);
+    // Create spinner near the word
+    const spinner = createSpinner(wordSpan);
 
     // Create source ref for animation
     const sourceRef: React.MutableRefObject<HTMLElement | null> = { current: wordSpan };
@@ -1922,12 +1922,12 @@ async function handleWordExplain(
                 toggleWordPopover(wordId);
               });
 
-              // Add double-click handler to remove word explanation and show purple icon
+              // Add double-click handler to remove word explanation and show icon
               state.wordSpanElement.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 if (state.wordSpanElement) {
-                  showPurpleXplainoIconForWordRemoval(state.wordSpanElement, wordId);
+                  showXplainoIconForWordRemoval(state.wordSpanElement, wordId);
                 }
                 removeWordExplanation(wordId);
               });
@@ -2079,8 +2079,8 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
       return;
     }
     
-    // Create purple spinner near the word
-    const spinner = createPurpleSpinner(wordSpan);
+    // Create spinner near the word
+    const spinner = createSpinner(wordSpan);
     
     // Create source ref for animation
     const sourceRef: React.MutableRefObject<HTMLElement | null> = { current: wordSpan };
@@ -2227,12 +2227,12 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
                 toggleWordPopover(wordId);
               });
 
-              // Add double-click handler to remove word explanation and show purple icon
+              // Add double-click handler to remove word explanation and show icon
               localState.wordSpanElement.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 if (localState.wordSpanElement) {
-                  showPurpleXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                  showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
                 }
                 removeWordExplanation(wordId);
               });
@@ -2315,8 +2315,8 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
       return;
     }
     
-    // Create purple spinner near the word
-    const spinner = createPurpleSpinner(wordSpan);
+    // Create spinner near the word
+    const spinner = createSpinner(wordSpan);
     
     // Create source ref for animation
     const sourceRef: React.MutableRefObject<HTMLElement | null> = { current: wordSpan };
@@ -2463,12 +2463,12 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
                 toggleWordPopover(wordId);
               });
 
-              // Add double-click handler to remove word explanation and show purple icon
+              // Add double-click handler to remove word explanation and show icon
               localState.wordSpanElement.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 if (localState.wordSpanElement) {
-                  showPurpleXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                  showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
                 }
                 removeWordExplanation(wordId);
               });
@@ -2566,8 +2566,8 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
       return;
     }
     
-    // Create purple spinner near the word
-    const spinner = createPurpleSpinner(wordSpan);
+    // Create spinner near the word
+    const spinner = createSpinner(wordSpan);
     
     // Create source ref for animation
     const sourceRef: React.MutableRefObject<HTMLElement | null> = { current: wordSpan };
@@ -2717,12 +2717,12 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
                 toggleWordPopover(wordId);
               });
 
-              // Add double-click handler to remove word explanation and show purple icon
+              // Add double-click handler to remove word explanation and show icon
               localState.wordSpanElement.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 if (localState.wordSpanElement) {
-                  showPurpleXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                  showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
                 }
                 removeWordExplanation(wordId);
               });
@@ -3169,11 +3169,11 @@ function createWordSpan(_word: string, range: Range): HTMLElement | null {
 }
 
 /**
- * Create purple spinner near the word span using the reusable Spinner component
+ * Create spinner near the word span using the reusable Spinner component
  */
-function createPurpleSpinner(wordSpan: HTMLElement): HTMLElement {
+function createSpinner(wordSpan: HTMLElement): HTMLElement {
   const spinnerContainer = document.createElement('div');
-  spinnerContainer.className = 'purple-spinner-container';
+  spinnerContainer.className = 'primary-spinner-container';
   
   // Position spinner above the word span, centered horizontally
   // Use absolute positioning relative to the span so it scrolls with it
@@ -3269,9 +3269,9 @@ function createPurpleSpinner(wordSpan: HTMLElement): HTMLElement {
  */
 
 /**
- * Show purple xplaino icon when word is removed via double-click
+ * Show xplaino icon when word is removed via double-click
  */
-function showPurpleXplainoIconForWordRemoval(wordSpanElement: HTMLElement, _wordId: string): void {
+function showXplainoIconForWordRemoval(wordSpanElement: HTMLElement, _wordId: string): void {
   const rect = wordSpanElement.getBoundingClientRect();
   const iconUrl = chrome.runtime.getURL('src/assets/icons/xplaino-purple-icon.ico');
   
@@ -3420,7 +3420,7 @@ function injectWordSpanStyles(): void {
       }
     }
     
-    @keyframes word-explanation-pulsate-purple {
+    @keyframes word-explanation-pulsate-primary {
       0%, 100% {
         background-color: ${COLORS.PRIMARY_OPACITY_10};
       }
@@ -3430,7 +3430,7 @@ function injectWordSpanStyles(): void {
     }
     
     .word-explanation-loading {
-      animation: word-explanation-pulsate-purple 1.5s ease-in-out infinite;
+      animation: word-explanation-pulsate-primary 1.5s ease-in-out infinite;
       border-radius: 10px;
     }
     
@@ -5202,12 +5202,12 @@ function updateTextExplanationPanel(): void {
                 if (!state.firstChunkReceived) {
                   state.firstChunkReceived = true;
                   
-                  // Check if this is a bookmark-created explanation with purple underline
+                  // Check if this is a bookmark-created explanation with underline
                   if (state.paragraphId && state.underlineState) {
-                    // Check if underline is purple by examining the wrapper element
+                    // Check if underline color by examining the wrapper element
                     const wrapper = state.underlineState.wrapperElement;
                     const currentColor = wrapper.style.textDecorationColor;
-                    if (currentColor.includes('149, 39, 245') || currentColor.includes('9527F5')) {
+                    if (currentColor.includes('13, 128, 112') || currentColor.includes('0d8070')) {
                       shouldConvertUnderline = true;
                       underlineStateToConvert = state.underlineState;
                     }
@@ -5216,9 +5216,9 @@ function updateTextExplanationPanel(): void {
                 return state;
               });
               
-              // Convert purple underline to teal if needed
+              // Convert underline to teal if needed
               if (shouldConvertUnderline && underlineStateToConvert) {
-                console.log('[Content Script] Converting purple underline to teal after first Simplify response');
+                console.log('[Content Script] Converting underline to teal after first Simplify response');
                 changeUnderlineColor(underlineStateToConvert, 'teal');
               }
               
@@ -6042,7 +6042,7 @@ function removeImageExplanationIconContainer(): void {
 }
 
 /**
- * Handle image hover - show purple icon
+ * Handle image hover - show icon
  */
 function handleImageHover(imageElement: HTMLImageElement): void {
   // Clear any pending hide timeout
@@ -7301,7 +7301,7 @@ function injectWordExplanationPopover(): void {
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    @keyframes pulsate-purple {
+    @keyframes pulsate-primary {
       0%, 100% { background-color: ${COLORS.PRIMARY_OPACITY_10}; }
       50% { background-color: ${COLORS.PRIMARY_OPACITY_25}; }
     }
@@ -8906,11 +8906,11 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
         
         closeFolderListModal();
         
-        // Add purple underline only after save succeeds
+        // Add underline only after save succeeds
         let underlineState: UnderlineState | null = null;
         if (savedRange) {
-          underlineState = addTextUnderline(savedRange, 'purple');
-          console.log('[Content Script] Added purple underline after successful bookmark save');
+          underlineState = addTextUnderline(savedRange, 'primary');
+          console.log('[Content Script] Added underline after successful bookmark save');
         }
         
         // Check if we should update active explanation or create a new one
@@ -9003,7 +9003,7 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
             iconPosition,
             isSpinning: false, // No spinner since we're not calling API
             streamingText: '',
-            underlineState: underlineState, // Use the purple underline we created after successful save
+            underlineState: underlineState, // Use the underline we created after successful save
             abortController: null, // No active request, so buttons will be enabled
             firstChunkReceived: true, // Set to true so icon shows as green (not spinner) immediately
             iconRef,
@@ -10491,8 +10491,8 @@ function addSavedParagraphIcons(paragraphId: string, selectedText: string, range
     y: topmostY,
   };
   
-  // Add purple dashed underline for bookmarked text
-  const underlineState = addTextUnderline(range, 'purple');
+  // Add dashed underline for bookmarked text
+  const underlineState = addTextUnderline(range, 'primary');
   
   // Create saved paragraph state
   const savedParagraphId = `saved-paragraph-${paragraphId}`;
@@ -10801,13 +10801,20 @@ async function refreshThemeInAllShadowRoots(): Promise<void> {
           CONTENT_ACTIONS_HOST_ID,
           TEXT_EXPLANATION_PANEL_HOST_ID,
           TEXT_EXPLANATION_ICON_HOST_ID,
+          IMAGE_EXPLANATION_PANEL_HOST_ID,
+          IMAGE_EXPLANATION_ICON_HOST_ID,
+          WORD_EXPLANATION_POPOVER_HOST_ID,
+          WORD_ASK_AI_PANEL_HOST_ID,
           DISABLE_MODAL_HOST_ID,
           TOAST_HOST_ID,
           BOOKMARK_TOAST_HOST_ID,
+          WARNING_TOAST_HOST_ID,
           FOLDER_LIST_MODAL_HOST_ID,
           LOGIN_MODAL_HOST_ID,
           SUBSCRIPTION_MODAL_HOST_ID,
           WELCOME_MODAL_HOST_ID,
+          YOUTUBE_ASK_AI_BUTTON_HOST_ID,
+          SAVED_PARAGRAPH_ICON_HOST_ID,
         ];
         
         let updatedCount = 0;

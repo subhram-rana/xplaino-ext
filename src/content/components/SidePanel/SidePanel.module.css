@@ -3,9 +3,9 @@
 
 /* CSS Variables */
 :host {
-  --panel-primary: #9527F5 !important;
-  --panel-primary-light: #BF7EFA !important;
-  --panel-primary-medium: #8607f5 !important;
+  --panel-primary: #0d8070 !important;
+  --panel-primary-light: #14a08a !important;
+  --panel-primary-medium: #0a5f54 !important;
   --panel-white: #FFFFFF !important;
   --panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
   --panel-border-radius: 30px !important;
@@ -127,7 +127,7 @@
 }
 
 .tab:hover {
-  background: rgba(149, 39, 245, 0.1) !important;
+  background: rgba(13, 128, 112, 0.1) !important;
 }
 
 .tab.active {

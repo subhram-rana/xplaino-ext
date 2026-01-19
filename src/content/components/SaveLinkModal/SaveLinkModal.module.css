@@ -10,18 +10,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-overlay);
 }
 
 .modalContainer {
   position: relative;
-  background: white;
+  background: var(--color-bg-primary-theme);
   border-radius: 30px;
   width: 90%;
   max-width: 500px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(149, 39, 245, 0.2);
+  box-shadow: 0 10px 40px var(--color-primary-opacity-20);
   animation: modalSlideIn 0.25s ease-out;
 }
 
@@ -41,14 +41,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border-default-theme);
 }
 
 .modalTitle {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text-primary-theme);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -60,14 +60,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: var(--color-gray-600-alt);
   border-radius: 4px;
   transition: all 0.15s ease;
 }
 
 .closeButton:hover {
-  background-color: #f3f4f6;
-  color: #111827;
+  background-color: var(--color-bg-gray-100);
+  color: var(--color-text-primary-theme);
 }
 
 .modalContent {
@@ -84,28 +84,28 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-secondary-theme);
 }
 
 .nameInput {
   width: 100%;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-gray-300-alt);
   border-radius: 10px;
   padding: 12px 16px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.9375rem;
-  color: #374151;
+  color: var(--color-text-secondary-theme);
   outline: none;
   transition: border-color 0.15s ease;
   box-sizing: border-box;
 }
 
 .nameInput:focus {
-  border-color: #9527f5;
+  border-color: var(--color-primary);
 }
 
 .nameInput:disabled {
-  background-color: #f3f4f6;
+  background-color: var(--color-bg-gray-100);
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -113,7 +113,7 @@
 .charCount {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--color-gray-600-alt);
   text-align: right;
 }
 
@@ -122,7 +122,7 @@
   align-items: center;
   justify-content: flex-end;
   padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border-default-theme);
   gap: 12px;
 }
 
@@ -139,12 +139,12 @@
 }
 
 .cancelButton {
-  background-color: #f3f4f6;
-  color: #374151;
+  background-color: var(--color-bg-gray-100);
+  color: var(--color-text-secondary-theme);
 }
 
 .cancelButton:hover:not(:disabled) {
-  background-color: #e5e7eb;
+  background-color: var(--color-gray-200-alt);
 }
 
 .cancelButton:disabled {
@@ -153,14 +153,14 @@
 }
 
 .saveButton {
-  background-color: #9527f5;
+  background-color: var(--color-primary);
   color: white;
-  box-shadow: 0 2px 8px rgba(149, 39, 245, 0.25);
+  box-shadow: 0 2px 8px var(--color-primary-opacity-25);
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: #7c1ed9;
-  box-shadow: 0 4px 12px rgba(149, 39, 245, 0.35);
+  background-color: var(--color-primary-dark);
+  box-shadow: 0 4px 12px var(--color-primary-opacity-35);
 }
 
 .saveButton:disabled {

@@ -9,9 +9,9 @@
   width: 400px !important;
   min-width: 400px !important;
   max-width: 400px !important;
-  background: var(--color-white) !important;
+  background: var(--color-bg-primary-theme) !important;
   border-radius: 30px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 4px 12px var(--color-shadow-black-20) !important;
   border: none !important;
   padding: 0 15px 0 15px !important;
   z-index: 2147483640 !important;
@@ -154,7 +154,7 @@
   gap: 6px !important;
   border-radius: 8px !important;
   transition: none !important;
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
 }
 
 .headerCopyButton:hover {
@@ -193,7 +193,7 @@
   justify-content: center !important;
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
 }
 
 .headerClose:hover {
@@ -209,7 +209,7 @@
   width: 18px !important;
   height: 18px !important;
   border: 2px solid var(--color-primary-opacity-20) !important;
-  border-top-color: var(--color-primary, #9527F5) !important;
+  border-top-color: var(--color-primary) !important;
   border-radius: 50% !important;
   animation: spin 0.6s linear infinite !important;
 }
@@ -220,7 +220,7 @@
   overflow-y: auto !important;
   max-height: 400px !important;
   min-height: 0 !important;
-  color: var(--color-text-primary) !important;
+  color: var(--color-text-primary-theme) !important;
   font-family: var(--font-family-primary) !important;
   font-size: 14px !important;
   line-height: 1.6 !important;
@@ -327,7 +327,7 @@
 
 .utilityButton:hover svg {
   color: var(--color-primary) !important;
-  stroke: var(--color-primary, #9527F5) !important;
+  stroke: var(--color-primary) !important;
 }
 
 .utilityTooltip {
@@ -372,7 +372,7 @@
 
 /* Footer */
 .footer {
-  border-top: 1px solid var(--color-border-default) !important;
+  border-top: 1px solid var(--color-border-default-theme) !important;
   padding: 0 !important;
   margin: 0 -15px 0 -15px !important;
   display: flex !important;
@@ -415,7 +415,7 @@
   top: 25% !important;
   height: 50% !important;
   width: 1px !important;
-  background: var(--color-border-default) !important;
+  background: var(--color-border-default-theme) !important;
 }
 
 /* Loading State */
@@ -425,7 +425,7 @@
   justify-content: center !important;
   gap: 8px !important;
   padding: 20px !important;
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
   font-size: 14px !important;
 }
 
@@ -442,7 +442,7 @@
 /* Placeholder State */
 .placeholderState {
   padding: 20px !important;
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
   text-align: center !important;
   font-size: 14px !important;
   font-style: italic !important;
@@ -463,8 +463,8 @@
   justify-content: center !important;
   gap: 6px !important;
   padding: 12px 24px !important;
-  background: var(--color-white, #FFFFFF) !important;
-  color: var(--color-primary, #0d8070) !important;
+  background: var(--color-bg-secondary-theme) !important;
+  color: var(--color-primary) !important;
   border: none !important;
   border-radius: 8px !important;
   font-size: 14px !important;
@@ -477,7 +477,7 @@
 }
 
 .getContextualMeaningButton:hover:not(:disabled) {
-  background: var(--color-primary-opacity-5, rgba(13, 128, 112, 0.05)) !important;
+  background: var(--color-primary-opacity-5) !important;
   box-shadow: none !important;
 }
 
@@ -486,8 +486,8 @@
 }
 
 .getContextualMeaningButton:disabled {
-  background: var(--color-white, #FFFFFF) !important;
-  color: var(--color-text-secondary, #718096) !important;
+  background: var(--color-bg-secondary-theme) !important;
+  color: var(--color-text-secondary-theme) !important;
   cursor: not-allowed !important;
   opacity: 1 !important;
   box-shadow: none !important;
@@ -495,13 +495,13 @@
 
 .getContextualMeaningButton .spinner {
   display: inline-block !important;
-  color: var(--color-primary, #0d8070) !important;
+  color: var(--color-primary) !important;
 }
 
 /* Spinner Component Styles */
 .spinner {
   animation: spinSpinner 0.8s linear infinite !important;
-  color: var(--color-primary, #0d8070) !important;
+  color: var(--color-primary) !important;
   flex-shrink: 0 !important;
   display: inline-block !important;
   width: 16px !important;
@@ -566,8 +566,8 @@
   margin: 0 !important;
   padding: 0 !important;
   display: block !important;
-  color: var(--color-gray-600) !important;
-  stroke: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
+  stroke: var(--color-text-secondary-theme) !important;
   fill: none !important;
   pointer-events: none !important;
   transition: color 0.2s ease, stroke 0.2s ease !important;
@@ -584,7 +584,7 @@
 }
 
 .buttonLabel {
-  color: var(--color-gray-600) !important;
+  color: var(--color-text-secondary-theme) !important;
   font-family: var(--font-family-primary) !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -605,12 +605,12 @@
   background: var(--color-primary-opacity-10) !important;
   border-radius: 2px !important;
   padding: 2px 4px !important;
-  animation: pulsate-purple 1.5s ease-in-out infinite !important;
+  animation: pulsate-primary 1.5s ease-in-out infinite !important;
   cursor: default !important;
   position: relative !important;
 }
 
-@keyframes pulsate-purple {
+@keyframes pulsate-primary {
   0%, 100% {
     background-color: var(--color-primary-opacity-10) !important;
   }
@@ -646,8 +646,8 @@
   animation: scale-bounce 0.8s ease-in-out !important;
 }
 
-/* Purple Spinner (positioned near word) */
-.purple-spinner-container {
+/* Spinner (positioned near word) */
+.primary-spinner-container {
   position: fixed !important;
   z-index: 2147483640 !important;
   pointer-events: none !important;
@@ -656,8 +656,8 @@
   justify-content: center !important;
 }
 
-/* Purple spinner and button spinner styles are now provided by the reusable Spinner component */
-/* The .purple-spinner class is still used in index.ts for the word span spinner (inline styles) */
+/* Spinner styles are now provided by the reusable Spinner component */
+/* The spinner class is still used in index.ts for the word span spinner (inline styles) */
 
 /* Grammar tab content */
 .grammarContent {
@@ -689,7 +689,7 @@
 }
 
 .emptyValue {
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-secondary-theme) !important;
   font-style: italic !important;
 }
 
@@ -725,7 +725,7 @@
 .listItem {
   font-size: 13px !important;
   line-height: 1.6 !important;
-  color: var(--color-text-dark) !important;
+  color: var(--color-text-primary-theme) !important;
   margin-bottom: 4px !important;
   font-family: var(--font-family-primary) !important;
 }
@@ -737,7 +737,7 @@
 .commaSeparated {
   font-size: 13px !important;
   line-height: 1.6 !important;
-  color: var(--color-text-dark) !important;
+  color: var(--color-text-primary-theme) !important;
   font-family: var(--font-family-primary) !important;
 }
 

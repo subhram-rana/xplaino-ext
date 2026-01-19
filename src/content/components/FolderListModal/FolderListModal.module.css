@@ -1,27 +1,5 @@
 /* src/content/components/FolderListModal/FolderListModal.module.css */
 
-:root {
-  --color-primary: #9527F5;
-  --color-primary-dark: #8607f5;
-  --color-primary-hover-dark: #7c1ed9;
-  --color-primary-very-light: #eaddf8;
-  --color-primary-opacity-20: rgba(149, 39, 245, 0.2);
-  --color-primary-opacity-25: rgba(149, 39, 245, 0.25);
-  --color-primary-opacity-35: rgba(149, 39, 245, 0.35);
-  --color-white: #FFFFFF;
-  --color-gray-200-alt: #e5e7eb;
-  --color-gray-300-alt: #d1d5db;
-  --color-gray-600-alt: #6b7280;
-  --color-gray-700-alt: #374151;
-  --color-gray-800-alt: #111827;
-  --color-background-gray-100: #f3f4f6;
-  --color-background-gray-50: #f9fafb;
-  --color-background-purple-tint-1: #ede9fe;
-  --color-background-purple-tint-2: #ddd6fe;
-  --color-background-purple-tint-3: #f3e8ff;
-  --color-error: #ef4444;
-}
-
 .modalBackdrop {
   position: fixed;
   top: 0;
@@ -37,14 +15,14 @@
 
 .modalContainer {
   position: relative;
-  background: var(--color-white);
+  background: var(--color-bg-primary-theme);
   border-radius: 30px;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 40px var(--color-shadow-black-15);
   animation: modalSlideIn 0.25s ease-out;
   overflow-x: hidden;
 }
@@ -72,7 +50,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-gray-800-alt);
+  color: var(--color-text-primary-theme);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -196,17 +174,17 @@
 }
 
 .folderItemSelected {
-  background-color: var(--color-background-purple-tint-1);
+  background-color: var(--color-background-teal-tint-1);
   color: var(--color-primary);
 }
 
 .folderItemSelected:hover {
-  background-color: var(--color-background-purple-tint-2);
+  background-color: var(--color-background-teal-tint-2);
 }
 
 .rootFolder {
   font-weight: 500;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border-default-theme);
   margin-bottom: 4px;
 }
 
@@ -313,7 +291,7 @@
 }
 
 .addFolderButtonRootButton {
-  background-color: var(--color-background-purple-tint-3);
+  background-color: var(--color-background-teal-tint-3);
   border: none;
   padding: 8px 16px;
   cursor: pointer;
@@ -329,7 +307,7 @@
 }
 
 .addFolderButtonRootButton:hover {
-  background-color: #9527f5;
+  background-color: var(--color-primary);
   color: var(--color-white);
 }
 
@@ -483,14 +461,14 @@
 }
 
 .saveButton {
-  background-color: #9527f5;
+  background-color: var(--color-primary);
   color: var(--color-white);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px var(--color-shadow-black-20);
 }
 
 .saveButton:hover:not(:disabled) {
   background-color: var(--color-primary-hover-dark);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--color-shadow-black-30);
 }
 
 .saveButton:disabled {

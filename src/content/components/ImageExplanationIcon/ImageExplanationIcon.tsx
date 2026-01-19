@@ -21,7 +21,7 @@ export interface ImageExplanationIconProps {
   onMouseEnter?: () => void;
   /** Mouse leave handler */
   onMouseLeave?: () => void;
-  /** Whether first chunk has been received (shows green icon instead of purple) */
+  /** Whether first chunk has been received (shows green icon instead of brand icon) */
   firstChunkReceived?: boolean;
   /** Whether the image is bookmarked */
   isBookmarked?: boolean;

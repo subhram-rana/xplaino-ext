@@ -4,10 +4,10 @@
 
 .popover {
   /* CSS Variables defined on component */
-  --color-primary: #9527F5;
-  --color-primary-opacity-5: rgba(149, 39, 245, 0.05);
-  --color-primary-opacity-15: rgba(149, 39, 245, 0.15);
-  --color-primary-opacity-35: rgba(149, 39, 245, 0.35);
+  --color-primary: #0d8070;
+  --color-primary-opacity-5: rgba(13, 128, 112, 0.05);
+  --color-primary-opacity-15: rgba(13, 128, 112, 0.15);
+  --color-primary-opacity-35: rgba(13, 128, 112, 0.35);
   --color-white: #FFFFFF;
   --color-gray-dark: #333;
   --color-gray-light: #ccc;

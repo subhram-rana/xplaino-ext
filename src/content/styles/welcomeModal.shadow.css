@@ -50,10 +50,10 @@
 
 /* Welcome Modal Content */
 .welcomeModalContent {
-  background: var(--color-white) !important;
+  background: var(--color-bg-primary-theme) !important;
   border-radius: 30px !important;
   padding: 32px 24px !important;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 0 20px var(--color-shadow-black-20) !important;
   min-width: 320px !important;
   max-width: 400px !important;
   display: flex !important;

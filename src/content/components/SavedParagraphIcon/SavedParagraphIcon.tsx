@@ -9,7 +9,7 @@ export interface SavedParagraphIconProps {
   position: { x: number; y: number };
   /** Click handler for green xplaino icon (kept for backward compatibility but not used) */
   onXplainoClick?: () => void;
-  /** Click handler for purple bookmark icon */
+  /** Click handler for bookmark icon */
   onBookmarkClick: () => void;
   /** Whether component is rendered in Shadow DOM */
   useShadowDom?: boolean;

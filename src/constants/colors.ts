@@ -198,6 +198,23 @@ export const COLORS = {
   SHADOW_BLACK_15: 'rgba(0, 0, 0, 0.15)',
   SHADOW_BLACK_20: 'rgba(0, 0, 0, 0.2)',
   SHADOW_BLACK_30: 'rgba(0, 0, 0, 0.3)',
+
+  // ============================================
+  // DARK THEME COLORS
+  // ============================================
+  DARK_BG_PRIMARY: '#1E1E1E',        // Card/primary background
+  DARK_BG_SECONDARY: '#2A2A2A',      // Secondary background (slightly lighter for layering)
+  DARK_BG_TERTIARY: '#252525',       // Tertiary background
+  DARK_BG_HOVER: '#252525',          // Hover state background
+  DARK_TEXT_PRIMARY: '#E6E6E6',      // Primary text color
+  DARK_TEXT_SECONDARY: '#9FA6A4',    // Secondary text color
+  DARK_TEXT_MUTED: '#6B7370',        // Muted text (between secondary and borders)
+  DARK_TEXT_INVERSE: '#1E1E1E',      // Inverse text (for light backgrounds)
+  DARK_BORDER_DEFAULT: '#243332',    // Default border color
+  DARK_BORDER_FOCUS: '#14B8A6',      // Focus border (accent hover)
+  DARK_ACCENT: '#0FA89A',            // Link/accent color
+  DARK_ACCENT_HOVER: '#14B8A6',      // Accent hover state
+  DARK_OVERLAY: 'rgba(30, 30, 30, 0.9)', // Dark overlay
 } as const;
 
 // Type for color keys
@@ -208,7 +225,7 @@ export type ColorValue = (typeof COLORS)[ColorKey];
 
 /**
  * Convert hex color to rgba with opacity
- * @param hex - Hex color (e.g., '#9527F5' or '9527F5')
+ * @param hex - Hex color (e.g., '#0d8070' or '0d8070')
  * @param opacity - Opacity value (0-1)
  * @returns rgba string
  */

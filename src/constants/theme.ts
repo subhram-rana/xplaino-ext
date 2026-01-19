@@ -43,18 +43,17 @@ export const THEMES: Record<Theme, Record<ThemeColorToken, string>> = {
     'border-error': COLORS.ERROR,
   },
   dark: {
-    // Dark theme colors - to be implemented in the future
-    'bg-primary': COLORS.GRAY_900,
-    'bg-secondary': COLORS.GRAY_800,
-    'bg-tertiary': COLORS.GRAY_700,
-    'bg-hover': COLORS.GRAY_700,
-    'text-primary': COLORS.WHITE,
-    'text-secondary': COLORS.GRAY_400,
-    'text-muted': COLORS.GRAY_500,
-    'text-inverse': COLORS.GRAY_900,
-    'border-default': COLORS.GRAY_600,
-    'border-focus': COLORS.PRIMARY_LIGHT,
-    'border-error': COLORS.ERROR_MEDIUM,
+    'bg-primary': COLORS.DARK_BG_PRIMARY,        // #1E1E1E
+    'bg-secondary': COLORS.DARK_BG_SECONDARY,    // #2A2A2A
+    'bg-tertiary': COLORS.DARK_BG_TERTIARY,      // #252525
+    'bg-hover': COLORS.DARK_BG_HOVER,            // #252525
+    'text-primary': COLORS.DARK_TEXT_PRIMARY,    // #E6E6E6
+    'text-secondary': COLORS.DARK_TEXT_SECONDARY,// #9FA6A4
+    'text-muted': COLORS.DARK_TEXT_MUTED,        // #6B7370
+    'text-inverse': COLORS.DARK_TEXT_INVERSE,    // #1E1E1E
+    'border-default': COLORS.DARK_BORDER_DEFAULT,// #243332
+    'border-focus': COLORS.DARK_BORDER_FOCUS,    // #14B8A6
+    'border-error': COLORS.ERROR_MEDIUM,         // Keep existing
   },
 } as const;
 

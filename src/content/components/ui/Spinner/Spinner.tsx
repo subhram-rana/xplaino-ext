@@ -12,7 +12,7 @@ export interface SpinnerProps {
   className?: string;
   /** Whether component is rendered in Shadow DOM */
   useShadowDom?: boolean;
-  /** Custom color (defaults to primary purple) */
+  /** Custom color (defaults to primary color) */
   color?: string;
 }
 

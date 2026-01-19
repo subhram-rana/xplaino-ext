@@ -12,7 +12,7 @@ export interface ExplanationIconButtonProps {
   isPanelOpen?: boolean;
   /** Whether the item is bookmarked */
   isBookmarked?: boolean;
-  /** Whether first chunk has been received (shows book icon instead of purple icon) */
+  /** Whether first chunk has been received (shows book icon instead of brand icon) */
   firstChunkReceived?: boolean;
   /** Whether the icon is hiding (for disappear animation) */
   isHiding?: boolean;
@@ -32,7 +32,7 @@ export interface ExplanationIconButtonProps {
   useShadowDom?: boolean;
   /** Size of the spinner */
   spinnerSize?: SpinnerSize;
-  /** Whether to show purple xplaino icon initially (before first chunk) */
+  /** Whether to show xplaino brand icon initially (before first chunk) */
   showPurpleIconInitially?: boolean;
   /** Aria label for the main button */
   ariaLabel?: string;
@@ -43,7 +43,7 @@ export interface ExplanationIconButtonProps {
 }
 
 /**
- * Get the icon URL for the purple xplaino icon
+ * Get the icon URL for the xplaino brand icon
  */
 function getPurpleIconUrl(): string {
   return chrome.runtime.getURL('src/assets/icons/xplaino-purple-icon.ico');

@@ -231,6 +231,23 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
       --color-shadow-black-30: ${COLORS.SHADOW_BLACK_30} !important;
       
       /* ============================================
+         DARK THEME SPECIFIC COLORS
+         ============================================ */
+      --color-bg-dark-primary: ${COLORS.DARK_BG_PRIMARY} !important;
+      --color-bg-dark-secondary: ${COLORS.DARK_BG_SECONDARY} !important;
+      --color-bg-dark-tertiary: ${COLORS.DARK_BG_TERTIARY} !important;
+      --color-bg-dark-hover: ${COLORS.DARK_BG_HOVER} !important;
+      --color-text-dark-primary: ${COLORS.DARK_TEXT_PRIMARY} !important;
+      --color-text-dark-secondary: ${COLORS.DARK_TEXT_SECONDARY} !important;
+      --color-text-dark-muted: ${COLORS.DARK_TEXT_MUTED} !important;
+      --color-text-dark-inverse: ${COLORS.DARK_TEXT_INVERSE} !important;
+      --color-border-dark-default: ${COLORS.DARK_BORDER_DEFAULT} !important;
+      --color-border-dark-focus: ${COLORS.DARK_BORDER_FOCUS} !important;
+      --color-dark-accent: ${COLORS.DARK_ACCENT} !important;
+      --color-dark-accent-hover: ${COLORS.DARK_ACCENT_HOVER} !important;
+      --color-dark-overlay: ${COLORS.DARK_OVERLAY} !important;
+      
+      /* ============================================
          THEME-AWARE SEMANTIC COLORS
          ============================================ */
       --color-bg-primary-theme: ${bgPrimary} !important;
@@ -458,6 +475,23 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
       --color-shadow-black-15: ${COLORS.SHADOW_BLACK_15} !important;
       --color-shadow-black-20: ${COLORS.SHADOW_BLACK_20} !important;
       --color-shadow-black-30: ${COLORS.SHADOW_BLACK_30} !important;
+      
+      /* ============================================
+         DARK THEME SPECIFIC COLORS
+         ============================================ */
+      --color-bg-dark-primary: ${COLORS.DARK_BG_PRIMARY} !important;
+      --color-bg-dark-secondary: ${COLORS.DARK_BG_SECONDARY} !important;
+      --color-bg-dark-tertiary: ${COLORS.DARK_BG_TERTIARY} !important;
+      --color-bg-dark-hover: ${COLORS.DARK_BG_HOVER} !important;
+      --color-text-dark-primary: ${COLORS.DARK_TEXT_PRIMARY} !important;
+      --color-text-dark-secondary: ${COLORS.DARK_TEXT_SECONDARY} !important;
+      --color-text-dark-muted: ${COLORS.DARK_TEXT_MUTED} !important;
+      --color-text-dark-inverse: ${COLORS.DARK_TEXT_INVERSE} !important;
+      --color-border-dark-default: ${COLORS.DARK_BORDER_DEFAULT} !important;
+      --color-border-dark-focus: ${COLORS.DARK_BORDER_FOCUS} !important;
+      --color-dark-accent: ${COLORS.DARK_ACCENT} !important;
+      --color-dark-accent-hover: ${COLORS.DARK_ACCENT_HOVER} !important;
+      --color-dark-overlay: ${COLORS.DARK_OVERLAY} !important;
       
       /* ============================================
          THEME-AWARE SEMANTIC COLORS

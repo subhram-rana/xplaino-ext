@@ -209,7 +209,7 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
         isSpinning={isSpinning}
         isPanelOpen={isPanelOpen}
         isBookmarked={isBookmarked}
-        firstChunkReceived={true} // Text explanation always shows book icon (no purple icon phase)
+        firstChunkReceived={true} // Text explanation always shows book icon (no icon phase)
         onClick={onTogglePanel}
         onBookmarkClick={onBookmarkClick}
         iconRef={iconRef as ((element: HTMLButtonElement | null) => void) | undefined}
