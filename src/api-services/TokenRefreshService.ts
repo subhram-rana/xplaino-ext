@@ -85,6 +85,7 @@ export class TokenRefreshService {
       // Update chrome storage with new tokens
       // ChromeStorage.setAuthInfo already handles the storage update properly
       await ChromeStorage.setAuthInfo({
+        isLoggedIn: data.isLoggedIn,
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
         accessTokenExpiresAt: data.accessTokenExpiresAt,
@@ -98,6 +99,7 @@ export class TokenRefreshService {
       await new Promise<void>((resolve) => {
         chrome.storage.local.set({ 
           [ChromeStorage.KEYS.XPLAINO_AUTH_INFO]: {
+            isLoggedIn: data.isLoggedIn,
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
             accessTokenExpiresAt: data.accessTokenExpiresAt,
