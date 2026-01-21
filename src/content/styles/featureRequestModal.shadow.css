@@ -1,0 +1,250 @@
+/* src/content/styles/featureRequestModal.shadow.css */
+/* Shadow DOM compatible styles for FeatureRequestModal component */
+/* ALL properties use !important for Shadow DOM style isolation */
+
+:host {
+  all: initial !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif !important;
+}
+
+/* Color variable fallbacks */
+:host {
+  --color-primary: #0d8070 !important;
+  --color-primary-light: #14a08a !important;
+  --color-primary-dark: #0a5f54 !important;
+  --color-white: #FFFFFF !important;
+}
+
+* {
+  box-sizing: border-box !important;
+}
+
+/* Full-screen Overlay */
+.featureRequestModalOverlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: var(--color-overlay, rgba(0, 0, 0, 0.6)) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2147483647 !important;
+  animation: fadeIn 0.3s ease !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.featureRequestModalOverlay.closing {
+  animation: fadeOut 0.3s ease forwards !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Modal Container */
+.featureRequestModalContainer {
+  background: var(--color-bg-primary-theme) !important;
+  border-radius: 30px !important;
+  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3) !important;
+  padding: 40px !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  text-align: center !important;
+  animation: slideUp 0.3s ease !important;
+}
+
+.featureRequestModalContainer.closing {
+  animation: slideDown 0.3s ease forwards !important;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}
+
+/* Header */
+.featureRequestModalHeader {
+  margin-bottom: 24px !important;
+}
+
+.featureRequestModalTitle {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: var(--color-text-primary-theme) !important;
+  margin: 0 0 8px 0 !important;
+  line-height: 1.3 !important;
+}
+
+.featureRequestModalSubtitle {
+  font-size: 14px !important;
+  color: var(--color-text-secondary-theme) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+
+/* Success Message */
+.featureRequestModalSuccess {
+  background: var(--color-success-opacity-10, rgba(16, 185, 129, 0.1)) !important;
+  border: 1.5px solid var(--color-success-opacity-30, rgba(16, 185, 129, 0.3)) !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  color: var(--color-success, #10B981) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+}
+
+/* Error Message */
+.featureRequestModalError {
+  background: var(--color-error-opacity-10-alt) !important;
+  border: 1.5px solid var(--color-error-opacity-30) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  margin-bottom: 24px !important;
+  color: var(--color-error) !important;
+  font-size: 14px !important;
+  text-align: left !important;
+}
+
+/* Textarea Container */
+.featureRequestTextareaContainer {
+  margin-bottom: 20px !important;
+  text-align: left !important;
+}
+
+/* Textarea */
+.featureRequestTextarea {
+  width: 100% !important;
+  min-height: 150px !important;
+  padding: 16px !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
+  border-radius: 12px !important;
+  background: var(--color-bg-secondary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
+  font-size: 15px !important;
+  font-family: inherit !important;
+  line-height: 1.6 !important;
+  resize: vertical !important;
+  outline: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.featureRequestTextarea::placeholder {
+  color: var(--color-text-muted-theme) !important;
+}
+
+.featureRequestTextarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-opacity-15, rgba(13, 128, 112, 0.15)) !important;
+}
+
+.featureRequestTextarea:disabled {
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+}
+
+/* Character Count */
+.featureRequestCharCount {
+  margin-top: 8px !important;
+  font-size: 12px !important;
+  color: var(--color-text-muted-theme) !important;
+  text-align: right !important;
+}
+
+.featureRequestCharCount.nearLimit {
+  color: var(--color-warning, #ED8936) !important;
+  font-weight: 500 !important;
+}
+
+/* Submit Button */
+.featureRequestSubmitButton {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 14px 24px !important;
+  border: none !important;
+  border-radius: 12px !important;
+  background: var(--color-primary) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--color-white) !important;
+  min-height: 50px !important;
+}
+
+.featureRequestSubmitButton:hover:not(:disabled) {
+  background: var(--color-primary-dark) !important;
+  box-shadow: 0 4px 12px var(--color-primary-opacity-30, rgba(13, 128, 112, 0.3)) !important;
+}
+
+.featureRequestSubmitButton:active:not(:disabled) {
+  transform: scale(0.98) !important;
+}
+
+.featureRequestSubmitButton:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Loading Spinner */
+.loadingSpinner {
+  width: 20px !important;
+  height: 20px !important;
+  border: 2px solid var(--color-white-opacity-30, rgba(255, 255, 255, 0.3)) !important;
+  border-top-color: var(--color-white) !important;
+  border-radius: 50% !important;
+  animation: spin 0.8s linear infinite !important;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Footer */
+.featureRequestModalFooter {
+  margin-top: 20px !important;
+  font-size: 12px !important;
+  color: var(--color-text-muted-theme) !important;
+  line-height: 1.5 !important;
+}

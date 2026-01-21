@@ -1,5 +1,6 @@
 // src/content/components/WelcomeModal/WelcomeModal.tsx
 import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { getCurrentTheme } from '@/constants/theme';
 
 export interface WelcomeModalProps {
   /** Whether the modal is visible */
@@ -16,7 +17,22 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
   onDontShowAgain,
 }) => {
   const [isClosing, setIsClosing] = useState(false);
+  const [brandImageUrl, setBrandImageUrl] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Detect theme and set appropriate brand image
+  useEffect(() => {
+    const loadBrandImage = async () => {
+      const theme = await getCurrentTheme();
+      const imageName = theme === 'dark' 
+        ? 'brand-name-turquoise.png' 
+        : 'brand-name.png';
+      const imageUrl = chrome.runtime.getURL(`src/assets/photos/${imageName}`);
+      setBrandImageUrl(imageUrl);
+    };
+
+    loadBrandImage();
+  }, []);
 
   // Trigger animation when visible becomes true
   useEffect(() => {
@@ -45,9 +61,6 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
       setIsClosing(false);
     }, 300); // Match animation duration
   }, [onDontShowAgain]);
-
-  // Get the brand image URL using chrome.runtime.getURL
-  const brandImageUrl = chrome.runtime.getURL('src/assets/photos/brand-name.png');
 
   if (!visible && !isClosing) return null;
 

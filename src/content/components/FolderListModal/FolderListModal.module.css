@@ -69,7 +69,7 @@
 }
 
 .closeButton:hover:not(:disabled) {
-  background-color: var(--color-primary-very-light);
+  background-color: var(--color-hover-bg-action-theme);
 }
 
 .closeButton:disabled {

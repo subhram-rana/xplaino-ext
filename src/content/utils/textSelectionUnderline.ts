@@ -1,9 +1,12 @@
 // src/content/utils/textSelectionUnderline.ts
 /**
- * Utility functions for adding/removing solid teal underline to text selections
+ * Utility functions for adding/removing dashed teal underline to text selections
+ * Note: The underline is added without modifying any original CSS properties of the text,
+ * preserving font colors, sizes, styles, hyperlinks, and all other styling.
  */
 
 import { COLORS, colorWithOpacity } from '../../constants/colors';
+import { getCurrentTheme } from '../../constants/theme';
 
 export interface UnderlineState {
   wrapperElement: HTMLElement;
@@ -11,13 +14,14 @@ export interface UnderlineState {
 }
 
 /**
- * Add a solid teal underline to the selected text
+ * Add a thin dashed teal underline to the selected text without modifying original styles
+ * This preserves all original CSS properties (font color, size, style, hyperlinks, etc.)
  * @param range - The selection range to underline
- * @param _color - The color of the underline (default: green for text explanations) - kept for backward compatibility but always uses teal now
+ * @param _color - Kept for backward compatibility but always uses teal now
  * @returns The wrapper element and original range, or null if failed
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function addTextUnderline(range: Range, _color: 'green' | 'primary' = 'green'): UnderlineState | null {
+export async function addTextUnderline(range: Range, _color: 'green' | 'primary' = 'green'): Promise<UnderlineState | null> {
   if (!range || range.collapsed) {
     return null;
   }
@@ -26,49 +30,22 @@ export function addTextUnderline(range: Range, _color: 'green' | 'primary' = 'gr
     // Clone the range to avoid modifying the original
     const clonedRange = range.cloneRange();
     
-    // Get the computed styles from the selected text to preserve font properties
-    const startContainer = range.startContainer;
-    let fontStyle = '';
-    let fontWeight = '';
-    let fontSize = '';
-    let fontFamily = '';
-    let color = '';
-    let lineHeight = '';
-    
-    if (startContainer.nodeType === Node.TEXT_NODE && startContainer.parentElement) {
-      const computedStyle = window.getComputedStyle(startContainer.parentElement);
-      fontStyle = computedStyle.fontStyle;
-      fontWeight = computedStyle.fontWeight;
-      fontSize = computedStyle.fontSize;
-      fontFamily = computedStyle.fontFamily;
-      color = computedStyle.color;
-      lineHeight = computedStyle.lineHeight;
-    } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
-      const computedStyle = window.getComputedStyle(startContainer as Element);
-      fontStyle = computedStyle.fontStyle;
-      fontWeight = computedStyle.fontWeight;
-      fontSize = computedStyle.fontSize;
-      fontFamily = computedStyle.fontFamily;
-      color = computedStyle.color;
-      lineHeight = computedStyle.lineHeight;
-    }
-    
     // Create a wrapper span element
+    // Note: We intentionally do NOT set any font properties (color, size, weight, etc.)
+    // to preserve the original styling of all child elements (links, bold, italic, etc.)
     const wrapper = document.createElement('span');
     
-    // Preserve original font styles to maintain text size and appearance
-    wrapper.style.fontStyle = fontStyle;
-    wrapper.style.fontWeight = fontWeight;
-    wrapper.style.fontSize = fontSize;
-    wrapper.style.fontFamily = fontFamily;
-    wrapper.style.color = color;
-    wrapper.style.lineHeight = lineHeight;
+    // Use text-decoration underline - only add the underline, don't modify original styles
+    // Get theme-aware primary color
+    const theme = await getCurrentTheme();
+    const primaryColor = theme === 'dark' ? COLORS.DARK_PRIMARY : COLORS.PRIMARY;
     
-    // Use text-decoration underline instead of bottom border
     wrapper.style.textDecoration = 'underline';
-    wrapper.style.textDecorationColor = COLORS.PRIMARY;
-    wrapper.style.textDecorationThickness = '1.5px';
+    wrapper.style.textDecorationStyle = 'dashed';
+    wrapper.style.textDecorationColor = primaryColor;
+    wrapper.style.textDecorationThickness = '1px';
     wrapper.style.textUnderlineOffset = '2px';
+    wrapper.style.textDecorationSkipInk = 'auto';
     
     // Make wrapper position relative so icon can be absolutely positioned within it
     wrapper.style.position = 'relative';

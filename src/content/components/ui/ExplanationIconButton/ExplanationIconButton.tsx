@@ -4,6 +4,8 @@ import styles from './ExplanationIconButton.module.css';
 import { COLORS } from '@/constants/colors';
 import { OnHoverMessage } from '../../OnHoverMessage';
 import { Spinner, SpinnerSize } from '../Spinner';
+import { useAtomValue } from 'jotai';
+import { currentThemeAtom } from '@/store/uiAtoms';
 
 export interface ExplanationIconButtonProps {
   /** Whether to show spinner */
@@ -43,23 +45,16 @@ export interface ExplanationIconButtonProps {
 }
 
 /**
- * Get the icon URL for the xplaino brand icon
- */
-function getPurpleIconUrl(): string {
-  return chrome.runtime.getURL('src/assets/icons/xplaino-purple-icon.ico');
-}
-
-/**
  * Teal Book Open icon (Lucide wireframe/outline style) for successful explanation
  */
-const TealBookIcon: React.FC<{ className?: string }> = ({ className }) => (
+const TealBookIcon: React.FC<{ className?: string; color: string }> = ({ className, color }) => (
   <svg
     className={className}
     width="14"
     height="14"
     viewBox="0 0 24 24"
     fill="none"
-    stroke={COLORS.PRIMARY}
+    stroke={color}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -72,14 +67,14 @@ const TealBookIcon: React.FC<{ className?: string }> = ({ className }) => (
 /**
  * Bookmark icon (filled)
  */
-const BookmarkIcon: React.FC<{ className?: string }> = ({ className }) => (
+const BookmarkIcon: React.FC<{ className?: string; color: string }> = ({ className, color }) => (
   <svg
     className={className}
     width="14"
     height="14"
     viewBox="0 0 24 24"
-    fill={COLORS.PRIMARY}
-    stroke={COLORS.PRIMARY}
+    fill={color}
+    stroke={color}
     strokeWidth="2.5"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -127,6 +122,23 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
     return styleClass || baseClass;
   };
 
+  // Subscribe to theme changes
+  const currentTheme = useAtomValue(currentThemeAtom);
+
+  // Compute theme-aware values directly (no useState to avoid timing issues)
+  const brandIconUrl = (() => {
+    const iconName = currentTheme === 'dark' 
+      ? 'xplaino-turquoise-icon.ico' 
+      : 'xplaino-purple-icon.ico';
+    return chrome.runtime.getURL(`src/assets/icons/${iconName}`);
+  })();
+  
+  // Container background: transparent in dark theme, white in light theme
+  const containerBgColor = currentTheme === 'dark' ? 'transparent' : '#FFFFFF';
+  
+  // Primary color: turquoise (DARK_PRIMARY) in dark theme, teal (PRIMARY) in light theme
+  const primaryColor = currentTheme === 'dark' ? COLORS.DARK_PRIMARY : COLORS.PRIMARY;
+
   // Callback ref for the icon button element
   const setIconButtonRef = (node: HTMLButtonElement | null) => {
     iconElementRef.current = node;
@@ -161,14 +173,14 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
     }
   }, [isBookmarked, onBookmarkClick]);
 
-  // Container style for vertical icon layout with white background
+  // Container style for vertical icon layout with theme-aware background
   // This container holds BOTH the book icon and bookmark icon
   const containerStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '0px',
-    background: '#FFFFFF',
+    background: containerBgColor,
     borderRadius: '5px',
     padding: '2px',
     overflow: 'visible', // Allow tooltips to show outside
@@ -204,7 +216,7 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
     if (isSpinning) {
       return (
         <div className={getClassName('spinnerContainer')}>
-          <Spinner size={spinnerSize} useShadowDom={useShadowDom} />
+          <Spinner size={spinnerSize} useShadowDom={useShadowDom} color={primaryColor} />
         </div>
       );
     }
@@ -212,14 +224,14 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
     if (showPurpleIconInitially && !firstChunkReceived) {
       return (
         <img
-          src={getPurpleIconUrl()}
+          src={brandIconUrl}
           alt="Xplaino"
           className={getClassName('iconImage')}
         />
       );
     }
     
-    return <TealBookIcon className={getClassName('iconImage')} />;
+    return <TealBookIcon className={getClassName('iconImage')} color={primaryColor} />;
   };
 
   // Use external containerRef if provided, otherwise use internal
@@ -265,7 +277,7 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
             }}
             aria-label={bookmarkHoverMessage}
           >
-            <BookmarkIcon className={getClassName('iconImage')} />
+            <BookmarkIcon className={getClassName('iconImage')} color={primaryColor} />
           </button>
           {isBookmarkButtonMounted && bookmarkElementRef.current && (
             <OnHoverMessage

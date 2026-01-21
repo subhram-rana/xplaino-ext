@@ -7,11 +7,7 @@
  */
 
 :host {
-  all: initial !important;
   font-family: var(--font-family-primary) !important;
-  /* Ensure animations are not reset by all: initial */
-  animation: none !important;
-  transition: none !important;
 }
 
 * {
@@ -32,19 +28,18 @@
 /* Hidden state when not visible and not closing */
 .welcomeModalContainer:not(.visible):not(.closing) {
   opacity: 0 !important;
-  transform: translateX(100%) !important;
   pointer-events: none !important;
 }
 
-/* Visible state with animation */
+/* Visible state with fade in animation */
 .welcomeModalContainer.visible:not(.closing) {
-  animation: slideInFromRight 0.3s ease forwards !important;
+  animation: fadeIn 0.4s ease-out forwards !important;
   pointer-events: auto !important;
 }
 
-/* Closing animation */
+/* Closing fade out animation */
 .welcomeModalContainer.closing {
-  animation: slideOutToRight 0.3s ease forwards !important;
+  animation: fadeOut 0.3s ease-in forwards !important;
   pointer-events: none !important;
 }
 
@@ -52,7 +47,7 @@
 .welcomeModalContent {
   background: var(--color-bg-primary-theme) !important;
   border-radius: 30px !important;
-  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
+  border: 1.5px solid var(--color-primary-light, #14a08a) !important;
   padding: 32px 24px !important;
   box-shadow: 0 0 20px var(--color-shadow-black-20) !important;
   min-width: 320px !important;
@@ -129,25 +124,25 @@
 }
 
 /* Animations */
-@keyframes slideInFromRight {
+@keyframes fadeIn {
   from {
     opacity: 0 !important;
-    transform: translateX(100%) !important;
+    transform: scale(0.95) !important;
   }
   to {
     opacity: 1 !important;
-    transform: translateX(0) !important;
+    transform: scale(1) !important;
   }
 }
 
-@keyframes slideOutToRight {
+@keyframes fadeOut {
   from {
     opacity: 1 !important;
-    transform: translateX(0) !important;
+    transform: scale(1) !important;
   }
   to {
     opacity: 0 !important;
-    transform: translateX(100%) !important;
+    transform: scale(0.95) !important;
   }
 }
 

@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ContentActionsButtonGroup } from './ContentActionsButtonGroup';
 import { isRangeOverlappingUnderlinedText } from '../../utils/textSelectionUnderline';
+import { useAtomValue } from 'jotai';
+import { currentThemeAtom } from '@/store/uiAtoms';
 
 export interface ContentActionsTriggerProps {
   /** Whether component is rendered in Shadow DOM */
@@ -31,13 +33,6 @@ interface SelectionState {
   range?: Range; // Store the range so it persists even if window selection is cleared
 }
 
-/**
- * Get the icon URL for the xplaino icon
- */
-function getIconUrl(): string {
-  return chrome.runtime.getURL('src/assets/icons/xplaino-purple-icon.ico');
-}
-
 export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   // useShadowDom is used to determine if we're in Shadow DOM context (always true for content scripts)
   useShadowDom: _useShadowDom = false,
@@ -53,12 +48,25 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   const [selection, setSelection] = useState<SelectionState | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [showButtonGroup, setShowButtonGroup] = useState(false);
+  const [iconUrl, setIconUrl] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastMousePosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const popoverOpenRef = useRef(false);
   const wordSelectionJustMadeRef = useRef(false);
   const doubleClickJustHappenedRef = useRef(false);
+
+  // Subscribe to theme changes
+  const currentTheme = useAtomValue(currentThemeAtom);
+
+  // Load icon URL based on theme
+  useEffect(() => {
+    const iconName = currentTheme === 'dark' 
+      ? 'xplaino-turquoise-icon.ico' 
+      : 'xplaino-purple-icon.ico';
+    const url = chrome.runtime.getURL(`src/assets/icons/${iconName}`);
+    setIconUrl(url);
+  }, [currentTheme]);
 
   // Track mouse position for text selection
   useEffect(() => {
@@ -474,10 +482,8 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     setIsHovering(false);
   }, []);
 
-  // Don't render if no selection
-  if (!selection) return null;
-
-  const iconUrl = getIconUrl();
+  // Don't render if no selection or icon not loaded yet
+  if (!selection || !iconUrl) return null;
 
   // Calculate position styles based on selection type
   const positionStyle: React.CSSProperties = {

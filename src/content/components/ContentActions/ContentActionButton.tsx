@@ -1,6 +1,7 @@
 // src/content/components/ContentActions/ContentActionButton.tsx
 import React, { useRef, useState, useEffect } from 'react';
 import { Sparkles, SpellCheck, Languages, Bookmark, Power, MoreVertical } from 'lucide-react';
+import { OnHoverMessage } from '../OnHoverMessage';
 
 export interface ContentActionButtonProps {
   /** Icon type */
@@ -45,23 +46,26 @@ export const ContentActionButton: React.FC<ContentActionButtonProps> = ({
 }) => {
   const IconComponent = iconMap[icon];
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [isButtonMounted, setIsButtonMounted] = useState(false);
 
   const handleMouseEnter = () => {
-    setShowTooltip(true);
     onButtonMouseEnter?.();
   };
   const handleMouseLeave = () => {
-    setShowTooltip(false);
     onButtonMouseLeave?.();
   };
 
-  // Sync tooltip state with hideTooltip prop
+  // Track when button is mounted for OnHoverMessage
   useEffect(() => {
-    if (hideTooltip) {
-      setShowTooltip(false);
+    if (buttonRef.current) {
+      const timer = setTimeout(() => {
+        setIsButtonMounted(true);
+      }, 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsButtonMounted(false);
     }
-  }, [hideTooltip]);
+  }, []);
 
   return (
     <div className={`contentActionButtonWrapper ${className}`}>
@@ -71,7 +75,6 @@ export const ContentActionButton: React.FC<ContentActionButtonProps> = ({
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
-          setShowTooltip(false); // Clear tooltip on click
           onClick?.();
         }}
         onMouseEnter={handleMouseEnter}
@@ -84,10 +87,13 @@ export const ContentActionButton: React.FC<ContentActionButtonProps> = ({
           strokeWidth={2.5}
         />
       </button>
-      {showTooltip && !hideTooltip && (
-        <div className="contentActionTooltip">
-          {tooltip}
-        </div>
+      {isButtonMounted && buttonRef.current && !hideTooltip && (
+        <OnHoverMessage
+          message={tooltip}
+          targetRef={buttonRef}
+          position="bottom"
+          offset={8}
+        />
       )}
       {children}
     </div>

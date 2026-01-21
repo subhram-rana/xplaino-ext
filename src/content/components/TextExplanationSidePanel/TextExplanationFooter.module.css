@@ -1,7 +1,7 @@
 /* src/content/components/TextExplanationSidePanel/TextExplanationFooter.module.css */
 
 .footer {
-  background: var(--color-white, #FFFFFF);
+  background: transparent;
   border-top: 1.5px solid var(--color-border-default, #E2E8F0);
   padding: 0;
   margin: 0 -15px 0 -15px;

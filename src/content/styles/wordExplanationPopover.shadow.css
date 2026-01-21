@@ -463,23 +463,24 @@
   align-items: center !important;
   justify-content: center !important;
   gap: 6px !important;
-  padding: 12px 24px !important;
-  background: var(--color-bg-secondary-theme) !important;
-  color: var(--color-primary) !important;
-  border: none !important;
-  border-radius: 8px !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
+  padding: 8px 16px !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
   font-family: var(--font-family-primary) !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  box-shadow: none !important;
+  white-space: nowrap !important;
   flex-shrink: 0 !important;
 }
 
 .getContextualMeaningButton:hover:not(:disabled) {
-  background: var(--color-primary-opacity-5) !important;
-  box-shadow: none !important;
+  background: var(--color-primary-opacity-8) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary-opacity-20) !important;
 }
 
 .getContextualMeaningButton:active:not(:disabled) {
@@ -487,11 +488,8 @@
 }
 
 .getContextualMeaningButton:disabled {
-  background: var(--color-bg-secondary-theme) !important;
-  color: var(--color-text-secondary-theme) !important;
+  opacity: 0.5 !important;
   cursor: not-allowed !important;
-  opacity: 1 !important;
-  box-shadow: none !important;
 }
 
 .getContextualMeaningButton .spinner {

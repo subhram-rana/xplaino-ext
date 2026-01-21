@@ -8,7 +8,7 @@ import { SummaryView } from './SummaryView';
 import { SettingsView } from './SettingsView';
 import { SaveLinkModal } from '../SaveLinkModal/SaveLinkModal';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
-import { showLoginModalAtom } from '@/store/uiAtoms';
+import { showLoginModalAtom, currentThemeAtom } from '@/store/uiAtoms';
 import { summaryAtom, summariseStateAtom } from '@/store/summaryAtoms';
 import { SavedLinkService } from '@/api-services/SavedLinkService';
 
@@ -68,8 +68,21 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   const [isSaveLinkModalOpen, setIsSaveLinkModalOpen] = useState(false);
   const [isSavingLink, setIsSavingLink] = useState(false);
   const [savedLinkId, setSavedLinkId] = useState<string | null>(initialSavedLinkId);
+  const [brandImageUrl, setBrandImageUrl] = useState<string>('');
   const panelRef = useRef<HTMLDivElement>(null);
   
+  // Subscribe to theme changes
+  const currentTheme = useAtomValue(currentThemeAtom);
+  
+  // Load theme-aware brand image when theme changes
+  useEffect(() => {
+    const imageName = currentTheme === 'dark' 
+      ? 'brand-name-turquoise.png' 
+      : 'brand-name.png';
+    const imageUrl = chrome.runtime.getURL(`src/assets/photos/${imageName}`);
+    setBrandImageUrl(imageUrl);
+  }, [currentTheme]);
+
   // Update savedLinkId when initialSavedLinkId changes (from folder modal save)
   useEffect(() => {
     if (initialSavedLinkId !== null) {
@@ -348,7 +361,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       <Header
         onSlideOut={handleSlideOut}
         onVerticalExpand={handleVerticalExpand}
-        brandImageSrc={chrome.runtime.getURL('src/assets/photos/brand-name.png')}
+        brandImageSrc={brandImageUrl}
         useShadowDom={useShadowDom}
         isExpanded={isVerticallyExpanded}
         activeTab={activeTab}

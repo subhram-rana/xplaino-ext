@@ -5,6 +5,8 @@ import { FABDisablePopover } from './FABDisablePopover';
 import { TranslationControlPopover } from './TranslationControlPopover';
 import styles from './FAB.module.css';
 import { ENV } from '@/config/env';
+import { useAtomValue } from 'jotai';
+import { currentThemeAtom } from '@/store/uiAtoms';
 
 export interface FABProps {
   /** Callback when Summarise is clicked */
@@ -21,6 +23,8 @@ export interface FABProps {
   onOptions?: () => void;
   /** Callback when Save page link is clicked */
   onSaveUrl?: () => void;
+  /** Callback when Feature Request is clicked */
+  onFeatureRequest?: () => void;
   /** Whether component is rendered in Shadow DOM (uses plain class names) */
   useShadowDom?: boolean;
   /** Whether summarise button is loading */
@@ -41,18 +45,6 @@ export interface FABProps {
   isBookmarked?: boolean;
 }
 
-/**
- * Get the icon URL - handles both regular and Shadow DOM contexts
- */
-function getIconUrl(useShadowDom: boolean): string {
-  if (useShadowDom) {
-    // In Shadow DOM, use chrome.runtime.getURL for extension assets
-    return chrome.runtime.getURL('src/assets/icons/xplaino-purple-icon.ico');
-  }
-  // For regular React context, import would be used
-  return '';
-}
-
 export const FAB: React.FC<FABProps> = ({
   onSummarise,
   onTranslate,
@@ -61,6 +53,7 @@ export const FAB: React.FC<FABProps> = ({
   onClearTranslations,
   onOptions,
   onSaveUrl,
+  onFeatureRequest,
   useShadowDom = false,
   isSummarising = false,
   hasSummary = false,
@@ -77,6 +70,7 @@ export const FAB: React.FC<FABProps> = ({
   const [showTranslationPopover, setShowTranslationPopover] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false); // Track when height animation completes
   const [isClosing, setIsClosing] = useState(false); // Track closing animation state
+  const [iconUrl, setIconUrl] = useState<string>('');
   const parentRef = useRef<HTMLDivElement>(null);
   const actionsContainerRef = useRef<HTMLDivElement>(null); // Ref for height animation
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -91,6 +85,22 @@ export const FAB: React.FC<FABProps> = ({
   const getClassName = useCallback((shadowClass: string, moduleClass: string) => {
     return useShadowDom ? shadowClass : moduleClass;
   }, [useShadowDom]);
+
+  // Subscribe to theme changes
+  const currentTheme = useAtomValue(currentThemeAtom);
+
+  // Load icon URL based on theme
+  useEffect(() => {
+    if (useShadowDom) {
+      const iconName = currentTheme === 'dark' 
+        ? 'xplaino-turquoise-icon.ico' 
+        : 'xplaino-purple-icon.ico';
+      const url = chrome.runtime.getURL(`src/assets/icons/${iconName}`);
+      setIconUrl(url);
+    } else {
+      setIconUrl('');
+    }
+  }, [useShadowDom, currentTheme]);
 
   // Clear pulse animation after it plays
   useEffect(() => {
@@ -419,7 +429,15 @@ export const FAB: React.FC<FABProps> = ({
     window.open(`${ENV.XPLAINO_WEBSITE_BASE_URL}/user/dashboard`, '_blank');
   }, []);
 
-  const iconUrl = getIconUrl(useShadowDom);
+  const handleFeatureRequest = useCallback(() => {
+    console.log('[FAB] Feature request clicked');
+    onFeatureRequest?.();
+  }, [onFeatureRequest]);
+
+  const handleReportIssue = useCallback(() => {
+    console.log('[FAB] Report issue clicked');
+    window.open(`${ENV.XPLAINO_WEBSITE_BASE_URL}/report-issue`, '_blank');
+  }, []);
 
   // Class names for Shadow DOM vs CSS Modules
   const fabParentClass = getClassName(
@@ -492,6 +510,18 @@ export const FAB: React.FC<FABProps> = ({
           icon="dashboard"
           tooltip="My dashboard"
           onClick={handleGoToWebsite}
+          className={actionButtonClass}
+        />
+        <ActionButton
+          icon="featureRequest"
+          tooltip="Feature request"
+          onClick={handleFeatureRequest}
+          className={actionButtonClass}
+        />
+        <ActionButton
+          icon="reportIssue"
+          tooltip="Report issue"
+          onClick={handleReportIssue}
           className={actionButtonClass}
         />
         <div style={{ position: 'relative' }}>

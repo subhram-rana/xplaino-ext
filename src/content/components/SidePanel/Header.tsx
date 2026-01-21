@@ -1,10 +1,11 @@
 // src/content/components/SidePanel/Header.tsx
 import React, { useRef, useState, useEffect } from 'react';
-import { ChevronRight, Bookmark } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 import styles from './Header.module.css';
 import { ENV } from '@/config/env';
 import { COLORS } from '@/constants/colors';
 import { OnHoverMessage } from '../OnHoverMessage';
+import { MinimizeIcon } from '../ui/MinimizeIcon';
 
 // Custom expand icon - arrows pointing away from center (up and down)
 const ExpandVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
@@ -86,7 +87,6 @@ export const Header: React.FC<HeaderProps> = ({
   isBookmarked = false,
 }) => {
   // Refs for buttons
-  const slideOutButtonRef = useRef<HTMLButtonElement>(null);
   const expandButtonRef = useRef<HTMLButtonElement>(null);
   const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
   
@@ -126,23 +126,11 @@ export const Header: React.FC<HeaderProps> = ({
     <div className={`${getClassName('header')} ${activeTab === 'settings' ? getClassName('headerSettings') : ''}`}>
       {/* Left: Action Icons */}
       <div className={getClassName('headerLeft')}>
-        <button
-          ref={slideOutButtonRef}
-          className={getClassName('headerIconButton')}
+        <MinimizeIcon
           onClick={handleSlideOut}
-          aria-label="Slide out panel"
-          type="button"
-        >
-          <ChevronRight size={18} />
-        </button>
-        {isMounted && slideOutButtonRef.current && (
-          <OnHoverMessage
-            message="Minimize"
-            targetRef={slideOutButtonRef}
-            position="bottom"
-            offset={8}
-          />
-        )}
+          size={18}
+          useShadowDom={useShadowDom}
+        />
         <button
           ref={expandButtonRef}
           className={getClassName('headerIconButton')}

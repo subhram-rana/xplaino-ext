@@ -7,7 +7,7 @@
   align-items: center !important;
   justify-content: space-between !important;
   padding: 8px 12px !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: transparent !important;
   border-bottom: 1.5px solid var(--color-border-default, #E2E8F0) !important;
   height: 48px !important;
   flex-shrink: 0 !important;

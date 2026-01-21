@@ -256,10 +256,12 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
       --color-text-primary-theme: ${textPrimary} !important;
       --color-text-secondary-theme: ${textSecondary} !important;
       --color-text-muted-theme: ${textMuted} !important;
+      --color-text-questions-theme: ${activeTheme === 'dark' ? COLORS.WHITE_OPACITY_75 : COLORS.GRAY_600} !important;
       --color-border-default-theme: ${borderDefault} !important;
       --color-bg-selected-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_SELECTED : COLORS.BACKGROUND_GREEN_TINT_1} !important;
-      --color-bg-header-footer-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_HEADER_FOOTER : COLORS.WHITE} !important;
+      --color-bg-header-footer-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_HEADER_FOOTER : COLORS.GRAY_50} !important;
       --color-hover-bg-action-theme: ${activeTheme === 'dark' ? 'transparent' : COLORS.PRIMARY_VERY_LIGHT} !important;
+      --color-bg-icon-container-theme: ${activeTheme === 'dark' ? 'transparent' : COLORS.WHITE} !important;
       
       /* ============================================
          FONT FAMILY
@@ -506,10 +508,12 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
       --color-text-primary-theme: ${THEMES[activeTheme]['text-primary']} !important;
       --color-text-secondary-theme: ${THEMES[activeTheme]['text-secondary']} !important;
       --color-text-muted-theme: ${THEMES[activeTheme]['text-muted']} !important;
+      --color-text-questions-theme: ${activeTheme === 'dark' ? COLORS.WHITE_OPACITY_75 : COLORS.GRAY_600} !important;
       --color-border-default-theme: ${THEMES[activeTheme]['border-default']} !important;
       --color-bg-selected-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_SELECTED : COLORS.BACKGROUND_GREEN_TINT_1} !important;
-      --color-bg-header-footer-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_HEADER_FOOTER : COLORS.WHITE} !important;
+      --color-bg-header-footer-theme: ${activeTheme === 'dark' ? COLORS.DARK_BG_HEADER_FOOTER : COLORS.GRAY_50} !important;
       --color-hover-bg-action-theme: ${activeTheme === 'dark' ? 'transparent' : COLORS.PRIMARY_VERY_LIGHT} !important;
+      --color-bg-icon-container-theme: ${activeTheme === 'dark' ? 'transparent' : COLORS.WHITE} !important;
       
       /* ============================================
          FONT FAMILY

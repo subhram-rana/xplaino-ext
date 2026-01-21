@@ -445,7 +445,7 @@
 .accountLoginText {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: var(--color-text-primary-theme) !important;
+  color: var(--color-white-opacity-90, rgba(255, 255, 255, 0.9)) !important;
   text-align: center !important;
   line-height: 1.5 !important;
 }

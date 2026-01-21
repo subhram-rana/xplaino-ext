@@ -95,7 +95,7 @@
   align-items: center !important;
   justify-content: space-between !important;
   padding: 8px 12px !important;
-  background: var(--color-bg-header-footer-theme, #FFFFFF) !important;
+  background: transparent !important;
   height: 48px !important;
   border-bottom: 1.5px solid var(--color-primary-opacity-10) !important;
   flex-shrink: 0 !important;
@@ -368,7 +368,7 @@
 
 .questionText {
   font-size: 13px !important;
-  color: var(--color-text-secondary-theme) !important;
+  color: var(--color-text-questions-theme) !important;
   line-height: 1.4 !important;
   transition: color 0.2s ease !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;

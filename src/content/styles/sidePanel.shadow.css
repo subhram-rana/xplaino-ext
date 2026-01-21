@@ -736,7 +736,7 @@
   margin: 0 2px !important;
   border: none !important;
   border-radius: 50% !important;
-  background: var(--color-primary) !important;
+  background: var(--color-gray-600, #718096) !important;
   color: var(--color-white) !important;
   font-size: 11px !important;
   font-weight: 600 !important;
@@ -746,7 +746,7 @@
 }
 
 .refButton:hover {
-  background: var(--color-primary-dark) !important;
+  background: var(--color-gray-800, #2D3748) !important;
   transform: scale(1.1) !important;
 }
 
@@ -815,7 +815,7 @@
 
 .questionText {
   font-size: 13px !important;
-  color: var(--color-text-secondary-theme) !important;
+  color: var(--color-text-questions-theme) !important;
   line-height: 1.4 !important;
   transition: color 0.2s ease !important;
 }
@@ -911,19 +911,21 @@
 
 .summariseButton {
   padding: 8px 16px !important;
-  border: none !important;
-  border-radius: 8px !important;
-  background: var(--color-primary) !important;
-  color: var(--color-white) !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
+  border-radius: 999px !important;
   font-size: 13px !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  min-width: 120px !important;
+  white-space: nowrap !important;
 }
 
 .summariseButton:hover:not(:disabled) {
-  background: var(--color-primary-dark) !important;
+  background: var(--color-primary-opacity-8) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary-opacity-20) !important;
 }
 
 .summariseButton:active:not(:disabled) {
@@ -931,7 +933,7 @@
 }
 
 .summariseButton:disabled {
-  background: var(--color-gray-400) !important;
+  opacity: 0.5 !important;
   cursor: not-allowed !important;
 }
 
@@ -1566,14 +1568,14 @@
 .accountName {
   font-size: 16px !important;
   font-weight: 700 !important;
-  color: #2D3748 !important;
+  color: var(--color-text-primary-theme) !important;
   line-height: 1.5 !important;
 }
 
 .accountEmail {
   font-size: 14px !important;
   font-weight: 400 !important;
-  color: #2D3748 !important;
+  color: var(--color-text-primary-theme) !important;
   line-height: 1.5 !important;
 }
 
@@ -1698,7 +1700,7 @@
 .accountLoginText {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #4A5568 !important;
+  color: var(--color-white-opacity-90, rgba(255, 255, 255, 0.9)) !important;
   text-align: center !important;
   line-height: 1.5 !important;
 }

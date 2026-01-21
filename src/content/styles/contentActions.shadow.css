@@ -241,35 +241,6 @@
   stroke: var(--color-primary) !important;
 }
 
-/* Tooltip */
-.contentActionTooltip {
-  position: absolute !important;
-  bottom: calc(100% + 8px) !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  background: var(--color-primary-very-light) !important;
-  color: var(--color-primary-light) !important;
-  padding: 4px 12px !important;
-  border-radius: 999px !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  white-space: nowrap !important;
-  box-shadow: none !important;
-  pointer-events: none !important;
-  animation: tooltipFadeIn 0.15s ease forwards !important;
-  z-index: 10 !important;
-}
-
-.contentActionTooltip::after {
-  content: '' !important;
-  position: absolute !important;
-  top: 100% !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  border: 5px solid transparent !important;
-  border-top-color: var(--color-primary-very-light) !important;
-}
 
 /* Animations */
 @keyframes buttonScaleIn {
@@ -315,17 +286,6 @@
   to {
     opacity: 1 !important;
     transform: translateX(0) scale(1) !important;
-  }
-}
-
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0 !important;
-    transform: translateX(-50%) translateY(4px) !important;
-  }
-  to {
-    opacity: 1 !important;
-    transform: translateX(-50%) translateY(0) !important;
   }
 }
 

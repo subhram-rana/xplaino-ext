@@ -172,7 +172,7 @@
 
 .questionText {
   font-size: 13px !important;
-  color: var(--color-text-secondary, #4A5568) !important;
+  color: var(--color-text-questions-theme, #718096) !important;
   line-height: 1.4 !important;
   transition: color 0.2s ease !important;
 }
@@ -232,15 +232,15 @@
 
 .simplifyButton {
   padding: 8px 16px !important;
-  border: none !important;
-  border-radius: 8px !important;
-  background: transparent !important;
-  color: var(--color-primary) !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-primary-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
+  border-radius: 999px !important;
   font-size: 13px !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  min-width: 120px !important;
+  white-space: nowrap !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -248,8 +248,9 @@
 }
 
 .simplifyButton:hover:not(:disabled) {
-  background: var(--color-primary) !important;
-  color: var(--color-white, #FFFFFF) !important;
+  background: var(--color-primary-opacity-8) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary-opacity-20) !important;
 }
 
 .simplifyButton:active:not(:disabled) {
@@ -257,10 +258,8 @@
 }
 
 .simplifyButton:disabled {
-  background: transparent !important;
-  color: var(--color-text-secondary, #718096) !important;
+  opacity: 0.5 !important;
   cursor: not-allowed !important;
-  opacity: 0.6 !important;
 }
 
 .simplifyButtonSpinner {
@@ -442,26 +441,23 @@
 }
 
 .translateButton {
-  padding: 12px 24px !important;
-  border: none !important;
-  border-radius: 8px !important;
-  background: var(--color-white, #FFFFFF) !important;
-  color: var(--color-primary) !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  box-shadow: none !important;
-  flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  background-color: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: var(--color-primary) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+  flex-shrink: 0 !important;
 }
 
 .translateButton:hover:not(:disabled) {
-  background: var(--color-primary-opacity-5) !important;
-  box-shadow: none !important;
+  background-color: var(--color-primary-opacity-10) !important;
 }
 
 .translateButton:active:not(:disabled) {
@@ -469,11 +465,8 @@
 }
 
 .translateButton:disabled {
-  background: var(--color-disabled, #CBD5E0) !important;
-  color: var(--color-text-secondary, #718096) !important;
+  opacity: 0.5 !important;
   cursor: not-allowed !important;
-  opacity: 0.6 !important;
-  box-shadow: none !important;
 }
 
 .translateButtonSpinner {

@@ -57,6 +57,19 @@ export const loginErrorAtom = atom<string | null>(null);
 export const showSubscriptionModalAtom = atom<boolean>(false);
 
 // ============================================
+// FEATURE REQUEST MODAL STATE
+// ============================================
+
+/** Feature request modal visibility */
+export const showFeatureRequestModalAtom = atom<boolean>(false);
+
+/** Feature request loading state */
+export const isFeatureRequestLoadingAtom = atom<boolean>(false);
+
+/** Feature request error message */
+export const featureRequestErrorAtom = atom<string | null>(null);
+
+// ============================================
 // USER AUTH STATE
 // ============================================
 
@@ -80,4 +93,11 @@ export const isUserLoggedInAtom = atom((get) => {
 
   return true;
 });
+
+// ============================================
+// THEME STATE
+// ============================================
+
+/** Current theme atom - 'light' or 'dark' */
+export const currentThemeAtom = atom<'light' | 'dark'>('light');
 

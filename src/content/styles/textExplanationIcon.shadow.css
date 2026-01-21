@@ -22,23 +22,23 @@
   pointer-events: auto !important;
 }
 
-/* Icon Button Container - White background with border radius */
+/* Icon Button Container - Theme-aware background with border radius */
 .iconButtonContainer {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-icon-container-theme, transparent) !important;
   border-radius: 5px !important;
   padding: 4px !important;
   pointer-events: auto !important;
 }
 
-/* Spinner Container - Circular white background */
+/* Spinner Container - Transparent background */
 .spinnerContainer {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: var(--color-white, #FFFFFF) !important;
+  background: transparent !important;
   border-radius: 50% !important;
   padding: 2px !important;
 }

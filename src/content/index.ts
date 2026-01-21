@@ -12,6 +12,7 @@ import { ContentActionsTrigger } from './components/ContentActions';
 import { DisableNotificationModal } from './components/DisableNotificationModal';
 import { LoginModal } from './components/LoginModal';
 import { SubscriptionModal } from './components/SubscriptionModal/SubscriptionModal';
+import { FeatureRequestModal } from './components/FeatureRequestModal';
 import { TextExplanationSidePanel } from './components/TextExplanationSidePanel';
 import { TextExplanationIconContainer } from './components/TextExplanationIcon';
 import { ImageExplanationIcon } from './components/ImageExplanationIcon/ImageExplanationIcon';
@@ -36,10 +37,12 @@ import {
 // Import Shadow DOM styles as inline strings
 import fabStyles from './styles/fab.shadow.css?inline';
 import sidePanelStyles from './styles/sidePanel.shadow.css?inline';
+import minimizeIconStyles from './styles/minimizeIcon.shadow.css?inline';
 import contentActionsStyles from './styles/contentActions.shadow.css?inline';
 import disableNotificationModalStyles from './styles/disableNotificationModal.shadow.css?inline';
 import loginModalStyles from './styles/loginModal.shadow.css?inline';
 import subscriptionModalStyles from './styles/subscriptionModal.shadow.css?inline';
+import featureRequestModalStyles from './styles/featureRequestModal.shadow.css?inline';
 import textExplanationSidePanelStyles from './styles/textExplanationSidePanel.shadow.css?inline';
 import textExplanationIconStyles from './styles/textExplanationIcon.shadow.css?inline';
 import imageExplanationIconStyles from './styles/imageExplanationIcon.shadow.css?inline';
@@ -89,7 +92,7 @@ import {
   messageQuestionsAtom,
   pageReadingStateAtom,
 } from '../store/summaryAtoms';
-import { showLoginModalAtom, showSubscriptionModalAtom, userAuthInfoAtom } from '../store/uiAtoms';
+import { showLoginModalAtom, showSubscriptionModalAtom, showFeatureRequestModalAtom, userAuthInfoAtom, currentThemeAtom } from '../store/uiAtoms';
 import {
   textExplanationsAtom,
   activeTextExplanationIdAtom,
@@ -127,6 +130,7 @@ const CONTENT_ACTIONS_HOST_ID = 'xplaino-content-actions-host';
 const DISABLE_MODAL_HOST_ID = 'xplaino-disable-modal-host';
 const LOGIN_MODAL_HOST_ID = 'xplaino-login-modal-host';
 const SUBSCRIPTION_MODAL_HOST_ID = 'xplaino-subscription-modal-host';
+const FEATURE_REQUEST_MODAL_HOST_ID = 'xplaino-feature-request-modal-host';
 const TEXT_EXPLANATION_PANEL_HOST_ID = 'xplaino-text-explanation-panel-host';
 const TEXT_EXPLANATION_ICON_HOST_ID = 'xplaino-text-explanation-icon-host';
 const IMAGE_EXPLANATION_PANEL_HOST_ID = 'xplaino-image-explanation-panel-host';
@@ -161,6 +165,7 @@ let contentActionsRoot: ReactDOM.Root | null = null;
 let disableModalRoot: ReactDOM.Root | null = null;
 let loginModalRoot: ReactDOM.Root | null = null;
 let subscriptionModalRoot: ReactDOM.Root | null = null;
+let featureRequestModalRoot: ReactDOM.Root | null = null;
 let textExplanationPanelRoot: ReactDOM.Root | null = null;
 let textExplanationIconRoot: ReactDOM.Root | null = null;
 let imageExplanationPanelRoot: ReactDOM.Root | null = null;
@@ -341,6 +346,16 @@ async function initializeAuthState(): Promise<void> {
   } catch (error) {
     console.error('[Content Script] Error initializing auth state:', error);
     store.set(userAuthInfoAtom, null);
+  }
+  
+  // Initialize theme atom
+  try {
+    const initialTheme = await getCurrentTheme();
+    store.set(currentThemeAtom, initialTheme);
+    console.log('[Content Script] Initial theme set:', initialTheme);
+  } catch (error) {
+    console.error('[Content Script] Error initializing theme:', error);
+    store.set(currentThemeAtom, 'light');
   }
 }
 
@@ -930,6 +945,7 @@ function updateFAB(): void {
           onClearTranslations: handleClearTranslations,
           onOptions: () => setSidePanelOpen(true, 'settings'),
           onSaveUrl: handleFabSaveUrlClick,
+          onFeatureRequest: () => store.set(showFeatureRequestModalAtom, true),
           isSummarising: isSummarising,
           hasSummary: hasSummary,
           canHideActions: canHideFABActions,
@@ -1074,6 +1090,7 @@ async function injectSidePanel(): Promise<void> {
   
   // Inject component styles
   injectStyles(shadow, sidePanelStyles);
+  injectStyles(shadow, minimizeIconStyles);
 
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
@@ -1138,27 +1155,29 @@ async function injectContentActions(): Promise<void> {
   // Append to document
   document.body.appendChild(host);
 
-  // Render React component
+  // Render React component with Jotai Provider for theme access
   contentActionsRoot = ReactDOM.createRoot(mountPoint);
   contentActionsRoot.render(
-    React.createElement(ContentActionsTrigger, {
-      useShadowDom: true,
-      onExplain: handleExplainClick,
-      onGrammar: (text: string) => console.log('[ContentActions] Grammar:', text),
-      onTranslate: (text: string) => {
-        // Route to appropriate handler based on word vs text selection
-        if (isWordSelection(text)) {
-          handleWordTranslateClick(text);
-        } else {
-          handleTextTranslateClick(text);
-        }
-      },
-      onBookmark: handleContentActionsBookmarkClick,
-      onSynonym: handleSynonymClick,
-      onOpposite: handleAntonymClick,
-      onShowModal: showDisableModal,
-      onShowToast: showToast,
-    })
+    React.createElement(Provider, { store },
+      React.createElement(ContentActionsTrigger, {
+        useShadowDom: true,
+        onExplain: handleExplainClick,
+        onGrammar: (text: string) => console.log('[ContentActions] Grammar:', text),
+        onTranslate: (text: string) => {
+          // Route to appropriate handler based on word vs text selection
+          if (isWordSelection(text)) {
+            handleWordTranslateClick(text);
+          } else {
+            handleTextTranslateClick(text);
+          }
+        },
+        onBookmark: handleContentActionsBookmarkClick,
+        onSynonym: handleSynonymClick,
+        onOpposite: handleAntonymClick,
+        onShowModal: showDisableModal,
+        onShowToast: showToast,
+      })
+    )
   );
 
   console.log('[Content Script] Content Actions injected successfully');
@@ -1483,6 +1502,7 @@ async function handleExplainClick(
       {
         onChunk: async (_chunk, accumulated) => {
           let isFirstChunk = false;
+          let rangeToUnderline: Range | null = null;
           
           updateExplanationInMap(explanationId, (state) => {
             const updatedState = { ...state, streamingText: accumulated };
@@ -1496,15 +1516,23 @@ async function handleExplainClick(
               // Clear the timeout since we received the first chunk
               clearTimeout(timeoutId);
               
-              // Add underline to selected text
+              // Store range for underline (will be added after updateExplanationInMap)
               if (updatedState.range) {
-                const underlineState = addTextUnderline(updatedState.range);
-                updatedState.underlineState = underlineState;
+                rangeToUnderline = updatedState.range;
               }
             }
             
             return updatedState;
           });
+          
+          // Add underline to selected text (after state update)
+          if (isFirstChunk && rangeToUnderline) {
+            const underlineState = await addTextUnderline(rangeToUnderline);
+            updateExplanationInMap(explanationId, (state) => ({
+              ...state,
+              underlineState,
+            }));
+          }
           
           // Update UI after state is committed to atom
           if (isFirstChunk) {
@@ -1890,7 +1918,7 @@ async function handleWordExplain(
               state.wordSpanElement.style.transition = 'none';
               
               // Apply styling with bottom border, bookmark icon, and close button
-              applyGreenWordSpanStyling(state.wordSpanElement, wordId, isSaved);
+              await applyGreenWordSpanStyling(state.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation with inline styles
               state.wordSpanElement.style.animation = 'none';
@@ -1921,11 +1949,11 @@ async function handleWordExplain(
               });
 
               // Add double-click handler to remove word explanation and show icon
-              state.wordSpanElement.addEventListener('dblclick', (e) => {
+              state.wordSpanElement.addEventListener('dblclick', async (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 if (state.wordSpanElement) {
-                  showXplainoIconForWordRemoval(state.wordSpanElement, wordId);
+                  await showXplainoIconForWordRemoval(state.wordSpanElement, wordId);
                 }
                 removeWordExplanation(wordId);
               });
@@ -2196,7 +2224,7 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
               localState.wordSpanElement.style.transition = 'none';
               
               // Apply styling with bottom border, bookmark icon, and close button
-              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
+              await applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
               localState.wordSpanElement.style.animation = 'none';
@@ -2226,11 +2254,11 @@ async function handleSynonymClick(selectedText: string): Promise<void> {
               });
 
               // Add double-click handler to remove word explanation and show icon
-              localState.wordSpanElement.addEventListener('dblclick', (e) => {
+              localState.wordSpanElement.addEventListener('dblclick', async (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 if (localState.wordSpanElement) {
-                  showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                  await showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
                 }
                 removeWordExplanation(wordId);
               });
@@ -2432,7 +2460,7 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
               localState.wordSpanElement.style.transition = 'none';
               
               // Apply styling with bottom border, bookmark icon, and close button
-              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
+              await applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
               localState.wordSpanElement.style.animation = 'none';
@@ -2462,11 +2490,11 @@ async function handleAntonymClick(selectedText: string): Promise<void> {
               });
 
               // Add double-click handler to remove word explanation and show icon
-              localState.wordSpanElement.addEventListener('dblclick', (e) => {
+              localState.wordSpanElement.addEventListener('dblclick', async (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 if (localState.wordSpanElement) {
-                  showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                  await showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
                 }
                 removeWordExplanation(wordId);
               });
@@ -2686,7 +2714,7 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
               localState.wordSpanElement.style.transition = 'none';
               
               // Apply styling with bottom border, bookmark icon, and close button
-              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
+              await applyGreenWordSpanStyling(localState.wordSpanElement, wordId, isSaved);
               
               // Add scale bounce animation
               localState.wordSpanElement.style.animation = 'none';
@@ -2716,11 +2744,11 @@ async function handleWordTranslateClick(selectedText: string): Promise<void> {
               });
 
               // Add double-click handler to remove word explanation and show icon
-              localState.wordSpanElement.addEventListener('dblclick', (e) => {
+              localState.wordSpanElement.addEventListener('dblclick', async (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 if (localState.wordSpanElement) {
-                  showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
+                  await showXplainoIconForWordRemoval(localState.wordSpanElement, wordId);
                 }
                 removeWordExplanation(wordId);
               });
@@ -2877,6 +2905,9 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
     // Set translating flag
     isTranslating = true;
     
+    // Track first progress event (similar to isFirstChunk in text explanation)
+    let isFirstProgress = true;
+    
     // Call translate API
     await TranslateService.translate(
       {
@@ -2884,56 +2915,117 @@ async function handleTextTranslateClick(selectedText: string): Promise<void> {
         texts: [{ id: '1', text: selectedText }],
       },
       {
-        onSuccess: (translatedTexts) => {
-          console.log('[Content Script] Text translation received:', translatedTexts);
+        onProgress: (_index, translatedText) => {
+          console.log('[Content Script] Translation progress event received:', translatedText);
           
-          const currentState = store.get(textExplanationsAtom).get(explanationId);
-          if (!currentState) return;
+          if (isFirstProgress) {
+            // First progress event - open panel immediately
+            isFirstProgress = false;
+            
+            let rangeToUnderline: Range | null = null;
+            
+            // Update explanation state
+            updateExplanationInMap(explanationId, (state) => {
+              const updatedState = {
+                ...state,
+                isSpinning: false,
+                firstChunkReceived: true,
+                translations: [{ language: nativeLanguage, translated_content: translatedText }],
+              };
+              
+              // Store range for underline (will be added after panel opens)
+              if (updatedState.range) {
+                rangeToUnderline = updatedState.range;
+              }
+              
+              return updatedState;
+            });
+            
+            // Stop translating flag
+            isTranslating = false;
+            
+            // Open side panel IMMEDIATELY with Translation tab (before async underline)
+            store.set(textExplanationPanelOpenAtom, true);
+            
+            // Update icon and panel synchronously
+            updateTextExplanationIconContainer();
+            updateTextExplanationPanel();
+            
+            // Add green underline to selected text AFTER panel is open (async, non-blocking)
+            if (rangeToUnderline) {
+              addTextUnderline(rangeToUnderline, 'green').then((underlineState) => {
+                if (underlineState) {
+                  updateExplanationInMap(explanationId, (state) => ({
+                    ...state,
+                    underlineState,
+                  }));
+                }
+              });
+            }
+          } else {
+            // Subsequent progress events - update existing translation
+            updateExplanationInMap(explanationId, (state) => ({
+              ...state,
+              translations: [{ language: nativeLanguage, translated_content: translatedText }],
+            }));
+            
+            // Update panel with new content
+            updateTextExplanationPanel();
+          }
+        },
+        onSuccess: async (translatedTexts) => {
+          console.log('[Content Script] Text translation complete:', translatedTexts);
           
-          // Extract translated text
-          const translatedText = translatedTexts[0] || '';
-          
-          // Update explanation state with translation
-          const updated: TextExplanationState = {
-            ...currentState,
-            isSpinning: false,
-            firstChunkReceived: true,
-            translations: [{ language: nativeLanguage, translated_content: translatedText }],
-            abortController: null, // Clear abortController after translation completes
-          };
-          
-          const map = new Map(store.get(textExplanationsAtom));
-          map.set(explanationId, updated);
-          store.set(textExplanationsAtom, map);
-          
-          // Stop translating flag
+          // Final cleanup - ensure state is consistent
+          // Panel already opened in onProgress, just ensure translating flag is off
           isTranslating = false;
           
-          // Add green underline to selected text when panel starts opening
-          const currentStateForUnderline = store.get(textExplanationsAtom).get(explanationId);
-          if (currentStateForUnderline && currentStateForUnderline.range) {
-            const underlineState = addTextUnderline(currentStateForUnderline.range, 'green');
-            if (underlineState) {
-              // Update explanation state with underline
-              const mapWithUnderline = new Map(store.get(textExplanationsAtom));
-              const stateWithUnderline = mapWithUnderline.get(explanationId);
-              if (stateWithUnderline) {
-                mapWithUnderline.set(explanationId, {
-                  ...stateWithUnderline,
-                  underlineState,
-                  abortController: null, // Ensure abortController remains cleared
-                });
-                store.set(textExplanationsAtom, mapWithUnderline);
+          // If onProgress was never called (shouldn't happen, but handle it)
+          if (isFirstProgress) {
+            const currentState = store.get(textExplanationsAtom).get(explanationId);
+            if (!currentState) return;
+            
+            // Extract translated text
+            const translatedText = translatedTexts[0] || '';
+            
+            // Update explanation state with translation
+            const updated: TextExplanationState = {
+              ...currentState,
+              isSpinning: false,
+              firstChunkReceived: true,
+              translations: [{ language: nativeLanguage, translated_content: translatedText }],
+              abortController: null,
+            };
+            
+            const map = new Map(store.get(textExplanationsAtom));
+            map.set(explanationId, updated);
+            store.set(textExplanationsAtom, map);
+            
+            // Add green underline
+            const currentStateForUnderline = store.get(textExplanationsAtom).get(explanationId);
+            if (currentStateForUnderline && currentStateForUnderline.range) {
+              const underlineState = await addTextUnderline(currentStateForUnderline.range, 'green');
+              if (underlineState) {
+                const mapWithUnderline = new Map(store.get(textExplanationsAtom));
+                const stateWithUnderline = mapWithUnderline.get(explanationId);
+                if (stateWithUnderline) {
+                  mapWithUnderline.set(explanationId, {
+                    ...stateWithUnderline,
+                    underlineState,
+                    abortController: null,
+                  });
+                  store.set(textExplanationsAtom, mapWithUnderline);
+                }
               }
             }
+            
+            // Open side panel
+            store.set(textExplanationPanelOpenAtom, true);
+            
+            // Update icon and panel
+            updateTextExplanationIconContainer();
+            updateTextExplanationPanel();
           }
-          
-          // Open side panel with Translation tab
-          store.set(textExplanationPanelOpenAtom, true);
-          
-          // Update icon and panel
-          updateTextExplanationIconContainer();
-          updateTextExplanationPanel();
         },
         onError: (code: string, message: string) => {
           console.error('[Content Script] Text translation error:', code, message);
@@ -3186,7 +3278,7 @@ async function createSpinner(wordSpan: HTMLElement): Promise<HTMLElement> {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #FFFFFF;
+    background: transparent;
     border-radius: 50%;
     padding: 3px;
   `;
@@ -3270,9 +3362,13 @@ async function createSpinner(wordSpan: HTMLElement): Promise<HTMLElement> {
 /**
  * Show xplaino icon when word is removed via double-click
  */
-function showXplainoIconForWordRemoval(wordSpanElement: HTMLElement, _wordId: string): void {
+async function showXplainoIconForWordRemoval(wordSpanElement: HTMLElement, _wordId: string): Promise<void> {
   const rect = wordSpanElement.getBoundingClientRect();
-  const iconUrl = chrome.runtime.getURL('src/assets/icons/xplaino-purple-icon.ico');
+  const theme = await getCurrentTheme();
+  const iconName = theme === 'dark' 
+    ? 'xplaino-turquoise-icon.ico' 
+    : 'xplaino-purple-icon.ico';
+  const iconUrl = chrome.runtime.getURL(`src/assets/icons/${iconName}`);
   
   // Create icon container
   const iconContainer = document.createElement('div');
@@ -3332,7 +3428,7 @@ function showXplainoIconForWordRemoval(wordSpanElement: HTMLElement, _wordId: st
 /**
  * Apply green styling and decorations to word span
  */
-function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, _wordId: string, _isSaved: boolean): void {
+async function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, _wordId: string, _isSaved: boolean): Promise<void> {
   // Ensure position is relative for absolute positioning of icons
   if (wordSpanElement.style.position !== 'relative' && wordSpanElement.style.position !== 'absolute') {
     wordSpanElement.style.position = 'relative';
@@ -3341,6 +3437,10 @@ function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, _wordId: string
   // No border on all sides, top border-radius only
   wordSpanElement.style.border = 'none';
   wordSpanElement.style.borderRadius = '10px 10px 0 0';
+  
+  // Get theme-aware primary color
+  const theme = await getCurrentTheme();
+  const primaryColor = theme === 'dark' ? COLORS.DARK_PRIMARY : COLORS.PRIMARY;
   
   // Add thick bottom border with pill-shaped ends using pseudo-element
   // We'll use a separate element for the bottom border since pseudo-elements are tricky in inline styles
@@ -3360,7 +3460,7 @@ function applyGreenWordSpanStyling(wordSpanElement: HTMLElement, _wordId: string
     height: 2px !important;
     min-height: 2px !important;
     max-height: 2px !important;
-    background: ${COLORS.PRIMARY};
+    background: ${primaryColor};
     border-radius: 1px;
     pointer-events: none;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -5729,6 +5829,8 @@ async function injectTextExplanationPanel(): Promise<void> {
   // Then inject color variables to override/ensure they're set - get theme-aware variables
   const colorVariables = await getAllColorVariables();
   injectStyles(shadow, colorVariables);
+  // Inject MinimizeIcon styles
+  injectStyles(shadow, minimizeIconStyles);
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
 
@@ -7168,6 +7270,8 @@ async function injectImageExplanationPanel(): Promise<void> {
   // Then inject color variables to override/ensure they're set - get theme-aware variables
   const colorVariables = await getAllColorVariables();
   injectStyles(shadow, colorVariables);
+  // Inject MinimizeIcon styles
+  injectStyles(shadow, minimizeIconStyles);
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
   
@@ -7293,6 +7397,7 @@ async function injectWordExplanationPopover(): Promise<void> {
 
   // Then inject component styles
   injectStyles(hostResult.shadow, wordExplanationPopoverStyles);
+  injectStyles(hostResult.shadow, minimizeIconStyles);
   injectStyles(hostResult.shadow, spinnerStyles);
 
   // Add spin keyframe animation (needed for spinner)
@@ -7346,7 +7451,7 @@ async function handleWordBookmarkClick(wordId: string): Promise<void> {
     SavedWordsService.removeSavedWord(
       atomState.savedWordId!,
       {
-        onSuccess: () => {
+        onSuccess: async () => {
           console.log('[Content Script] Word removed from saved list successfully');
           const updated = new Map(store.get(wordExplanationsAtom));
           const currentState = updated.get(wordId);
@@ -7358,7 +7463,7 @@ async function handleWordBookmarkClick(wordId: string): Promise<void> {
             // Update bookmark icon on word span
             const localState = wordExplanationsMap.get(wordId);
             if (localState?.wordSpanElement) {
-              applyGreenWordSpanStyling(localState.wordSpanElement, wordId, false);
+              await applyGreenWordSpanStyling(localState.wordSpanElement, wordId, false);
             }
           }
           showToast('Word removed from saved list', 'success');
@@ -7739,6 +7844,8 @@ async function injectWordAskAISidePanel(): Promise<void> {
 
   // Then inject component styles
   injectStyles(hostResult.shadow, wordAskAISidePanelStyles);
+  // Inject MinimizeIcon styles
+  injectStyles(hostResult.shadow, minimizeIconStyles);
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(hostResult.shadow, baseSidePanelStyles);
 
@@ -8915,7 +9022,7 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
         // Add underline only after save succeeds
         let underlineState: UnderlineState | null = null;
         if (savedRange) {
-          underlineState = addTextUnderline(savedRange, 'primary');
+          underlineState = await addTextUnderline(savedRange, 'primary');
           console.log('[Content Script] Added underline after successful bookmark save');
         }
         
@@ -9098,7 +9205,7 @@ async function handleFolderModalSave(folderId: string | null): Promise<void> {
           
           // Add underline and icons if we have a range (fallback for saved paragraphs)
           if (folderModalRange) {
-            addSavedParagraphIcons(response.id, folderModalText, folderModalRange);
+            await addSavedParagraphIcons(response.id, folderModalText, folderModalRange);
             folderModalRange = null; // Clear the range after using it
           }
         }
@@ -9450,7 +9557,7 @@ async function handleFolderModalSaveForWord(folderId: string | null): Promise<vo
             // Update bookmark icon on word span
             const localState = wordExplanationsMap.get(folderModalWordId);
             if (localState?.wordSpanElement) {
-              applyGreenWordSpanStyling(localState.wordSpanElement, folderModalWordId, true);
+              await applyGreenWordSpanStyling(localState.wordSpanElement, folderModalWordId, true);
             }
           }
         }
@@ -9943,12 +10050,13 @@ function removeLoginModal(): void {
 }
 
 /**
- * Apply blur effect to background components when login or subscription modal is visible
+ * Apply blur effect to background components when login, subscription, or feature request modal is visible
  */
 function updateBackgroundBlur(): void {
   const isLoginModalVisible = store.get(showLoginModalAtom);
   const isSubscriptionModalVisible = store.get(showSubscriptionModalAtom);
-  const isAnyModalVisible = isLoginModalVisible || isSubscriptionModalVisible;
+  const isFeatureRequestModalVisible = store.get(showFeatureRequestModalAtom);
+  const isAnyModalVisible = isLoginModalVisible || isSubscriptionModalVisible || isFeatureRequestModalVisible;
 
   const hostIds = [
     WORD_EXPLANATION_POPOVER_HOST_ID,
@@ -10020,6 +10128,58 @@ function removeSubscriptionModal(): void {
   removeShadowHost(SUBSCRIPTION_MODAL_HOST_ID, subscriptionModalRoot);
   subscriptionModalRoot = null;
   console.log('[Content Script] Subscription Modal removed');
+}
+
+// =============================================================================
+// FEATURE REQUEST MODAL INJECTION
+// =============================================================================
+
+/**
+ * Inject Feature Request Modal into the page with Shadow DOM
+ */
+async function injectFeatureRequestModal(): Promise<void> {
+  // Check if already injected
+  if (shadowHostExists(FEATURE_REQUEST_MODAL_HOST_ID)) {
+    console.log('[Content Script] Feature Request Modal already injected');
+    return;
+  }
+
+  // Create Shadow DOM host
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: FEATURE_REQUEST_MODAL_HOST_ID,
+    zIndex: 2147483647, // Highest z-index for modal
+  });
+
+  // Inject color CSS variables first - get theme-aware variables
+  const colorVariables = await getAllColorVariables();
+  injectStyles(shadow, colorVariables, true);
+  
+  // Inject component styles
+  injectStyles(shadow, featureRequestModalStyles);
+
+  // Append to document
+  document.body.appendChild(host);
+
+  // Render React component
+  featureRequestModalRoot = ReactDOM.createRoot(mountPoint);
+  featureRequestModalRoot.render(
+    React.createElement(Provider, { store },
+      React.createElement(FeatureRequestModal, {
+        useShadowDom: true,
+      })
+    )
+  );
+
+  console.log('[Content Script] Feature Request Modal injected successfully');
+}
+
+/**
+ * Remove Feature Request Modal from the page
+ */
+function removeFeatureRequestModal(): void {
+  removeShadowHost(FEATURE_REQUEST_MODAL_HOST_ID, featureRequestModalRoot);
+  featureRequestModalRoot = null;
+  console.log('[Content Script] Feature Request Modal removed');
 }
 
 // =============================================================================
@@ -10392,6 +10552,7 @@ async function initContentScript(): Promise<void> {
     removeContentActions();
     removeLoginModal();
     removeSubscriptionModal();
+    removeFeatureRequestModal();
     removeTextExplanationPanel();
     removeTextExplanationIconContainer();
     removeImageExplanationPanel();
@@ -10418,6 +10579,7 @@ async function initContentScript(): Promise<void> {
       injectContentActions(),
       injectLoginModal(),
       injectSubscriptionModal(),
+      injectFeatureRequestModal(),
       injectToast(),
       injectImageExplanationIconContainer(),
       injectImageExplanationPanel(),
@@ -10454,6 +10616,7 @@ async function initContentScript(): Promise<void> {
     removeContentActions();
     removeLoginModal();
     removeSubscriptionModal();
+    removeFeatureRequestModal();
     removeTextExplanationPanel();
     removeTextExplanationIconContainer();
     removeImageExplanationPanel();
@@ -10474,7 +10637,7 @@ setupGlobalAuthListener();
 /**
  * Add saved paragraph icons and underline after successful save
  */
-function addSavedParagraphIcons(paragraphId: string, selectedText: string, range: Range): void {
+async function addSavedParagraphIcons(paragraphId: string, selectedText: string, range: Range): Promise<void> {
   console.log('[Content Script] Adding saved paragraph icons for paragraph:', paragraphId);
   
   // Calculate icon position
@@ -10504,7 +10667,7 @@ function addSavedParagraphIcons(paragraphId: string, selectedText: string, range
   };
   
   // Add dashed underline for bookmarked text
-  const underlineState = addTextUnderline(range, 'primary');
+  const underlineState = await addTextUnderline(range, 'primary');
   
   // Create saved paragraph state
   const savedParagraphId = `saved-paragraph-${paragraphId}`;
@@ -10748,6 +10911,10 @@ store.sub(showSubscriptionModalAtom, () => {
   updateBackgroundBlur();
 });
 
+store.sub(showFeatureRequestModalAtom, () => {
+  updateBackgroundBlur();
+});
+
 // Debounce timer for theme refresh to prevent duplicate calls
 let themeRefreshTimer: number | null = null;
 // Track if a theme refresh is currently in progress
@@ -10841,6 +11008,7 @@ async function refreshThemeInAllShadowRoots(): Promise<void> {
           FOLDER_LIST_MODAL_HOST_ID,
           LOGIN_MODAL_HOST_ID,
           SUBSCRIPTION_MODAL_HOST_ID,
+          FEATURE_REQUEST_MODAL_HOST_ID,
           WELCOME_MODAL_HOST_ID,
           YOUTUBE_ASK_AI_BUTTON_HOST_ID,
           SAVED_PARAGRAPH_ICON_HOST_ID,
@@ -10980,6 +11148,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     const themeChanged = themeKeys.some((key) => changes[key]);
     if (themeChanged) {
       console.log('[Content Script] Theme storage changed detected:', Object.keys(changes));
+      
+      // Update theme atom
+      getCurrentTheme().then((newTheme) => {
+        store.set(currentThemeAtom, newTheme);
+        console.log('[Content Script] Theme atom updated to:', newTheme);
+      });
+      
       refreshThemeInAllShadowRoots();
     }
   }

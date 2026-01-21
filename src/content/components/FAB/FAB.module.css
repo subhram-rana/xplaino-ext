@@ -64,7 +64,7 @@
   height: 24px !important;
   border-radius: 12px 0 0 12px !important;
   background: var(--color-bg-primary-theme, #FFFFFF) !important;
-  border: 1.5px solid var(--color-primary-opacity-25) !important;
+  border: 1.5px solid var(--color-primary) !important;
   border-right: none !important;
   cursor: pointer !important;
   display: flex !important;
@@ -113,6 +113,7 @@
   gap: var(--action-gap) !important;
   background: var(--color-bg-primary-theme) !important;
   border-radius: 999px !important;
+  border: 1.5px solid var(--color-primary) !important;
   padding: 4px !important;
   opacity: 0 !important;
   visibility: hidden !important;
@@ -245,52 +246,56 @@
 /* Initial state for buttons - above center animate upward, below center animate downward */
 /* Button 1 (Summarise) - furthest from center top */
 .actionsContainer > .actionButton:nth-child(1) {
-  transform: translateY(15px) scale(0.6) !important;
+  transform: translateY(21px) scale(0.6) !important;
   opacity: 0 !important;
 }
 
 /* Button 2 (Translate wrapper) - second from center top */
 .actionsContainer > div:nth-child(2) .actionButton {
-  transform: translateY(12px) scale(0.6) !important;
+  transform: translateY(18px) scale(0.6) !important;
   opacity: 0 !important;
 }
 
-/* Button 3 (Bookmark) - center top */
+/* Button 3 (Bookmark) - third from center top */
 .actionsContainer > .actionButton:nth-child(3) {
-  transform: translateY(8px) scale(0.6) !important;
+  transform: translateY(15px) scale(0.6) !important;
   opacity: 0 !important;
 }
 
-/* Button 4 (Settings) - center bottom, displaced upward toward center */
+/* Button 4 (Settings) - fourth from center top */
 .actionsContainer > .actionButton:nth-child(4) {
-  transform: translateY(-12px) scale(0.6) !important;
+  transform: translateY(10px) scale(0.6) !important;
   opacity: 0 !important;
 }
 
-/* Button 5 (Dashboard) - second from center bottom, displaced upward toward center */
+/* Button 5 (Dashboard) - center bottom, displaced upward toward center */
 .actionsContainer > .actionButton:nth-child(5) {
+  transform: translateY(-10px) scale(0.6) !important;
+  opacity: 0 !important;
+}
+
+/* Button 6 (Feature Request) - second from center bottom, displaced upward toward center */
+.actionsContainer > .actionButton:nth-child(6) {
+  transform: translateY(-15px) scale(0.6) !important;
+  opacity: 0 !important;
+}
+
+/* Button 7 (Report Issue) - third from center bottom, displaced upward toward center */
+.actionsContainer > .actionButton:nth-child(7) {
   transform: translateY(-18px) scale(0.6) !important;
   opacity: 0 !important;
 }
 
-/* Button 6 (Disable wrapper) - furthest from center bottom, displaced upward toward center */
-.actionsContainer > div:nth-child(6) .actionButton {
+/* Button 8 (Disable wrapper) - furthest from center bottom, displaced upward toward center */
+.actionsContainer > div:nth-child(8) .actionButton {
   transform: translateY(-24px) scale(0.6) !important;
   opacity: 0 !important;
 }
 
 /* Staggered CENTER-OUTWARD animation for action buttons */
-/* Center buttons (3 and 4) appear first, then progressively outward */
+/* Center buttons (4 and 5) appear first, then progressively outward */
 
-/* Button 3 (Bookmark) - center top, appears first */
-.actionsContainer.visible > .actionButton:nth-child(3) {
-  transform: translateY(0) scale(1) !important;
-  opacity: 1 !important;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
-  transition-delay: 0s !important;
-}
-
-/* Button 4 (Settings) - center bottom, appears first */
+/* Button 4 (Settings) - center top, appears first */
 .actionsContainer.visible > .actionButton:nth-child(4) {
   transform: translateY(0) scale(1) !important;
   opacity: 1 !important;
@@ -298,49 +303,73 @@
   transition-delay: 0s !important;
 }
 
-/* Button 2 (Translate wrapper) - second from center top */
-.actionsContainer.visible > div:nth-child(2) .actionButton {
-  transform: translateY(0) scale(1) !important;
-  opacity: 1 !important;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
-  transition-delay: 0.05s !important;
-}
-
-/* Button 5 (Dashboard) - second from center bottom */
+/* Button 5 (Dashboard) - center bottom, appears first */
 .actionsContainer.visible > .actionButton:nth-child(5) {
   transform: translateY(0) scale(1) !important;
   opacity: 1 !important;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
-  transition-delay: 0.05s !important;
+  transition-delay: 0s !important;
 }
 
-/* Button 1 (Summarise) - furthest from center top, appears last */
+/* Button 3 (Bookmark) - second from center top */
+.actionsContainer.visible > .actionButton:nth-child(3) {
+  transform: translateY(0) scale(1) !important;
+  opacity: 1 !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
+  transition-delay: 0.03s !important;
+}
+
+/* Button 6 (Feature Request) - second from center bottom */
+.actionsContainer.visible > .actionButton:nth-child(6) {
+  transform: translateY(0) scale(1) !important;
+  opacity: 1 !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
+  transition-delay: 0.03s !important;
+}
+
+/* Button 2 (Translate wrapper) - third from center top */
+.actionsContainer.visible > div:nth-child(2) .actionButton {
+  transform: translateY(0) scale(1) !important;
+  opacity: 1 !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
+  transition-delay: 0.06s !important;
+}
+
+/* Button 7 (Report Issue) - third from center bottom */
+.actionsContainer.visible > .actionButton:nth-child(7) {
+  transform: translateY(0) scale(1) !important;
+  opacity: 1 !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
+  transition-delay: 0.06s !important;
+}
+
+/* Button 1 (Summarise) - furthest from center top, appears second to last */
 .actionsContainer.visible > .actionButton:nth-child(1) {
   transform: translateY(0) scale(1) !important;
   opacity: 1 !important;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
-  transition-delay: 0.1s !important;
+  transition-delay: 0.09s !important;
 }
 
-/* Button 6 (Disable wrapper) - furthest from center bottom, appears last */
-.actionsContainer.visible > div:nth-child(6) .actionButton {
+/* Button 8 (Disable wrapper) - furthest from center bottom, appears last */
+.actionsContainer.visible > div:nth-child(8) .actionButton {
   transform: translateY(0) scale(1) !important;
   opacity: 1 !important;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease !important;
-  transition-delay: 0.1s !important;
+  transition-delay: 0.09s !important;
 }
 
 /* Reverse animation when hiding - OUTER buttons collapse FIRST toward center */
 /* Button 1 (Summarise) - furthest from center top, collapses first */
 .actionsContainer:not(.visible) > .actionButton:nth-child(1) {
-  transform: translateY(15px) scale(0.6) !important;
+  transform: translateY(21px) scale(0.6) !important;
   opacity: 0 !important;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease !important;
   transition-delay: 0s !important;
 }
 
-/* Button 6 (Disable wrapper) - furthest from center bottom, collapses first */
-.actionsContainer:not(.visible) > div:nth-child(6) .actionButton {
+/* Button 8 (Disable wrapper) - furthest from center bottom, collapses first */
+.actionsContainer:not(.visible) > div:nth-child(8) .actionButton {
   transform: translateY(-24px) scale(0.6) !important;
   opacity: 0 !important;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease !important;
@@ -349,34 +378,50 @@
 
 /* Button 2 (Translate wrapper) - second from center top */
 .actionsContainer:not(.visible) > div:nth-child(2) .actionButton {
-  transform: translateY(12px) scale(0.6) !important;
+  transform: translateY(18px) scale(0.6) !important;
   opacity: 0 !important;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease !important;
-  transition-delay: 0.03s !important;
+  transition-delay: 0.02s !important;
 }
 
-/* Button 5 (Dashboard) - second from center bottom */
-.actionsContainer:not(.visible) > .actionButton:nth-child(5) {
+/* Button 7 (Report Issue) - second from center bottom */
+.actionsContainer:not(.visible) > .actionButton:nth-child(7) {
   transform: translateY(-18px) scale(0.6) !important;
   opacity: 0 !important;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease !important;
+  transition-delay: 0.02s !important;
+}
+
+/* Button 3 (Bookmark) - third from center top */
+.actionsContainer:not(.visible) > .actionButton:nth-child(3) {
+  transform: translateY(15px) scale(0.6) !important;
+  opacity: 0 !important;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease !important;
   transition-delay: 0.03s !important;
 }
 
-/* Button 3 (Bookmark) - center top, collapses last */
-.actionsContainer:not(.visible) > .actionButton:nth-child(3) {
-  transform: translateY(8px) scale(0.6) !important;
+/* Button 6 (Feature Request) - third from center bottom */
+.actionsContainer:not(.visible) > .actionButton:nth-child(6) {
+  transform: translateY(-15px) scale(0.6) !important;
   opacity: 0 !important;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease !important;
-  transition-delay: 0.06s !important;
+  transition-delay: 0.03s !important;
 }
 
-/* Button 4 (Settings) - center bottom, collapses last */
-.actionsContainer:not(.visible) > .actionButton:nth-child(4) {
-  transform: translateY(-12px) scale(0.6) !important;
+/* Button 5 (Dashboard) - center bottom, collapses last */
+.actionsContainer:not(.visible) > .actionButton:nth-child(5) {
+  transform: translateY(-10px) scale(0.6) !important;
   opacity: 0 !important;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease !important;
-  transition-delay: 0.06s !important;
+  transition-delay: 0.05s !important;
+}
+
+/* Button 4 (Settings) - center top, collapses last */
+.actionsContainer:not(.visible) > .actionButton:nth-child(4) {
+  transform: translateY(10px) scale(0.6) !important;
+  opacity: 0 !important;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease !important;
+  transition-delay: 0.05s !important;
 }
 
 /* Hover state - scale up while preserving position */

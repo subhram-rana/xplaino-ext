@@ -161,6 +161,7 @@ export const COLORS = {
   WHITE_OPACITY_50: 'rgba(255, 255, 255, 0.5)',
   WHITE_OPACITY_60: 'rgba(255, 255, 255, 0.6)',
   WHITE_OPACITY_70: 'rgba(255, 255, 255, 0.7)',
+  WHITE_OPACITY_75: 'rgba(255, 255, 255, 0.75)',
   WHITE_OPACITY_80: 'rgba(255, 255, 255, 0.8)',
   WHITE_OPACITY_85: 'rgba(255, 255, 255, 0.85)',
   WHITE_OPACITY_90: 'rgba(255, 255, 255, 0.9)',
