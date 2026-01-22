@@ -8447,7 +8447,10 @@ function updateToast(): void {
         {
           className: toastClosing ? 'toast-closing' : '',
           style: {
-            background: 'white',
+            // Theme-aware background: detect system dark mode preference
+            background: window.matchMedia?.('(prefers-color-scheme: dark)')?.matches 
+              ? COLORS.DARK_BG_PRIMARY 
+              : 'white',
             border: toastType === 'error' ? `2px solid ${COLORS.ERROR}` : `2px solid ${COLORS.SUCCESS}`,
             color: toastType === 'error' ? COLORS.ERROR : COLORS.SUCCESS,
             padding: '0.75rem 1.5rem',

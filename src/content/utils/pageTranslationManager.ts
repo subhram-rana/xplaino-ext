@@ -367,14 +367,19 @@ export class PageTranslationManager {
     const translationDiv = document.createElement('div');
     translationDiv.className = 'xplaino-translation-appended';
     translationDiv.textContent = element.translatedText;
+    
+    // Theme-aware color: detect system dark mode preference
+    const isDarkMode = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
+    const primaryColor = isDarkMode ? COLORS.DARK_PRIMARY : COLORS.PRIMARY;
+    
     translationDiv.style.cssText = `
-      color: ${COLORS.PRIMARY};
+      color: ${primaryColor};
       font-style: ${fontStyle};
       font-weight: ${fontWeight};
       font-size: ${fontSize};
       margin-top: 4px;
       padding-left: 8px;
-      border-left: 2px solid ${colorWithOpacity(COLORS.PRIMARY, 0.3)};
+      border-left: 2px solid ${colorWithOpacity(primaryColor, 0.3)};
       line-height: inherit;
     `;
 

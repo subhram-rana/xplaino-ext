@@ -36,6 +36,12 @@
   box-shadow: none !important;
 }
 
+/* When vertically expanded and open - teal border, no shadow */
+.baseSidePanel.verticallyExpanded.open {
+  box-shadow: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(100%);

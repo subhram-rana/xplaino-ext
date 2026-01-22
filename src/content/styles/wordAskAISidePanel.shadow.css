@@ -65,6 +65,12 @@
   border-radius: 0 !important;
 }
 
+/* When vertically expanded and open - teal border, no shadow */
+.wordAskAISidePanel.verticallyExpanded.open {
+  box-shadow: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
+}
+
 .resizeHandle {
   position: absolute !important;
   left: 0 !important;

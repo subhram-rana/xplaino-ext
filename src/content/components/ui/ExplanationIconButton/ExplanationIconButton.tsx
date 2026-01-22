@@ -124,20 +124,22 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
 
   // Subscribe to theme changes
   const currentTheme = useAtomValue(currentThemeAtom);
+  
+  // Use app theme setting - prioritize app theme over system preference
+  // In light theme: use teal colors (COLORS.PRIMARY)
+  // In dark theme: use turquoise colors (COLORS.DARK_PRIMARY)
+  const isDarkMode = currentTheme === 'dark';
 
   // Compute theme-aware values directly (no useState to avoid timing issues)
   const brandIconUrl = (() => {
-    const iconName = currentTheme === 'dark' 
+    const iconName = isDarkMode 
       ? 'xplaino-turquoise-icon.ico' 
       : 'xplaino-purple-icon.ico';
     return chrome.runtime.getURL(`src/assets/icons/${iconName}`);
   })();
   
-  // Container background: transparent in dark theme, white in light theme
-  const containerBgColor = currentTheme === 'dark' ? 'transparent' : '#FFFFFF';
-  
   // Primary color: turquoise (DARK_PRIMARY) in dark theme, teal (PRIMARY) in light theme
-  const primaryColor = currentTheme === 'dark' ? COLORS.DARK_PRIMARY : COLORS.PRIMARY;
+  const primaryColor = isDarkMode ? COLORS.DARK_PRIMARY : COLORS.PRIMARY;
 
   // Callback ref for the icon button element
   const setIconButtonRef = (node: HTMLButtonElement | null) => {
@@ -173,14 +175,14 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
     }
   }, [isBookmarked, onBookmarkClick]);
 
-  // Container style for vertical icon layout with theme-aware background
+  // Container style for vertical icon layout
   // This container holds BOTH the book icon and bookmark icon
+  // No background in dark theme to match image explanation behavior
   const containerStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '0px',
-    background: containerBgColor,
     borderRadius: '5px',
     padding: '2px',
     overflow: 'visible', // Allow tooltips to show outside

@@ -56,6 +56,12 @@
               border-radius 0.2s ease !important;
 }
 
+/* When vertically expanded and open - teal border, no shadow */
+.sidePanel.verticallyExpanded.open {
+  box-shadow: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
+}
+
 /* Resize Handle - Small Centered Strip */
 .resizeHandle {
   position: absolute !important;

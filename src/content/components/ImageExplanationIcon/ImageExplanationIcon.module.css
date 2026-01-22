@@ -63,12 +63,12 @@
   display: block;
 }
 
-/* Spinner Container - Transparent background */
+/* Spinner Container - No background */
 .spinnerContainer {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: none;
   border-radius: 50%;
   padding: 2px;
 }

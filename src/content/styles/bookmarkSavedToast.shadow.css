@@ -20,7 +20,7 @@
 }
 
 .toast {
-  background: var(--color-white, #FFFFFF) !important;
+  background: var(--color-bg-primary-theme, #FFFFFF) !important;
   border: 1.5px solid var(--color-primary-opacity-20, rgba(13, 128, 112, 0.2)) !important;
   color: var(--color-primary-light, #14a08a) !important;
   padding: 1rem 1.25rem !important;
@@ -71,12 +71,15 @@
   font-weight: 500 !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  background: var(--color-primary-very-light, #e0f2ef) !important;
+  /* Theme-aware: dark teal in dark theme, light teal in light theme */
+  background: var(--color-bg-header-footer-theme, #e0f2ef) !important;
   color: var(--color-primary-light, #14a08a) !important;
 }
 
 .button:hover {
-  background: var(--color-primary-opacity-20, rgba(13, 128, 112, 0.2)) !important;
+  /* On hover: teal background with white text */
+  background: var(--color-primary, #0d8070) !important;
+  color: var(--color-white, #FFFFFF) !important;
 }
 
 .button:active {

@@ -661,7 +661,7 @@
 .translationControlPopoverToggleLabel {
   font-size: 14px !important;
   font-weight: 500 !important;
-  color: var(--color-gray-dark, #333) !important;
+  color: var(--color-text-primary-theme, #1A202C) !important;
   flex: 1 !important;
 }
 

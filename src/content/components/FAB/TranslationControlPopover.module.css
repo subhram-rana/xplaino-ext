@@ -70,7 +70,7 @@
 .toggleLabel {
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-gray-dark);
+  color: var(--color-text-primary-theme, #1A202C);
   flex: 1;
 }
 
