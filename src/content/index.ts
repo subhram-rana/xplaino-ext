@@ -665,11 +665,16 @@ async function handleSummariseClick(): Promise<void> {
     // Create abort controller
     summariseAbortController = new AbortController();
 
+    // Get language code from user settings
+    const nativeLanguage = await ChromeStorage.getUserSettingNativeLanguage();
+    const languageCode = nativeLanguage ? (getLanguageCode(nativeLanguage) || undefined) : undefined;
+
     // Call summarise API
     await SummariseService.summarise(
       {
         text: pageContent,
         context_type: 'PAGE',
+        languageCode,
       },
       {
         onChunk: (_chunk, accumulated) => {
@@ -1488,6 +1493,10 @@ async function handleExplainClick(
   const contextText = extractSurroundingContextForText(selectedText, range);
   console.log('[Content Script] Extracted context for Simplify API:', contextText);
 
+  // Get language code from user settings
+  const nativeLanguage = await ChromeStorage.getUserSettingNativeLanguage();
+  const languageCode = nativeLanguage ? (getLanguageCode(nativeLanguage) || undefined) : undefined;
+
   try {
     // Call v2/simplify API
     await SimplifyService.simplify(
@@ -1497,6 +1506,7 @@ async function handleExplainClick(
           textLength,
           text: contextText, // Pass surrounding context instead of just selected text
           previousSimplifiedTexts: [],
+          languageCode,
         },
       ],
       {
@@ -1845,10 +1855,15 @@ async function handleWordExplain(
     const contextText = extractSurroundingContext(word, range);
     console.log('[Content Script] Extracted context for API:', contextText);
 
+    // Get language code from user settings
+    const nativeLanguage = await ChromeStorage.getUserSettingNativeLanguage();
+    const languageCode = nativeLanguage ? (getLanguageCode(nativeLanguage) || undefined) : undefined;
+
     // Call words_explanation_v2 API
     await WordsExplanationV2Service.explainWord(
       word,
       contextText, // Pass surrounding context instead of empty string
+      languageCode,
       {
         onEvent: async (wordInfo: WordInfo) => {
           const state = wordExplanationsMap.get(wordId);
@@ -3805,10 +3820,15 @@ async function handleGetContextualMeaning(wordId: string): Promise<void> {
   const contextText = extractSurroundingContext(wordAtomState.word, wordAtomState.range);
   console.log('[Content Script] Extracted context for API:', contextText);
 
+  // Get language code from user settings
+  const nativeLanguageForWord = await ChromeStorage.getUserSettingNativeLanguage();
+  const languageCodeForWord = nativeLanguageForWord ? (getLanguageCode(nativeLanguageForWord) || undefined) : undefined;
+
   // Call words_explanation_v2 API
   await WordsExplanationV2Service.explainWord(
     wordAtomState.word,
     contextText, // Pass surrounding context instead of empty string
+    languageCodeForWord,
     {
       onEvent: (wordInfo: WordInfo) => {
         const state = store.get(wordExplanationsAtom).get(wordId);
@@ -4593,6 +4613,10 @@ async function handleAskAISendMessage(wordId: string, question: string): Promise
   const initialContext = `Here is the context: ${contextText}. Here is the word of interest: ${wordAtomState.word}.`;
   console.log('[Content Script] Formatted initial context for Ask AI:', initialContext);
 
+  // Get language code from user settings
+  const nativeLanguageForAsk = await ChromeStorage.getUserSettingNativeLanguage();
+  const languageCodeForAsk = nativeLanguageForAsk ? (getLanguageCode(nativeLanguageForAsk) || undefined) : undefined;
+
   try {
     await WordAskService.ask(
       {
@@ -4600,6 +4624,7 @@ async function handleAskAISendMessage(wordId: string, question: string): Promise
         chat_history: wordAtomState.askAI.chatHistory, // Send old history (without new user message)
         initial_context: initialContext,
         context_type: 'TEXT',
+        languageCode: languageCodeForAsk,
       },
       {
         onChunk: (_chunk, accumulated) => {
@@ -5127,6 +5152,10 @@ function updateTextExplanationPanel(): void {
       // Update panel immediately to show user message and loading state
       updateTextExplanationPanel();
       
+      // Get language code from user settings
+      const nativeLanguageForTextAsk = await ChromeStorage.getUserSettingNativeLanguage();
+      const languageCodeForTextAsk = nativeLanguageForTextAsk ? (getLanguageCode(nativeLanguageForTextAsk) || undefined) : undefined;
+      
       try {
         await AskService.ask(
           {
@@ -5134,6 +5163,7 @@ function updateTextExplanationPanel(): void {
             chat_history: chatHistoryForAPI,
             initial_context: selectedText,
             context_type: 'TEXT',
+            languageCode: languageCodeForTextAsk,
           },
           {
             onChunk: (_chunk, accumulated) => {
@@ -5281,6 +5311,10 @@ function updateTextExplanationPanel(): void {
       // Update panel to show loading state
       updateTextExplanationPanel();
       
+      // Get language code from user settings
+      const nativeLanguageForSimplifyMore = await ChromeStorage.getUserSettingNativeLanguage();
+      const languageCodeForSimplifyMore = nativeLanguageForSimplifyMore ? (getLanguageCode(nativeLanguageForSimplifyMore) || undefined) : undefined;
+      
       try {
         await SimplifyService.simplify(
           [
@@ -5289,6 +5323,7 @@ function updateTextExplanationPanel(): void {
               textLength,
               text: contextText, // Pass surrounding context instead of just selected text
               previousSimplifiedTexts: previousSimplifiedTexts,
+              languageCode: languageCodeForSimplifyMore,
             },
           ],
           {
@@ -5437,6 +5472,10 @@ function updateTextExplanationPanel(): void {
       // Update panel immediately to show user message
       updateTextExplanationPanel();
       
+      // Get language code from user settings
+      const nativeLanguageForFollowUp = await ChromeStorage.getUserSettingNativeLanguage();
+      const languageCodeForFollowUp = nativeLanguageForFollowUp ? (getLanguageCode(nativeLanguageForFollowUp) || undefined) : undefined;
+      
       try {
         await AskService.ask(
           {
@@ -5444,6 +5483,7 @@ function updateTextExplanationPanel(): void {
             chat_history: chatHistoryForAPI,
             initial_context: selectedText,
             context_type: 'TEXT',
+            languageCode: languageCodeForFollowUp,
           },
           {
             onChunk: (_chunk, accumulated) => {

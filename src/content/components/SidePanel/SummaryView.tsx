@@ -6,7 +6,9 @@ import ReactMarkdown from 'react-markdown';
 import styles from './SummaryView.module.css';
 import { SummariseService } from '@/api-services/SummariseService';
 import { AskService, ChatMessage } from '@/api-services/AskService';
+import { getLanguageCode } from '@/api-services/TranslateService';
 import { extractAndStorePageContent, getStoredPageContent } from '@/content/utils/pageContentExtractor';
+import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { OnHoverMessage } from '../OnHoverMessage/OnHoverMessage';
 import { LoadingDots } from './LoadingDots';
 import {
@@ -685,10 +687,15 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         return;
       }
 
+      // Get language code from user settings
+      const nativeLanguage = await ChromeStorage.getUserSettingNativeLanguage();
+      const languageCode = nativeLanguage ? (getLanguageCode(nativeLanguage) || undefined) : undefined;
+
       await SummariseService.summarise(
         {
           text: pageContent,
           context_type: 'PAGE',
+          languageCode,
         },
         {
           onChunk: (_chunk, accumulated) => {
@@ -750,6 +757,10 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     try {
       const pageContent = await getStoredPageContent();
 
+      // Get language code from user settings
+      const nativeLanguageForAsk = await ChromeStorage.getUserSettingNativeLanguage();
+      const languageCodeForAsk = nativeLanguageForAsk ? (getLanguageCode(nativeLanguageForAsk) || undefined) : undefined;
+
       await AskService.ask(
         {
           question: question.trim(),
@@ -758,6 +769,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
           chat_history: chatMessages,
           initial_context: pageContent || undefined,
           context_type: 'PAGE',
+          languageCode: languageCodeForAsk,
         },
         {
           onChunk: (_chunk, accumulated) => {

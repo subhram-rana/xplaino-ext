@@ -45,6 +45,7 @@ export class WordsExplanationV2Service {
    * Get word explanation using Server-Sent Events (SSE) streaming
    * @param word - The word to explain
    * @param context - Optional context text containing the word
+   * @param languageCode - Optional language code for response language
    * @param callbacks - Callbacks for events
    * @param abortSignal - Optional abort signal for cancellation
    * @param timeoutMs - Timeout in milliseconds (default: 30000)
@@ -52,6 +53,7 @@ export class WordsExplanationV2Service {
   static async explainWord(
     word: string,
     context: string = '',
+    languageCode: string | undefined,
     callbacks: WordExplanationCallbacks,
     abortSignal?: AbortSignal,
     timeoutMs: number = 30000
@@ -87,6 +89,7 @@ export class WordsExplanationV2Service {
           textStartIndex: 0,
           text: textToAnalyze,
           important_words_location: [wordLocation],
+          languageCode,
         },
       ];
 
