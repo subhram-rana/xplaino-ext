@@ -34,7 +34,7 @@
     "identity"
   ],
   "oauth2": {
-    "client_id": "355884005048-4bn6e6rbq9mfdrb2q43sthsejc88sbcc.apps.googleusercontent.com",
+    "client_id": "355884005048-76olfh4sp2o2uitojjeslpsaonvc7d2s.apps.googleusercontent.com",
     "scopes": ["openid", "email", "profile"]
   },
   "host_permissions": [
