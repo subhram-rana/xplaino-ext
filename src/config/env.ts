@@ -45,8 +45,16 @@ export type EnvConfig = {
 };
 
 /**
+ * Environment configuration lookup
+ */
+const ENV_CONFIG: Record<Environment, EnvConfig> = {
+  [Environment.LOCAL]: ENV_LOCAL,
+  [Environment.PRODUCTION]: ENV_PROD,
+};
+
+/**
  * Active environment configuration
  * Automatically selected based on the `env` constant
  */
-export const ENV: EnvConfig = env === Environment.LOCAL ? ENV_LOCAL : ENV_PROD;
+export const ENV: EnvConfig = ENV_CONFIG[env];
 
