@@ -21,7 +21,6 @@ import { WordAskAISidePanel } from './components/WordAskAISidePanel';
 import { FolderListModal } from './components/FolderListModal';
 import { SavedParagraphIcon } from './components/SavedParagraphIcon';
 import { WelcomeModal } from './components/WelcomeModal/WelcomeModal';
-import { YouTubeAskAIButton } from './components/YouTubeAskAIButton';
 import { BookmarkSavedToast } from './components/BookmarkSavedToast';
 import { Spinner } from './components/ui/Spinner';
 import bookmarkSavedToastStyles from './styles/bookmarkSavedToast.shadow.css?inline';
@@ -52,7 +51,6 @@ import wordAskAISidePanelStyles from './styles/wordAskAISidePanel.shadow.css?inl
 import folderListModalStyles from './styles/folderListModal.shadow.css?inline';
 import savedParagraphIconStyles from './styles/savedParagraphIcon.shadow.css?inline';
 import welcomeModalStyles from './styles/welcomeModal.shadow.css?inline';
-import youtubeAskAIButtonStyles from './styles/youtubeAskAIButton.shadow.css?inline';
 import baseSidePanelStyles from './styles/baseSidePanel.shadow.css?inline';
 import spinnerStyles from './styles/spinner.shadow.css?inline';
 
@@ -10339,195 +10337,12 @@ async function handleWelcomeModalDontShowAgain(): Promise<void> {
 // =============================================================================
 
 /**
- * Wait for YouTube video title container to be available
- */
-function waitForTitleContainer(): Promise<HTMLElement | null> {
-  return new Promise((resolve) => {
-    // Try multiple selectors for YouTube title container
-    const selectors = [
-      '#title h1',
-      'h1.ytd-watch-metadata',
-      'ytd-watch-metadata #title h1',
-      '#container h1',
-      'ytd-watch-metadata h1',
-    ];
-    
-    let attempts = 0;
-    const maxAttempts = 100; // 10 seconds max (100 * 100ms)
-    
-    const checkForTitle = () => {
-      attempts++;
-      
-      for (const selector of selectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          // Find the parent container that we can append to
-          // Look for ytd-watch-metadata or #title container
-          let container = element.parentElement;
-          while (container) {
-            const containerId = container.id;
-            const containerClass = container.className || '';
-            
-            // Check if this is a good container to append to
-            if (
-              containerId === 'title' ||
-              containerClass.includes('ytd-watch-metadata') ||
-              container.tagName === 'YTD-WATCH-METADATA'
-            ) {
-              // Check if it has a flex or grid layout (good for positioning)
-              const style = window.getComputedStyle(container);
-              if (style.display === 'flex' || style.display === 'grid' || containerId === 'title') {
-                resolve(container as HTMLElement);
-                return;
-              }
-            }
-            container = container.parentElement;
-          }
-          // Fallback: use the element's parent
-          if (element.parentElement) {
-            resolve(element.parentElement);
-            return;
-          }
-        }
-      }
-      
-      // If not found and haven't exceeded max attempts, wait a bit and try again
-      if (attempts < maxAttempts) {
-        setTimeout(checkForTitle, 100);
-      } else {
-        resolve(null);
-      }
-    };
-    
-    // Start checking
-    checkForTitle();
-  });
-}
-
-/**
  * Inject YouTube Ask AI button into the page
+ * NOTE: YouTube Ask AI button feature is currently disabled
  */
 async function injectYouTubeAskAIButton(): Promise<void> {
-  // Check if already injected
-  if (shadowHostExists(YOUTUBE_ASK_AI_BUTTON_HOST_ID)) {
-    console.log('[Content Script] YouTube Ask AI button already injected');
-    return;
-  }
-  
-  // Check if globally disabled
-  const globalDisabled = await ChromeStorage.getGlobalDisabled();
-  if (globalDisabled) {
-    console.log('[Content Script] YouTube Ask AI button disabled - global disable is on');
-    return;
-  }
-  
-  // Check domain status - don't inject button if domain is BANNED
-  const currentDomain = extractDomain(window.location.href);
-  if (currentDomain) {
-    const domainStatus = await ChromeStorage.getDomainStatus(currentDomain);
-    if (domainStatus === DomainStatus.BANNED) {
-      console.log(`[Content Script] Domain "${currentDomain}" is BANNED - YouTube Ask AI button will not be shown`);
-      return;
-    }
-  }
-  
-  // Wait for title container
-  const titleContainer = await waitForTitleContainer();
-  if (!titleContainer) {
-    console.warn('[Content Script] Could not find YouTube title container');
-    return;
-  }
-  
-  // Create Shadow DOM host
-  // Note: We use a regular div instead of fixed positioning since we're inserting into the title container
-  const host = document.createElement('div');
-  host.id = YOUTUBE_ASK_AI_BUTTON_HOST_ID;
-  host.style.cssText = 'all: initial; display: inline-block;';
-  
-  // Attach Shadow DOM
-  const shadow = host.attachShadow({ mode: 'open' });
-  
-  // Create React mount point
-  const mountPoint = document.createElement('div');
-  mountPoint.id = `${YOUTUBE_ASK_AI_BUTTON_HOST_ID}-root`;
-  shadow.appendChild(mountPoint);
-  
-  // Inject styles
-  injectStyles(shadow, youtubeAskAIButtonStyles);
-  
-  // Position the button at the right end of the title container
-  // Use flexbox approach if container supports it, otherwise use absolute positioning
-  const containerStyle = window.getComputedStyle(titleContainer);
-  
-  if (containerStyle.display === 'flex') {
-    // If container is flex, just append and it will be positioned naturally
-    // Add margin-left auto to push it to the right
-    host.style.marginLeft = 'auto';
-    host.style.alignSelf = 'center';
-  } else {
-    // Use absolute positioning
-    host.style.position = 'absolute';
-    host.style.right = '0';
-    host.style.top = '50%';
-    host.style.transform = 'translateY(-50%)';
-    
-    // Make title container relative positioned if it isn't already
-    if (containerStyle.position === 'static') {
-      (titleContainer as HTMLElement).style.position = 'relative';
-    }
-  }
-  
-  // Append to title container
-  titleContainer.appendChild(host);
-  
-  // Handle button click
-  // Injects a page-context script to fetch transcript using YouTube's internal API
-  // WHY PAGE-CONTEXT: The script must run in YouTube's page context (not the extension's
-  // isolated world) to access window.ytcfg, document.cookie (SAPISID), and make
-  // authenticated requests to YouTube's internal API.
-  const handleButtonClick = async () => {
-    try {
-      // Remove any existing script to ensure fresh execution on each click
-      const existingScript = document.getElementById('xplaino-youtube-transcript-fetcher');
-      if (existingScript) {
-        existingScript.remove();
-      }
-      
-      // Inject page-context script that will:
-      // 1. Extract YouTube runtime config (API key, client version, context)
-      // 2. Get current video ID
-      // 3. Generate SAPISIDHASH from SAPISID cookie
-      // 4. Call youtubei/v1/get_transcript API
-      // 5. Log the transcript response to console
-      const script = document.createElement('script');
-      script.id = 'xplaino-youtube-transcript-fetcher';
-      script.src = chrome.runtime.getURL('src/content/utils/youtubePageContext.js');
-      script.type = 'module';
-      
-      // Log script load status
-      script.onload = () => console.log('[Xplaino] Transcript fetcher script loaded');
-      script.onerror = () => console.error('[Xplaino] Failed to load transcript fetcher script');
-      
-      // Inject into page
-      (document.head || document.documentElement).appendChild(script);
-      
-      console.log('[Content Script] YouTube transcript fetcher script injected');
-    } catch (error) {
-      console.error('[Content Script] Error injecting transcript fetcher:', error);
-    }
-  };
-  
-  // Render React component
-  youtubeAskAIButtonRoot = ReactDOM.createRoot(mountPoint);
-  youtubeAskAIButtonRoot.render(
-    React.createElement(YouTubeAskAIButton, {
-      onClick: handleButtonClick,
-      useShadowDom: true,
-      disabled: false,
-    })
-  );
-  
-  console.log('[Content Script] YouTube Ask AI button injected successfully');
+  // YouTube Ask AI button is disabled - feature not available
+  return;
 }
 
 /**
