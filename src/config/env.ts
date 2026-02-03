@@ -33,7 +33,7 @@ export const ENV_LOCAL = {
  */
 export const ENV_PROD = {
   API_BASE_URL: 'https://api.xplaino.com',
-  GOOGLE_OAUTH_CLIENT_ID: '355884005048-76olfh4sp2o2uitojjeslpsaonvc7d2s.apps.googleusercontent.com',
+  GOOGLE_OAUTH_CLIENT_ID: '355884005048-haqbeokpobimcafks356ovc371glnglo.apps.googleusercontent.com',
   XPLAINO_WEBSITE_BASE_URL: 'https://www.xplaino.com',
 } as const;
 

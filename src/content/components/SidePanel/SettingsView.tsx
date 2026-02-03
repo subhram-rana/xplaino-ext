@@ -323,7 +323,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                   Enable on <span className={getClassName('domainName')}>{currentDomain}</span>
                 </label>
                 <Toggle
-                  checked={domainStatus === DomainStatus.ENABLED}
+                  checked={domainStatus === null || domainStatus === DomainStatus.ENABLED}
                   onChange={handleDomainToggle}
                 />
               </div>

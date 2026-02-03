@@ -198,7 +198,7 @@ export const Popup: React.FC = () => {
               }}
             >
               <ReusableToggle
-                checked={domainStatus === DomainStatus.ENABLED}
+                checked={domainStatus === null || domainStatus === DomainStatus.ENABLED}
                 onChange={handleDomainToggle}
               />
               <span
