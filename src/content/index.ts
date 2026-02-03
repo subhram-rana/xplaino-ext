@@ -528,8 +528,10 @@ async function isExtensionAllowed(): Promise<boolean> {
     // Check domain status
     const domainStatus = settings.domainSettings[currentDomain];
     
-    if (domainStatus !== DomainStatus.ENABLED) {
-      console.log(`[Content Script] Domain "${currentDomain}" is not ENABLED (status: ${domainStatus || 'not set'})`);
+    if (domainStatus === DomainStatus.DISABLED || 
+        domainStatus === DomainStatus.BANNED || 
+        domainStatus === DomainStatus.INVALID) {
+      console.log(`[Content Script] Domain "${currentDomain}" is explicitly disabled (status: ${domainStatus})`);
       return false;
     }
 
@@ -10483,8 +10485,9 @@ async function initContentScript(): Promise<void> {
       
       // Only show modal if:
       // 1. User hasn't clicked "Don't show me again"
-      // 2. Domain status is ENABLED (not BANNED, not DISABLED, not INVALID)
-      if (!dontShowWelcomeModal && domainStatus === DomainStatus.ENABLED) {
+      // 2. Domain status is ENABLED or not set (null = default enabled)
+      if (!dontShowWelcomeModal && 
+          (domainStatus === null || domainStatus === DomainStatus.ENABLED)) {
         // Show modal after a short delay to ensure page is loaded
         setTimeout(async () => {
           welcomeModalVisible = true;
