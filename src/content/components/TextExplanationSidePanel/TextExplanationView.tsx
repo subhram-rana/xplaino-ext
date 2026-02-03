@@ -444,10 +444,11 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
         {/* Show initial explanation separately only when no chat history exists */}
         {!hasChatHistory && displayText && displayText.trim().length > 0 && (
           <>
-            <div className={getClassName('explanationContent')}>
+            <div className={`${getClassName('message')} ${getClassName('assistantMessage')}`}>
               <ReactMarkdown components={markdownComponents}>
-                {displayText}
+                {`## Simplified explanation 1\n\n${displayText}`}
               </ReactMarkdown>
+              <span className={getClassName('cursor')}>|</span>
             </div>
 
             {/* Possible Questions for initial explanation */}
