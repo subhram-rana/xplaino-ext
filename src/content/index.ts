@@ -8624,16 +8624,11 @@ function updateBookmarkToast(): void {
     };
 
     const handleDontShowAgain = async () => {
-      // Set the appropriate storage flag
-      if (bookmarkToastType === 'word') {
-        await ChromeStorage.setDontShowWordBookmarkSavedLinkToast(true);
-      } else if (bookmarkToastType === 'paragraph') {
-        await ChromeStorage.setDontShowTextBookmarkSavedLinkToast(true);
-      } else if (bookmarkToastType === 'link') {
-        await ChromeStorage.setDontShowLinkBookmarkSavedLinkToast(true);
-      } else if (bookmarkToastType === 'image') {
-        await ChromeStorage.setDontShowImageBookmarkSavedLinkToast(true);
-      }
+      // Set ALL storage flags to disable toast for all entity types (global preference)
+      await ChromeStorage.setDontShowWordBookmarkSavedLinkToast(true);
+      await ChromeStorage.setDontShowTextBookmarkSavedLinkToast(true);
+      await ChromeStorage.setDontShowLinkBookmarkSavedLinkToast(true);
+      await ChromeStorage.setDontShowImageBookmarkSavedLinkToast(true);
       
       bookmarkToastClosing = true;
       updateBookmarkToast();
@@ -9014,9 +9009,13 @@ async function updateFolderListModal(): Promise<void> {
     // Determine modal title based on mode and summary availability
     const modalTitle = folderModalMode === 'link' 
       ? (folderModalLinkSummary && folderModalLinkSummary.trim().length > 0 
-          ? 'Save page link with summary' 
-          : 'Save page url without summary')
-      : 'Choose folder';
+          ? 'Save Page with summary' 
+          : 'Save Page')
+      : folderModalMode === 'word'
+      ? 'Save Word'
+      : folderModalMode === 'image'
+      ? 'Save Image'
+      : 'Save Text';
     
     folderListModalRoot.render(
       React.createElement(Provider, { store },
