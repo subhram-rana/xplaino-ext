@@ -378,6 +378,19 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
       animationTimeoutRef.current = null;
     }
 
+    // If we're closing but visible becomes true (switching to a different word), cancel the close
+    // This allows the new word's popover to open immediately without waiting for the close animation
+    if (isClosingRef.current && visible) {
+      console.log('[WordExplanationPopover] Canceling close animation - new word opening');
+      isClosingRef.current = false;
+      // Reset wasVisible so the opening logic can properly trigger
+      wasVisible.current = false;
+      // Ensure we render
+      if (!shouldRender) {
+        setShouldRender(true);
+      }
+    }
+
     // Handle case where visible becomes true but shouldRender is false (reopening after close)
     if (visible && !shouldRender && !isClosingRef.current) {
       // Component was closed but now needs to open - ensure it renders
@@ -619,6 +632,23 @@ export const WordExplanationPopover: React.FC<WordExplanationPopoverProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       // Use composedPath to get the full event path including Shadow DOM elements
       const path = event.composedPath();
+      
+      // Check if click is on any word explanation span (not just the current source)
+      // This allows clicking another word to switch to its popover without triggering close
+      const isClickOnAnyWordSpan = path.some((el) => {
+        if (el instanceof HTMLElement) {
+          // Check for the identifying class or the active class
+          return el.classList?.contains('xplaino-word-span') ||
+                 el.classList?.contains('word-explanation-active');
+        }
+        return false;
+      });
+      
+      // If clicking another word span, don't close - let toggleWordPopover handle it
+      if (isClickOnAnyWordSpan) {
+        console.log('[WordExplanationPopover] Click on word span detected, letting toggleWordPopover handle it');
+        return;
+      }
       
       // Check if our popover or source element is in the event path
       const isInsidePopover = elementRef.current && path.includes(elementRef.current);
