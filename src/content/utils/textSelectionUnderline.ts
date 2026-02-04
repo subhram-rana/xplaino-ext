@@ -62,7 +62,24 @@ function isMultiBlockSelection(range: Range): boolean {
 }
 
 /**
+ * Find the ancestor of a node that is a direct child of the given parent
+ * @param node - The node to find the ancestor for
+ * @param parent - The parent element to search within
+ * @returns The ancestor that is a direct child of parent, or null
+ */
+function findAncestorChildOf(node: Node, parent: Element): Element | null {
+  let current: Node | null = node;
+  
+  while (current && current.parentNode !== parent) {
+    current = current.parentNode;
+  }
+  
+  return current as Element | null;
+}
+
+/**
  * Get all block elements that are within the range
+ * Uses a simple sibling-traversal approach for reliability
  * @param range - The range to get blocks from
  * @returns Array of block elements within the range
  */
@@ -75,7 +92,29 @@ function getBlocksInRange(range: Range): HTMLElement[] {
     return blocks;
   }
   
-  // Find the common ancestor
+  // If start and end are the same block, just return that one
+  if (startBlock === endBlock) {
+    return [startBlock];
+  }
+  
+  // Check if they're siblings (same parent)
+  if (startBlock.parentNode === endBlock.parentNode) {
+    // Simple case: traverse siblings from start to end
+    blocks.push(startBlock);
+    let current: Element | null = startBlock.nextElementSibling;
+    while (current && current !== endBlock) {
+      if (BLOCK_ELEMENTS.has(current.tagName)) {
+        blocks.push(current as HTMLElement);
+      }
+      current = current.nextElementSibling;
+    }
+    if (endBlock) {
+      blocks.push(endBlock);
+    }
+    return blocks;
+  }
+  
+  // They're not siblings - find the common ancestor and traverse at that level
   const commonAncestor = range.commonAncestorContainer;
   let container: Node | null = commonAncestor;
   
@@ -85,87 +124,91 @@ function getBlocksInRange(range: Range): HTMLElement[] {
   }
   
   if (!container || container.nodeType !== Node.ELEMENT_NODE) {
-    return [startBlock, endBlock].filter((v, i, a) => a.indexOf(v) === i);
+    // Fallback: just return start and end blocks
+    return [startBlock, endBlock];
   }
   
-  // Create a TreeWalker to find all block elements in the range
-  const walker = document.createTreeWalker(
-    container,
-    NodeFilter.SHOW_ELEMENT,
-    {
-      acceptNode: (node: Node) => {
-        const element = node as HTMLElement;
-        if (BLOCK_ELEMENTS.has(element.tagName)) {
-          // Check if this block intersects with the selection range
-          try {
-            const blockRange = document.createRange();
-            blockRange.selectNodeContents(element);
-            
-            // Ranges intersect if: selection starts before block ends AND selection ends after block starts
-            // Using compareBoundaryPoints:
-            // - START_TO_END compares selection start to block end (negative = selection starts before block ends)
-            // - END_TO_START compares selection end to block start (positive = selection ends after block starts)
-            const selectionStartsBeforeBlockEnds = range.compareBoundaryPoints(Range.START_TO_END, blockRange) < 0;
-            const selectionEndsAfterBlockStarts = range.compareBoundaryPoints(Range.END_TO_START, blockRange) > 0;
-            
-            // Accept block only if it intersects with the selection
-            if (selectionStartsBeforeBlockEnds && selectionEndsAfterBlockStarts) {
-              return NodeFilter.FILTER_ACCEPT;
-            }
-          } catch {
-            // If comparison fails, skip this block to be safe
-            return NodeFilter.FILTER_SKIP;
-          }
-        }
-        return NodeFilter.FILTER_SKIP;
-      }
-    }
-  );
+  const containerElement = container as Element;
   
-  // Collect all block elements
-  let node: Node | null;
-  while ((node = walker.nextNode())) {
-    const element = node as HTMLElement;
-    // Only include leaf-level blocks (blocks that don't contain other blocks in our selection)
-    const hasChildBlockInRange = Array.from(element.children).some(child => {
-      if (BLOCK_ELEMENTS.has(child.tagName)) {
-        try {
-          const childRange = document.createRange();
-          childRange.selectNodeContents(child);
-          // Check if this child block intersects with the selection
-          const selectionStartsBeforeChildEnds = range.compareBoundaryPoints(Range.START_TO_END, childRange) < 0;
-          const selectionEndsAfterChildStarts = range.compareBoundaryPoints(Range.END_TO_START, childRange) > 0;
-          return selectionStartsBeforeChildEnds && selectionEndsAfterChildStarts;
-        } catch {
-          return false;
-        }
-      }
-      return false;
-    });
+  // Find which direct children of the common ancestor contain our start and end blocks
+  const startAncestor = findAncestorChildOf(startBlock, containerElement);
+  const endAncestor = findAncestorChildOf(endBlock, containerElement);
+  
+  if (!startAncestor || !endAncestor) {
+    // Fallback: just return start and end blocks
+    return [startBlock, endBlock];
+  }
+  
+  // Collect all block elements between startAncestor and endAncestor (inclusive)
+  // We want the leaf-level blocks (like <p> inside <li>), not the container blocks (like <li>)
+  let foundStart = false;
+  let foundEnd = false;
+  
+  for (const child of Array.from(containerElement.children)) {
+    if (child === startAncestor) {
+      foundStart = true;
+    }
     
-    if (!hasChildBlockInRange) {
-      blocks.push(element);
-    }
-  }
-  
-  // If we didn't find any blocks through the walker, fall back to start and end blocks
-  if (blocks.length === 0) {
-    if (startBlock === endBlock) {
-      blocks.push(startBlock);
-    } else {
-      blocks.push(startBlock);
-      // Find siblings between start and end
-      let current: Element | null = startBlock;
-      while (current && current !== endBlock) {
-        current = current.nextElementSibling;
-        if (current && BLOCK_ELEMENTS.has(current.tagName)) {
-          blocks.push(current as HTMLElement);
-        }
+    if (foundStart && !foundEnd) {
+      // Find the deepest block element within this child that contains actual content
+      const deepestBlock = findDeepestBlockWithContent(child as HTMLElement, range);
+      if (deepestBlock) {
+        blocks.push(deepestBlock);
+      } else if (BLOCK_ELEMENTS.has(child.tagName)) {
+        blocks.push(child as HTMLElement);
       }
+    }
+    
+    if (child === endAncestor) {
+      foundEnd = true;
+      break;
     }
   }
   
   return blocks;
+}
+
+/**
+ * Find the deepest block element within an element that intersects with the range
+ * @param element - The element to search within
+ * @param range - The selection range
+ * @returns The deepest block element, or null
+ */
+function findDeepestBlockWithContent(element: HTMLElement, range: Range): HTMLElement | null {
+  // Check if this element has any block children
+  const blockChildren = Array.from(element.children).filter(
+    child => BLOCK_ELEMENTS.has(child.tagName)
+  );
+  
+  if (blockChildren.length === 0) {
+    // No block children - this is the deepest block
+    return BLOCK_ELEMENTS.has(element.tagName) ? element : null;
+  }
+  
+  // Find block children that intersect with the range
+  for (const child of blockChildren) {
+    try {
+      const childRange = document.createRange();
+      childRange.selectNodeContents(child);
+      
+      // Check if the child intersects with the selection range
+      const intersects = range.compareBoundaryPoints(Range.END_TO_START, childRange) <= 0 &&
+                         range.compareBoundaryPoints(Range.START_TO_END, childRange) >= 0;
+      
+      if (intersects) {
+        // Recursively find the deepest block
+        const deeper = findDeepestBlockWithContent(child as HTMLElement, range);
+        if (deeper) {
+          return deeper;
+        }
+      }
+    } catch {
+      // If comparison fails, skip
+    }
+  }
+  
+  // If no intersecting block children found, return this element if it's a block
+  return BLOCK_ELEMENTS.has(element.tagName) ? element : null;
 }
 
 /**
