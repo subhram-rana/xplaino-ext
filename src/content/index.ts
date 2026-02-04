@@ -3232,6 +3232,8 @@ function createWordSpan(_word: string, range: Range): HTMLElement | null {
 
     // Create span element
     const span = document.createElement('span');
+    // Add identifying class for word spans (used by click-outside handler)
+    span.classList.add('xplaino-word-span');
     // Don't add 'word-explanation-loading' class to avoid pulsating animation
     
     // Preserve original font styles
@@ -3567,6 +3569,14 @@ async function toggleWordPopover(wordId: string): Promise<void> {
   if (!state) {
     console.log('[Content Script] toggleWordPopover - no state found for wordId:', wordId);
     return;
+  }
+
+  // Close any other visible popover first (only one popover visible at a time)
+  for (const [otherId, otherState] of wordExplanationsMap.entries()) {
+    if (otherId !== wordId && otherState.popoverVisible) {
+      console.log('[Content Script] toggleWordPopover - closing other popover:', otherId);
+      otherState.popoverVisible = false;
+    }
   }
 
   const previousVisible = state.popoverVisible;
@@ -7997,6 +8007,8 @@ function updateTextExplanationIconContainer(): void {
       id: state.id,
       position: state.iconPosition,
       selectionRange: state.range,
+      // Use wrapper element for scroll tracking (more reliable than Range on some websites)
+      wrapperElement: state.underlineState?.wrapperElement || null,
       isSpinning: state.isSpinning,
       onTogglePanel: () => toggleTextExplanationPanel(id),
       // Green border logic: only show border if this is the active explanation AND panel is open

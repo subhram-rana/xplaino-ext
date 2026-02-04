@@ -15,8 +15,10 @@ export interface TextExplanationIconProps {
   iconRef?: (element: HTMLElement | null) => void;
   /** Whether the panel is currently open */
   isPanelOpen?: boolean;
-  /** Selection range for scroll tracking */
+  /** Selection range for scroll tracking (fallback if wrapperElement not provided) */
   selectionRange?: Range | null;
+  /** Wrapper element for scroll tracking (preferred over selectionRange) */
+  wrapperElement?: HTMLElement | null;
   /** Whether the text is bookmarked */
   isBookmarked?: boolean;
   /** Click handler for bookmark icon */
@@ -54,6 +56,7 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
   iconRef,
   isPanelOpen = false,
   selectionRange,
+  wrapperElement,
   isBookmarked = false,
   onBookmarkClick,
 }) => {
@@ -64,45 +67,68 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
 
   // Update position function
   const updatePosition = useCallback(() => {
-    if (!containerRef.current || !selectionRange) return;
+    if (!containerRef.current) return;
+    
+    // Need either wrapperElement or selectionRange for positioning
+    if (!wrapperElement && !selectionRange) return;
     
     try {
-      // Check if selection range is still valid
-      if (!selectionRange.startContainer || !selectionRange.endContainer) {
-        return;
-      }
+      let targetRect: DOMRect | null = null;
+      let leftmostX: number;
+      let topmostY: number;
 
-      // Get selection's bounding rectangle (viewport-relative coordinates)
-      const selectionRect = selectionRange.getBoundingClientRect();
-      
-      // If selection is not visible, don't update position
-      if (selectionRect.width === 0 && selectionRect.height === 0) {
-        return;
-      }
-
-      // Find containing element for left positioning
-      let containingElement: HTMLElement | null = null;
-      let node: Node | null = selectionRange.startContainer;
-      
-      while (node && node !== document.body) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          containingElement = node as HTMLElement;
-          break;
+      // Use wrapper element if available (more reliable - stable DOM element)
+      // This fixes scroll issues on websites with CSS transforms (like The Atlantic)
+      if (wrapperElement) {
+        targetRect = wrapperElement.getBoundingClientRect();
+        
+        // If element is not visible, don't update position
+        if (targetRect.width === 0 && targetRect.height === 0) {
+          return;
         }
-        node = node.parentNode;
+        
+        leftmostX = targetRect.left;
+        topmostY = targetRect.top;
+      } else if (selectionRange) {
+        // Fallback to selectionRange if wrapperElement not available
+        // Check if selection range is still valid
+        if (!selectionRange.startContainer || !selectionRange.endContainer) {
+          return;
+        }
+
+        // Get selection's bounding rectangle (viewport-relative coordinates)
+        const selectionRect = selectionRange.getBoundingClientRect();
+        
+        // If selection is not visible, don't update position
+        if (selectionRect.width === 0 && selectionRect.height === 0) {
+          return;
+        }
+
+        // Find containing element for left positioning
+        let containingElement: HTMLElement | null = null;
+        let node: Node | null = selectionRange.startContainer;
+        
+        while (node && node !== document.body) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            containingElement = node as HTMLElement;
+            break;
+          }
+          node = node.parentNode;
+        }
+        
+        if (!containingElement) {
+          containingElement = document.body;
+        }
+        
+        // Get element's leftmost coordinate (viewport-relative)
+        const elementRect = containingElement.getBoundingClientRect();
+        leftmostX = elementRect.left;
+        
+        // Use selection's top coordinate (viewport-relative)
+        topmostY = selectionRect.top;
+      } else {
+        return;
       }
-      
-      if (!containingElement) {
-        containingElement = document.body;
-      }
-      
-      // Get element's leftmost coordinate (viewport-relative)
-      const elementRect = containingElement.getBoundingClientRect();
-      const leftmostX = elementRect.left;
-      
-      // Use selection's top coordinate (viewport-relative)
-      // Since icon is position: fixed, these viewport coordinates work directly
-      const topmostY = selectionRect.top;
       
       // Update position directly via DOM for immediate update (no React render delay)
       // Align icon with text span - position it closer and aligned with text baseline
@@ -112,7 +138,7 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
       // Silently handle errors (range might be invalid after DOM changes)
       console.error('[TextExplanationIcon] Error updating position:', error);
     }
-  }, [selectionRange]);
+  }, [wrapperElement, selectionRange]);
 
   // Handle scroll event
   const handleScroll = useCallback(() => {
@@ -132,19 +158,23 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
 
   // Initial position update when ref is set
   React.useLayoutEffect(() => {
-    if (isRefSet && selectionRange) {
+    if (isRefSet && (wrapperElement || selectionRange)) {
       updatePosition();
     }
-  }, [isRefSet, selectionRange, updatePosition]);
+  }, [isRefSet, wrapperElement, selectionRange, updatePosition]);
 
-  // Set up scroll listeners when both ref and range are ready
+  // Set up scroll listeners when both ref and tracking element are ready
   React.useEffect(() => {
-    if (!selectionRange || !isRefSet) {
+    // Need either wrapperElement or selectionRange for scroll tracking
+    if (!isRefSet || (!wrapperElement && !selectionRange)) {
       return;
     }
 
-    // Find all scrollable parents
-    scrollableParentsRef.current = findScrollableParents(selectionRange.startContainer);
+    // Find all scrollable parents - prefer wrapperElement (stable DOM element)
+    const trackingElement = wrapperElement || (selectionRange ? selectionRange.startContainer : null);
+    if (trackingElement) {
+      scrollableParentsRef.current = findScrollableParents(trackingElement);
+    }
 
     // Add listeners to window, document, and documentElement
     // Using capture phase (true) to catch all scroll events
@@ -193,7 +223,7 @@ export const TextExplanationIcon: React.FC<TextExplanationIconProps> = ({
       
       scrollableParentsRef.current = [];
     };
-  }, [selectionRange, isRefSet, handleScroll, updatePosition]);
+  }, [wrapperElement, selectionRange, isRefSet, handleScroll, updatePosition]);
 
   // Wrapper style for fixed positioning
   const wrapperStyle: React.CSSProperties = {

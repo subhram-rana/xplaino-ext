@@ -7,6 +7,8 @@ export interface TextExplanationIconData {
   id: string;
   position: { x: number; y: number };
   selectionRange: Range | null;
+  /** Wrapper element for scroll tracking (preferred over selectionRange) */
+  wrapperElement?: HTMLElement | null;
   isSpinning: boolean;
   onTogglePanel: () => void;
   iconRef?: (element: HTMLElement | null) => void;
@@ -50,6 +52,7 @@ export const TextExplanationIconContainer: React.FC<TextExplanationIconContainer
           iconRef={icon.iconRef}
           isPanelOpen={icon.isPanelOpen}
           selectionRange={icon.selectionRange}
+          wrapperElement={icon.wrapperElement}
           isBookmarked={icon.isBookmarked}
           onBookmarkClick={icon.onBookmarkClick}
         />
