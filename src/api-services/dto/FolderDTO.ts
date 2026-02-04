@@ -14,4 +14,17 @@ export interface GetAllFoldersResponse {
   folders: FolderWithSubFoldersResponse[];
 }
 
+export interface CreateFolderRequest {
+  name: string;
+  parent_folder_id?: string;
+}
 
+export interface CreateFolderResponse {
+  id: string;
+  name: string;
+  type: string;
+  parent_id: string | null;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}

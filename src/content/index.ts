@@ -8978,9 +8978,7 @@ async function updateFolderListModal(): Promise<void> {
       : folderModalMode === 'image'
       ? handleFolderModalSaveForImage
       : handleFolderModalSave;
-    const createFolderHandler = folderModalMode === 'link'
-      ? handleCreateLinkFolder
-      : handleCreateParagraphFolder; // Use paragraph folder handler for both paragraph, word, and image modes
+    const createFolderHandler = handleCreateFolder; // Use unified folder handler for all modes (paragraph, word, image, link)
     
     // Check if the selected folder matches the stored preference (unified for all bookmark types)
     const storedFolderId = await ChromeStorage.getBookmarkPreferenceFolderId();
@@ -9729,17 +9727,17 @@ async function handleFolderModalSaveForWord(folderId: string | null): Promise<vo
 }
 
 /**
- * Handle create paragraph folder in folder modal
+ * Handle create folder in folder modal (unified for all modes: paragraph, word, image, link)
  */
-async function handleCreateParagraphFolder(folderName: string, parentFolderId: string | null): Promise<void> {
-  console.log('[Content Script] Creating paragraph folder:', folderName, 'with parent:', parentFolderId);
+async function handleCreateFolder(folderName: string, parentFolderId: string | null): Promise<void> {
+  console.log('[Content Script] Creating folder:', folderName, 'with parent:', parentFolderId);
   
   // Set creating state
   folderModalCreatingFolder = true;
   updateFolderListModal();
   
-  // Create folder
-  SavedParagraphService.createParagraphFolder(
+  // Create folder using unified FolderService
+  FolderService.createFolder(
     {
       name: folderName,
       parent_folder_id: parentFolderId || undefined,
@@ -9806,91 +9804,6 @@ async function handleCreateParagraphFolder(folderName: string, parentFolderId: s
       },
       onSubscriptionRequired: () => {
         console.log('[Content Script] Subscription required to create folder');
-        closeFolderListModal();
-        store.set(showSubscriptionModalAtom, true);
-      },
-    }
-  );
-}
-
-/**
- * Handle create link folder in folder modal
- */
-async function handleCreateLinkFolder(folderName: string, parentFolderId: string | null): Promise<void> {
-  console.log('[Content Script] Creating link folder:', folderName, 'with parent:', parentFolderId);
-  
-  // Set creating state
-  folderModalCreatingFolder = true;
-  updateFolderListModal();
-  
-  // Create folder
-  SavedLinkService.createLinkFolder(
-    {
-      name: folderName,
-      parent_folder_id: parentFolderId || undefined,
-    },
-    {
-      onSuccess: (response) => {
-        console.log('[Content Script] Link folder created successfully with id:', response.id);
-        
-        // Add new folder to the list
-        const newFolder: FolderWithSubFoldersResponse = {
-          id: response.id,
-          name: response.name,
-          created_at: response.created_at,
-          updated_at: response.updated_at,
-          subFolders: [],
-        };
-        
-        // Add to the appropriate location in the tree
-        if (parentFolderId) {
-          // Find and update the parent folder
-          const updateFolderTree = (folders: FolderWithSubFoldersResponse[]): FolderWithSubFoldersResponse[] => {
-            return folders.map(folder => {
-              if (folder.id === parentFolderId) {
-                // Add to this folder's subFolders
-                return {
-                  ...folder,
-                  subFolders: [...folder.subFolders, newFolder]
-                };
-              } else if (folder.subFolders.length > 0) {
-                // Recursively search in subFolders
-                return {
-                  ...folder,
-                  subFolders: updateFolderTree(folder.subFolders)
-                };
-              }
-              return folder;
-            });
-          };
-          
-          folderModalFolders = updateFolderTree(folderModalFolders);
-          // Ensure parent folder is expanded so the new folder is visible
-          folderModalExpandedFolders = new Set([...folderModalExpandedFolders, parentFolderId]);
-        } else {
-          // Add to root level
-          folderModalFolders = [...folderModalFolders, newFolder];
-        }
-        
-        folderModalCreatingFolder = false;
-        folderModalSelectedFolderId = response.id; // Auto-select the newly created folder
-        
-        updateFolderListModal();
-        showToast('Folder created successfully!', 'success');
-      },
-      onError: (errorCode, message) => {
-        console.error('[Content Script] Failed to create link folder:', errorCode, message);
-        folderModalCreatingFolder = false;
-        updateFolderListModal();
-        showToast(`Failed to create folder: ${message}`, 'error');
-      },
-      onLoginRequired: () => {
-        console.log('[Content Script] Login required to create link folder');
-        closeFolderListModal();
-        store.set(showLoginModalAtom, true);
-      },
-      onSubscriptionRequired: () => {
-        console.log('[Content Script] Subscription required to create link folder');
         closeFolderListModal();
         store.set(showSubscriptionModalAtom, true);
       },
