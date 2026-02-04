@@ -590,7 +590,7 @@ export const FolderListModal: React.FC<FolderListModalProps> = ({
                   onClick={handleSave}
                   disabled={isSaving}
                 >
-                  {isSaving ? 'Saving...' : 'Save Text'}
+                  {isSaving ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>
