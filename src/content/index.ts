@@ -4879,6 +4879,9 @@ function toggleTextExplanationPanel(explanationId: string): void {
       // Opening - close all other sidebars (parallel animations)
       closeAllSidebars('text');
       
+      // Ensure panel is injected before opening
+      injectTextExplanationPanel();
+      
       store.set(textExplanationPanelOpenAtom, true);
       updateTextExplanationPanel();
       updateTextExplanationIconContainer();
@@ -4896,6 +4899,9 @@ function toggleTextExplanationPanel(explanationId: string): void {
     
     // Close all other sidebars (parallel animations)
     closeAllSidebars('text');
+    
+    // Ensure panel is injected before opening
+    injectTextExplanationPanel();
     
     store.set(activeTextExplanationIdAtom, explanationId);
     store.set(textExplanationPanelOpenAtom, true);
