@@ -253,6 +253,8 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
             onSynonym={onSynonym}
             onOpposite={onOpposite}
             onHideButtonGroup={handleHideButtonGroup}
+            onPopoverMouseEnter={handleOptionsMouseEnter}
+            onPopoverMouseLeave={handleOptionsMouseLeave}
           />
         </ContentActionButton>
       </div>
