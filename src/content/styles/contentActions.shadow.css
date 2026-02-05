@@ -371,13 +371,25 @@
   transform-origin: top center;
 }
 
+/* Triangle arrow - outer border layer */
 .actionButtonOptionsPopover::before {
   content: '' !important;
   position: absolute !important;
   bottom: 100% !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  border: 6px solid transparent !important;
+  border: 8px solid transparent !important;
+  border-bottom-color: var(--color-border-default-theme) !important;
+}
+
+/* Triangle arrow - inner fill layer */
+.actionButtonOptionsPopover::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(1.5px) !important;
+  border: 7px solid transparent !important;
   border-bottom-color: var(--color-bg-primary-theme) !important;
 }
 
