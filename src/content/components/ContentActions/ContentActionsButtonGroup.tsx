@@ -54,6 +54,7 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   const closingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const buttonGroupRef = useRef<HTMLDivElement>(null);
   const lastMeasuredWidth = useRef<number>(0); // Store the last measured width for closing animation
+  const optionsHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Track 500ms close delay for options popover
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -64,20 +65,29 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
       if (closingTimeoutRef.current) {
         clearTimeout(closingTimeoutRef.current);
       }
+      if (optionsHoverTimeoutRef.current) {
+        clearTimeout(optionsHoverTimeoutRef.current);
+      }
     };
   }, []);
 
-  // Handle click on 3-dot options button - toggle popover
-  const handleOptionsButtonClick = useCallback(() => {
-    setShowOptionsPopover((prev) => {
-      const newValue = !prev;
-      if (newValue) {
-        // Popover is opening - ensure states stay active
-        onKeepActive?.();
-      }
-      return newValue;
-    });
+  // Handle mouse enter on options button - show popover
+  const handleOptionsMouseEnter = useCallback(() => {
+    // Clear any pending close timeout
+    if (optionsHoverTimeoutRef.current) {
+      clearTimeout(optionsHoverTimeoutRef.current);
+      optionsHoverTimeoutRef.current = null;
+    }
+    setShowOptionsPopover(true);
+    onKeepActive?.();
   }, [onKeepActive]);
+
+  // Handle mouse leave from options button - start 500ms close timer
+  const handleOptionsMouseLeave = useCallback(() => {
+    optionsHoverTimeoutRef.current = setTimeout(() => {
+      setShowOptionsPopover(false);
+    }, 500);
+  }, []);
 
   const handleHideButtonGroup = useCallback(() => {
     // Hide popover when an option is clicked
@@ -223,12 +233,15 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
         />
       )}
       
-      {/* Options button (3 dots) with options popover - CLICK to toggle */}
-      <div className="optionsButtonWrapper">
+      {/* Options button (3 dots) with options popover - HOVER to show */}
+      <div 
+        className="optionsButtonWrapper"
+        onMouseEnter={handleOptionsMouseEnter}
+        onMouseLeave={handleOptionsMouseLeave}
+      >
         <ContentActionButton
           icon="options"
           tooltip="More options"
-          onClick={handleOptionsButtonClick}
           delay={2}
           className="optionsButton"
           hideTooltip={showOptionsPopover}
