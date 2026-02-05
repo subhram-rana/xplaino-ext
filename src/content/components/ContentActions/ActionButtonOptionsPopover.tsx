@@ -16,6 +16,10 @@ export interface ActionButtonOptionsPopoverProps {
   onOpposite?: () => void;
   /** Callback to hide the action button group */
   onHideButtonGroup?: () => void;
+  /** Callback when mouse enters popover (to cancel close timer) */
+  onPopoverMouseEnter?: () => void;
+  /** Callback when mouse leaves popover (to start close timer) */
+  onPopoverMouseLeave?: () => void;
 }
 
 export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProps> = ({
@@ -25,6 +29,8 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
   onSynonym,
   onOpposite,
   onHideButtonGroup,
+  onPopoverMouseEnter,
+  onPopoverMouseLeave,
 }) => {
   const wasVisible = useRef(false);
 
@@ -106,6 +112,8 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
       className={`actionButtonOptionsPopover ${animationState === 'shrinking' ? 'closing' : ''}`}
       style={animationStyle}
       onMouseDown={(e) => e.stopPropagation()}
+      onMouseEnter={onPopoverMouseEnter}
+      onMouseLeave={onPopoverMouseLeave}
     >
       {/* Translate - always visible */}
       <button
