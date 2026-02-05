@@ -31,6 +31,8 @@ export interface SummaryViewProps {
   useShadowDom?: boolean;
   /** Callback when login is required */
   onLoginRequired?: () => void;
+  /** Whether the side panel is open - used to clear highlights on close */
+  isOpen?: boolean;
 }
 
 // Reference link pattern: [[[ ref text ]]]
@@ -39,6 +41,7 @@ const REF_LINK_PATTERN = /\[\[\[\s*(.+?)\s*\]\]\]/g;
 export const SummaryView: React.FC<SummaryViewProps> = ({
   useShadowDom = false,
   onLoginRequired,
+  isOpen = true,
 }) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
@@ -290,6 +293,28 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     }, 300); // Match transition duration (0.3s = 300ms)
   }, []);
 
+  // Clear highlight when side panel closes
+  useEffect(() => {
+    if (!isOpen) {
+      // Clear any active highlight when panel closes
+      if (highlightedElementRef.current) {
+        clearHighlightSmoothly(highlightedElementRef.current);
+        highlightedElementRef.current = undefined;
+      }
+      setActiveRefText(null);
+      // Clear scroll target
+      activeScrollTargetRef.current = null;
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+      }
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+        highlightTimeoutRef.current = null;
+      }
+    }
+  }, [isOpen, clearHighlightSmoothly]);
+
   // Handle reference link click - scroll and highlight
   const handleReferenceClick = useCallback((refText: string) => {
     console.log('========================================');
@@ -471,7 +496,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         };
         console.log('[SummaryView] Original element styles:', originalStyles);
         
-        element.style.backgroundColor = colorWithOpacity(COLORS.PRIMARY_VERY_LIGHT, 0.5);
+        element.style.backgroundColor = colorWithOpacity(COLORS.PRIMARY_LIGHT, 0.3);
         element.style.borderRadius = '5px';
         element.style.paddingLeft = '4px';
         element.style.paddingRight = '4px';

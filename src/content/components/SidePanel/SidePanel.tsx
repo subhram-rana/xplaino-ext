@@ -376,6 +376,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           <SummaryView
             useShadowDom={useShadowDom}
             onLoginRequired={handleLoginRequired}
+            isOpen={isOpen}
           />
         )}
         {activeTab === 'settings' && (
