@@ -96,7 +96,7 @@
   border: 1.5px solid var(--color-border-default-theme) !important;
   opacity: 0 !important;
   visibility: hidden !important;
-  transform: translateX(-22px) translateY(-12px) !important;
+  transform: translateX(-19px) translateY(-12px) !important;
   width: var(--button-group-width, 0px) !important;
   max-width: 500px !important;
   overflow: hidden !important; /* Clip icons during width animation */
@@ -106,17 +106,19 @@
   top: 0 !important;
   transform-origin: left center !important;
   white-space: nowrap !important;
+  pointer-events: none !important;
 }
 
 .contentActionsButtonGroup.visible {
   opacity: 1 !important;
   visibility: visible !important;
-  transform: translateX(-22px) translateY(-12px) !important;
+  transform: translateX(-19px) translateY(-12px) !important;
   /* Width will be set via CSS variable by JavaScript */
   max-width: 500px !important;
   overflow: hidden !important; /* Keep hidden during expansion for progressive reveal */
   will-change: width !important;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease, visibility 0s ease !important;
+  pointer-events: auto !important;
 }
 
 /* Closing state - keeps visible during width shrink animation */
