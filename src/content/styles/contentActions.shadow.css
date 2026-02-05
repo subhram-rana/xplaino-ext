@@ -96,7 +96,7 @@
   border: 1.5px solid var(--color-border-default-theme) !important;
   opacity: 0 !important;
   visibility: hidden !important;
-  transform: translateX(-19px) translateY(-12px) !important;
+  transform: translateX(-19px) translateY(-9px) !important;
   width: var(--button-group-width, 0px) !important;
   max-width: 500px !important;
   overflow: hidden !important; /* Clip icons during width animation */
@@ -112,7 +112,7 @@
 .contentActionsButtonGroup.visible {
   opacity: 1 !important;
   visibility: visible !important;
-  transform: translateX(-19px) translateY(-12px) !important;
+  transform: translateX(-19px) translateY(-9px) !important;
   /* Width will be set via CSS variable by JavaScript */
   max-width: 500px !important;
   overflow: hidden !important; /* Keep hidden during expansion for progressive reveal */
