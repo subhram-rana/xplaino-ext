@@ -61,7 +61,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
   const [pageTranslationView, setPageTranslationView] = useState<'REPLACE' | 'APPEND'>('REPLACE');
   const [backendTheme, setBackendTheme] = useState<'LIGHT' | 'DARK'>('LIGHT');
   const [languageOptions, setLanguageOptions] = useState<DropdownOption[]>([]);
-  const [settingsUpdating, setSettingsUpdating] = useState<boolean>(false);
+  const [, setSettingsUpdating] = useState<boolean>(false);
 
   useEffect(() => {
     loadSettings();
