@@ -36,6 +36,41 @@ export interface ContentActionsTriggerProps {
   onBetterCasual?: (selectedText: string) => void;
   /** Callback when Better Alternative (academic) is clicked */
   onBetterAcademic?: (selectedText: string) => void;
+  // --- Text selection callbacks ---
+  /** Callback when Ask AI is clicked (text selection) */
+  onTextAskAI?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Summarize is clicked */
+  onSummarize?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Key Points is clicked */
+  onKeyPoints?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Rewrite is clicked */
+  onRewrite?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Paraphrase is clicked */
+  onParaphrase?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Improve Writing is clicked */
+  onImproveWriting?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Fix Grammar is clicked */
+  onFixGrammar?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Tone is clicked */
+  onTone?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Convert to Bullets is clicked */
+  onConvertBullets?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Convert to Table is clicked */
+  onConvertTable?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Convert to Diagram is clicked */
+  onConvertDiagram?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Create Mind Map is clicked */
+  onCreateMindMap?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Convert to Email is clicked */
+  onConvertEmail?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Convert to WhatsApp is clicked */
+  onConvertWhatsApp?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Convert to LinkedIn is clicked */
+  onConvertLinkedIn?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Convert to Tweet is clicked */
+  onConvertTweet?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
+  /** Callback when Convert to Presentation is clicked */
+  onConvertPresentation?: (selectedText: string, range?: Range, iconPosition?: { x: number; y: number }) => void;
   /** Callback to show disable notification modal */
   onShowModal?: () => void;
   /** Callback to show toast message */
@@ -66,6 +101,24 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   onBetterFormal,
   onBetterCasual,
   onBetterAcademic,
+  // Text selection props
+  onTextAskAI,
+  onSummarize,
+  onKeyPoints,
+  onRewrite,
+  onParaphrase,
+  onImproveWriting,
+  onFixGrammar,
+  onTone,
+  onConvertBullets,
+  onConvertTable,
+  onConvertDiagram,
+  onCreateMindMap,
+  onConvertEmail,
+  onConvertWhatsApp,
+  onConvertLinkedIn,
+  onConvertTweet,
+  onConvertPresentation,
   onShowModal,
   onShowToast,
 }) => {
@@ -548,6 +601,211 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     }
   }, [selection, onBetterAcademic]);
 
+  // Helper to get range and icon position for text selection actions
+  const getTextSelectionContext = useCallback((): { range?: Range; iconPosition?: { x: number; y: number } } => {
+    let range: Range | undefined = undefined;
+    const windowSelection = window.getSelection();
+    if (windowSelection && windowSelection.rangeCount > 0) {
+      range = windowSelection.getRangeAt(0).cloneRange();
+    } else if (selection?.range) {
+      range = selection.range;
+    }
+    
+    if (!range) return {};
+    
+    // Calculate icon position (same as handleExplain)
+    let containingElement: HTMLElement | null = null;
+    let node: Node | null = range.startContainer;
+    while (node && node !== document.body) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        containingElement = node as HTMLElement;
+        break;
+      }
+      node = node.parentNode;
+    }
+    if (!containingElement) containingElement = document.body;
+    
+    const elementRect = containingElement.getBoundingClientRect();
+    const selectionRect = range.getBoundingClientRect();
+    const iconPosition = {
+      x: elementRect.left - 30,
+      y: selectionRect.top,
+    };
+    
+    return { range, iconPosition };
+  }, [selection]);
+
+  // --- Text selection handlers ---
+  const handleTextAskAI = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Text Ask AI:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onTextAskAI?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onTextAskAI, getTextSelectionContext]);
+
+  const handleSummarize = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Summarize:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onSummarize?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onSummarize, getTextSelectionContext]);
+
+  const handleKeyPoints = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Key Points:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onKeyPoints?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onKeyPoints, getTextSelectionContext]);
+
+  const handleRewrite = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Rewrite:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onRewrite?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onRewrite, getTextSelectionContext]);
+
+  const handleParaphrase = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Paraphrase:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onParaphrase?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onParaphrase, getTextSelectionContext]);
+
+  const handleImproveWriting = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Improve Writing:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onImproveWriting?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onImproveWriting, getTextSelectionContext]);
+
+  const handleFixGrammar = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Fix Grammar:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onFixGrammar?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onFixGrammar, getTextSelectionContext]);
+
+  const handleTone = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Tone:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onTone?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onTone, getTextSelectionContext]);
+
+  const handleConvertBullets = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Convert to Bullets:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onConvertBullets?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onConvertBullets, getTextSelectionContext]);
+
+  const handleConvertTable = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Convert to Table:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onConvertTable?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onConvertTable, getTextSelectionContext]);
+
+  const handleConvertDiagram = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Convert to Diagram:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onConvertDiagram?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onConvertDiagram, getTextSelectionContext]);
+
+  const handleCreateMindMap = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Create Mind Map:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onCreateMindMap?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onCreateMindMap, getTextSelectionContext]);
+
+  const handleConvertEmail = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Convert to Email:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onConvertEmail?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onConvertEmail, getTextSelectionContext]);
+
+  const handleConvertWhatsApp = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Convert to WhatsApp:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onConvertWhatsApp?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onConvertWhatsApp, getTextSelectionContext]);
+
+  const handleConvertLinkedIn = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Convert to LinkedIn:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onConvertLinkedIn?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onConvertLinkedIn, getTextSelectionContext]);
+
+  const handleConvertTweet = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Convert to Tweet:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onConvertTweet?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onConvertTweet, getTextSelectionContext]);
+
+  const handleConvertPresentation = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Convert to Presentation:', selection.text.substring(0, 50));
+      setShowButtonGroup(false);
+      setIsHovering(false);
+      const { range, iconPosition } = getTextSelectionContext();
+      onConvertPresentation?.(selection.text, range, iconPosition);
+    }
+  }, [selection, onConvertPresentation, getTextSelectionContext]);
+
   // Handle action completion - clear selection and hide all UI
   const handleActionComplete = useCallback(() => {
     // Clear window selection
@@ -614,6 +872,23 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
         onBetterFormal={handleBetterFormal}
         onBetterCasual={handleBetterCasual}
         onBetterAcademic={handleBetterAcademic}
+        onTextAskAI={handleTextAskAI}
+        onSummarize={handleSummarize}
+        onKeyPoints={handleKeyPoints}
+        onRewrite={handleRewrite}
+        onParaphrase={handleParaphrase}
+        onImproveWriting={handleImproveWriting}
+        onFixGrammar={handleFixGrammar}
+        onTone={handleTone}
+        onConvertBullets={handleConvertBullets}
+        onConvertTable={handleConvertTable}
+        onConvertDiagram={handleConvertDiagram}
+        onCreateMindMap={handleCreateMindMap}
+        onConvertEmail={handleConvertEmail}
+        onConvertWhatsApp={handleConvertWhatsApp}
+        onConvertLinkedIn={handleConvertLinkedIn}
+        onConvertTweet={handleConvertTweet}
+        onConvertPresentation={handleConvertPresentation}
         onMouseEnter={handleContainerMouseEnter}
         onMouseLeave={handleContainerMouseLeave}
         onKeepActive={handleKeepActive}

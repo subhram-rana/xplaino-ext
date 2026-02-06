@@ -80,7 +80,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
           </span>
         ) : (
           <IconComponent
-            size={18}
+            size={22}
             strokeWidth={2.5}
           />
         )}

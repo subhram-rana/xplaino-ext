@@ -1194,6 +1194,24 @@ async function injectContentActions(): Promise<void> {
         onBetterFormal: handleBetterFormalClick,
         onBetterCasual: handleBetterCasualClick,
         onBetterAcademic: handleBetterAcademicClick,
+        // Text selection AI actions
+        onTextAskAI: handleTextAskAIOpen,
+        onSummarize: handleTextSummarize,
+        onKeyPoints: handleTextKeyPoints,
+        onRewrite: handleTextRewrite,
+        onParaphrase: handleTextParaphrase,
+        onImproveWriting: handleTextImproveWriting,
+        onFixGrammar: handleTextFixGrammar,
+        onTone: handleTextTone,
+        onConvertBullets: handleTextConvertBullets,
+        onConvertTable: handleTextConvertTable,
+        onConvertDiagram: handleTextConvertDiagram,
+        onCreateMindMap: handleTextCreateMindMap,
+        onConvertEmail: handleTextConvertEmail,
+        onConvertWhatsApp: handleTextConvertWhatsApp,
+        onConvertLinkedIn: handleTextConvertLinkedIn,
+        onConvertTweet: handleTextConvertTweet,
+        onConvertPresentation: handleTextConvertPresentation,
         onShowModal: showDisableModal,
         onShowToast: showToast,
       })
@@ -2870,6 +2888,592 @@ async function handleBetterAcademicClick(selectedText: string): Promise<void> {
     selectedText,
     `Suggest a more academic or scholarly alternative to the word '${selectedText}' for research papers and explain its precise usage.`
   );
+}
+
+// =============================================================================
+// TEXT SELECTION AI ACTIONS (from 3-dot menu)
+// =============================================================================
+
+/**
+ * Set up a Text Explanation state for Ask AI actions (without initial simplify).
+ * Creates a TextExplanationState, adds underline, but does NOT open the panel.
+ * When openPanel is true (default), the panel opens immediately (used for "Ask AI" button).
+ * When openPanel is false, the caller controls when to open the panel (used for auto-send actions).
+ * Returns the explanationId.
+ */
+async function openTextExplanationPanelForAskAI(
+  selectedText: string,
+  range?: Range,
+  iconPosition?: { x: number; y: number },
+  openPanel: boolean = true
+): Promise<string | null> {
+  console.log('[Content Script] openTextExplanationPanelForAskAI:', selectedText.substring(0, 50), { openPanel });
+
+  // Try to get range from window selection if not provided
+  if (!range) {
+    const windowSelection = window.getSelection();
+    if (windowSelection && windowSelection.rangeCount > 0) {
+      range = windowSelection.getRangeAt(0).cloneRange();
+    }
+  }
+
+  if (!range) {
+    console.warn('[Content Script] No range available for text Ask AI');
+    return null;
+  }
+
+  // Calculate icon position if not provided
+  if (!iconPosition) {
+    let containingElement: HTMLElement | null = null;
+    let node: Node | null = range.startContainer;
+    while (node && node !== document.body) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        containingElement = node as HTMLElement;
+        break;
+      }
+      node = node.parentNode;
+    }
+    if (!containingElement) containingElement = document.body;
+    const elementRect = containingElement.getBoundingClientRect();
+    const selectionRect = range.getBoundingClientRect();
+    iconPosition = {
+      x: elementRect.left - 30,
+      y: selectionRect.top,
+    };
+  }
+
+  // Get current explanations and active ID
+  const explanations = store.get(textExplanationsAtom);
+  const activeId = store.get(activeTextExplanationIdAtom);
+
+  // If there's an active explanation, abort it and close its panel
+  if (activeId) {
+    const activeExplanation = explanations.get(activeId);
+    if (activeExplanation?.abortController) {
+      activeExplanation.abortController.abort();
+    }
+    store.set(textExplanationPanelOpenAtom, false);
+  }
+
+  // Close image panel if open
+  const activeImageIdToClose = store.get(activeImageExplanationIdAtom);
+  const hasImagePanelToClose = activeImageIdToClose && store.get(imageExplanationPanelOpenAtom);
+  if (hasImagePanelToClose && activeImageIdToClose) {
+    const imageExplanations = store.get(imageExplanationsAtom);
+    const activeImageExplanation = imageExplanations.get(activeImageIdToClose);
+    if (activeImageExplanation?.abortController) {
+      activeImageExplanation.abortController.abort();
+    }
+    store.set(imageExplanationPanelOpenAtom, false);
+    store.set(activeImageExplanationIdAtom, null);
+    updateImageExplanationPanel();
+    updateImageExplanationIconContainer();
+  }
+
+  // Calculate textStartIndex and textLength
+  const textStartIndex = calculateTextStartIndex(range);
+  const textLength = selectedText.length;
+
+  // Create new explanation state
+  const explanationId = `explanation-${Date.now()}`;
+  const iconRef: React.MutableRefObject<HTMLElement | null> = { current: null };
+
+  const newExplanation: TextExplanationState = {
+    id: explanationId,
+    selectedText,
+    range: range.cloneRange(),
+    iconPosition,
+    isSpinning: !openPanel, // Show spinner if panel deferred (waiting for API)
+    streamingText: '',
+    underlineState: null,
+    abortController: null, // Will be set by the caller if deferred
+    firstChunkReceived: openPanel, // If opening immediately, mark as ready
+    iconRef,
+    possibleQuestions: [],
+    textStartIndex,
+    textLength,
+    shouldAllowSimplifyMore: true,
+    previousSimplifiedTexts: [],
+    simplifiedExplanationCount: 0,
+    isSimplifyRequest: false,
+    translations: [],
+  };
+
+  // Add to map
+  const newMap = new Map(explanations);
+  newMap.set(explanationId, newExplanation);
+  store.set(textExplanationsAtom, newMap);
+
+  // Set as active
+  store.set(activeTextExplanationIdAtom, explanationId);
+
+  // Reset view mode to contextual
+  textExplanationViewMode = 'contextual';
+
+  // Initialize empty chat history
+  textExplanationChatHistory.set(explanationId, []);
+
+  // Inject icon container and panel if not already injected
+  injectTextExplanationIconContainer();
+  injectTextExplanationPanel();
+
+  // Update icon container to show spinner (for deferred) or green icon (for immediate)
+  updateTextExplanationIconContainer();
+
+  // Only add underline immediately if opening panel right away
+  // When deferred (openPanel=false), underline is added on first API chunk
+  if (openPanel) {
+    const underlineState = await addTextUnderline(range);
+    updateExplanationInMap(explanationId, (state) => ({
+      ...state,
+      underlineState,
+    }));
+  }
+
+  // Clear text selection to hide action buttons
+  window.getSelection()?.removeAllRanges();
+
+  // Only open the panel immediately if requested
+  if (openPanel) {
+    store.set(textExplanationPanelOpenAtom, true);
+    updateTextExplanationPanel(); // Also initializes handleQuestionClickCallback
+    updateTextExplanationIconContainer();
+  }
+
+  return explanationId;
+}
+
+/**
+ * Generic handler for text Ask AI actions from the 3-dot menu.
+ * Creates explanation state (panel stays closed), fires AskService API directly,
+ * opens the panel only on first successful chunk. On error, cleans up without opening.
+ */
+async function handleTextAskAIAction(
+  selectedText: string,
+  question: string,
+  range?: Range,
+  iconPosition?: { x: number; y: number }
+): Promise<void> {
+  console.log('[Content Script] Text Ask AI action:', { selectedText: selectedText.substring(0, 50), question });
+
+  try {
+    // Create state but do NOT open the panel yet
+    const explanationId = await openTextExplanationPanelForAskAI(selectedText, range, iconPosition, false);
+    if (!explanationId) return;
+
+    try {
+    // Set up abort controller for the API call
+    const newAbortController = new AbortController();
+
+    // Add user message to chat history
+    const userMessage = { role: 'user' as const, content: question };
+    textExplanationChatHistory.set(explanationId, [userMessage]);
+
+    // Update state with abort controller and pending question
+    updateExplanationInMap(explanationId, (state) => {
+      state.abortController = newAbortController;
+      state.streamingText = '';
+      state.firstChunkReceived = false;
+      state.pendingQuestion = question;
+      state.isSpinning = true;
+      return state;
+    });
+    updateTextExplanationIconContainer();
+
+    // Get language code from user settings
+    const nativeLanguage = await ChromeStorage.getUserSettingNativeLanguage();
+    const languageCode = nativeLanguage ? (getLanguageCode(nativeLanguage) || undefined) : undefined;
+
+    // Call AskService directly - panel opens on first chunk
+    await AskService.ask(
+      {
+        question: question.trim(),
+        chat_history: [userMessage],
+        initial_context: selectedText,
+        context_type: 'TEXT',
+        languageCode,
+      },
+      {
+        onChunk: async (_chunk, accumulated) => {
+          let isFirstChunk = false;
+          let rangeToUnderline: Range | null = null;
+
+          updateExplanationInMap(explanationId, (state) => {
+            state.streamingText = accumulated;
+            if (!state.firstChunkReceived) {
+              isFirstChunk = true;
+              state.firstChunkReceived = true;
+              state.isSpinning = false;
+              // Store range for underline (will be added after state update)
+              if (state.range) {
+                rangeToUnderline = state.range;
+              }
+            }
+            return state;
+          });
+
+          // Add underline on first chunk (matching handleExplainClick behavior)
+          if (isFirstChunk && rangeToUnderline) {
+            const underlineState = await addTextUnderline(rangeToUnderline);
+            updateExplanationInMap(explanationId, (state) => ({
+              ...state,
+              underlineState,
+            }));
+          }
+
+          // On first chunk: open the panel
+          if (isFirstChunk) {
+            store.set(textExplanationPanelOpenAtom, true);
+            updateTextExplanationPanel(); // Initializes handleQuestionClickCallback too
+            updateTextExplanationIconContainer();
+          } else {
+            updateTextExplanationPanel();
+          }
+        },
+        onComplete: (updatedChatHistory, questions) => {
+          console.log('[Content Script] Text Ask AI action complete for:', explanationId);
+
+          // Extract assistant message from API response
+          const assistantMessage = updatedChatHistory[updatedChatHistory.length - 1];
+          if (assistantMessage && assistantMessage.role === 'assistant') {
+            const currentChatHistory = textExplanationChatHistory.get(explanationId) || [];
+            const updatedHistory = [...currentChatHistory, assistantMessage];
+            textExplanationChatHistory.set(explanationId, updatedHistory);
+
+            // Store questions for the assistant message
+            if (questions && questions.length > 0) {
+              if (!textExplanationMessageQuestions.has(explanationId)) {
+                textExplanationMessageQuestions.set(explanationId, {});
+              }
+              const messageQuestions = textExplanationMessageQuestions.get(explanationId)!;
+              messageQuestions[updatedHistory.length - 1] = questions;
+              textExplanationMessageQuestions.set(explanationId, messageQuestions);
+            }
+          }
+
+          // Clear streaming state
+          updateExplanationInMap(explanationId, (state) => {
+            state.streamingText = '';
+            state.possibleQuestions = questions || [];
+            state.pendingQuestion = undefined;
+            state.abortController = null;
+            state.firstChunkReceived = false;
+            state.isSimplifyRequest = undefined;
+            state.isSpinning = false;
+            return state;
+          });
+
+          updateTextExplanationPanel();
+          updateTextExplanationIconContainer();
+        },
+        onError: (errorCode, errorMsg) => {
+          console.error('[Content Script] Text Ask AI action error:', errorCode, errorMsg);
+
+          // Show error toast
+          showToast(errorMsg || 'Failed to process. Please try again.', 'error');
+
+          // Check if the panel was already opened (first chunk received)
+          const currentState = store.get(textExplanationsAtom).get(explanationId);
+          const panelWasOpened = store.get(textExplanationPanelOpenAtom);
+
+          if (!panelWasOpened) {
+            // Panel was never opened - clean up the explanation entirely
+            const newMap = new Map(store.get(textExplanationsAtom));
+
+            // Remove underline
+            if (currentState?.underlineState) {
+              removeTextUnderline(currentState.underlineState);
+            }
+
+            newMap.delete(explanationId);
+            store.set(textExplanationsAtom, newMap);
+            textExplanationChatHistory.delete(explanationId);
+            textExplanationMessageQuestions.delete(explanationId);
+
+            // Clear active if this was active
+            if (store.get(activeTextExplanationIdAtom) === explanationId) {
+              store.set(activeTextExplanationIdAtom, null);
+            }
+
+            updateTextExplanationIconContainer();
+
+            // Remove icon container if no explanations left
+            if (newMap.size === 0) {
+              removeTextExplanationIconContainer();
+            }
+          } else {
+            // Panel was opened, just clear the error state
+            updateExplanationInMap(explanationId, (state) => {
+              state.abortController = null;
+              state.firstChunkReceived = false;
+              state.isSpinning = false;
+              state.isSimplifyRequest = undefined;
+              return state;
+            });
+            updateTextExplanationPanel();
+          }
+        },
+        onLoginRequired: () => {
+          console.log('[Content Script] Login required for text Ask AI action');
+
+          // Clean up explanation (same as onError when panel was never opened)
+          const currentState = store.get(textExplanationsAtom).get(explanationId);
+          const panelWasOpened = store.get(textExplanationPanelOpenAtom);
+
+          if (!panelWasOpened) {
+            const newMap = new Map(store.get(textExplanationsAtom));
+            if (currentState?.underlineState) {
+              removeTextUnderline(currentState.underlineState);
+            }
+            newMap.delete(explanationId);
+            store.set(textExplanationsAtom, newMap);
+            textExplanationChatHistory.delete(explanationId);
+            textExplanationMessageQuestions.delete(explanationId);
+            if (store.get(activeTextExplanationIdAtom) === explanationId) {
+              store.set(activeTextExplanationIdAtom, null);
+            }
+            updateTextExplanationIconContainer();
+            if (newMap.size === 0) {
+              removeTextExplanationIconContainer();
+            }
+          } else {
+            updateExplanationInMap(explanationId, (state) => {
+              state.abortController = null;
+              state.firstChunkReceived = false;
+              state.isSpinning = false;
+              state.isSimplifyRequest = undefined;
+              return state;
+            });
+            updateTextExplanationPanel();
+            updateTextExplanationIconContainer();
+          }
+
+          store.set(showLoginModalAtom, true);
+        },
+        onSubscriptionRequired: () => {
+          console.log('[Content Script] Subscription required for text Ask AI action');
+
+          // Clean up explanation (same as onLoginRequired above)
+          const currentState = store.get(textExplanationsAtom).get(explanationId);
+          const panelWasOpened = store.get(textExplanationPanelOpenAtom);
+
+          if (!panelWasOpened) {
+            const newMap = new Map(store.get(textExplanationsAtom));
+            if (currentState?.underlineState) {
+              removeTextUnderline(currentState.underlineState);
+            }
+            newMap.delete(explanationId);
+            store.set(textExplanationsAtom, newMap);
+            textExplanationChatHistory.delete(explanationId);
+            textExplanationMessageQuestions.delete(explanationId);
+            if (store.get(activeTextExplanationIdAtom) === explanationId) {
+              store.set(activeTextExplanationIdAtom, null);
+            }
+            updateTextExplanationIconContainer();
+            if (newMap.size === 0) {
+              removeTextExplanationIconContainer();
+            }
+          } else {
+            updateExplanationInMap(explanationId, (state) => {
+              state.abortController = null;
+              state.firstChunkReceived = false;
+              state.isSpinning = false;
+              state.isSimplifyRequest = undefined;
+              return state;
+            });
+            updateTextExplanationPanel();
+            updateTextExplanationIconContainer();
+          }
+
+          store.set(showSubscriptionModalAtom, true);
+        },
+      },
+      newAbortController
+    );
+    } catch (error) {
+      console.error('[Content Script] Text Ask AI action exception:', error);
+      showToast('An error occurred', 'error');
+
+      // Clean up explanation on exception
+      const currentState = store.get(textExplanationsAtom).get(explanationId);
+      const panelWasOpened = store.get(textExplanationPanelOpenAtom);
+
+      if (!panelWasOpened) {
+        const newMap = new Map(store.get(textExplanationsAtom));
+        if (currentState?.underlineState) {
+          removeTextUnderline(currentState.underlineState);
+        }
+        newMap.delete(explanationId);
+        store.set(textExplanationsAtom, newMap);
+        textExplanationChatHistory.delete(explanationId);
+        textExplanationMessageQuestions.delete(explanationId);
+        if (store.get(activeTextExplanationIdAtom) === explanationId) {
+          store.set(activeTextExplanationIdAtom, null);
+        }
+        updateTextExplanationIconContainer();
+        if (newMap.size === 0) {
+          removeTextExplanationIconContainer();
+        }
+      } else {
+        updateExplanationInMap(explanationId, (state) => {
+          state.abortController = null;
+          state.firstChunkReceived = false;
+          state.isSpinning = false;
+          state.isSimplifyRequest = undefined;
+          return state;
+        });
+        updateTextExplanationPanel();
+        updateTextExplanationIconContainer();
+      }
+    }
+  } catch (error) {
+    console.error('[Content Script] Text Ask AI action exception:', error);
+    showToast('An error occurred', 'error');
+  }
+}
+
+/**
+ * Handle Ask AI button click from ContentActions 3-dot menu for TEXT selection.
+ * Opens Text Explanation side panel empty and focuses the input (no API call).
+ */
+async function handleTextAskAIOpen(
+  selectedText: string,
+  range?: Range,
+  iconPosition?: { x: number; y: number }
+): Promise<void> {
+  console.log('[Content Script] Text Ask AI open:', selectedText.substring(0, 50));
+
+  try {
+    // Open panel immediately - no API call, just focus input
+    const explanationId = await openTextExplanationPanelForAskAI(selectedText, range, iconPosition, true);
+    if (!explanationId) return;
+
+    // Focus the input after a short delay to let the panel mount
+    setTimeout(() => {
+      const panelHost = document.getElementById('xplaino-text-explanation-panel-host');
+      if (panelHost?.shadowRoot) {
+        const input = panelHost.shadowRoot.querySelector('input[type="text"], textarea, [contenteditable]') as HTMLElement;
+        if (input) {
+          input.focus();
+        }
+      }
+    }, 400);
+  } catch (error) {
+    console.error('[Content Script] Text Ask AI open exception:', error);
+    showToast('An error occurred', 'error');
+  }
+}
+
+/**
+ * Handle Summarize button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextSummarize(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Summarize this text concisely', range, iconPosition);
+}
+
+/**
+ * Handle Key Points button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextKeyPoints(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Extract the key points from this text', range, iconPosition);
+}
+
+/**
+ * Handle Rewrite button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextRewrite(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Rewrite this text to make it clearer and easier to understand', range, iconPosition);
+}
+
+/**
+ * Handle Paraphrase button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextParaphrase(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Paraphrase this text using different wording while keeping the same meaning', range, iconPosition);
+}
+
+/**
+ * Handle Improve Writing button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextImproveWriting(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Improve this text to make it more polished and professional', range, iconPosition);
+}
+
+/**
+ * Handle Fix Grammar button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextFixGrammar(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Fix the grammar, spelling, and punctuation errors in this text', range, iconPosition);
+}
+
+/**
+ * Handle Tone button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextTone(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'What is the tone of this passage? Is it informative, persuasive, critical, or something else?', range, iconPosition);
+}
+
+/**
+ * Handle Convert to Bullets button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextConvertBullets(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Convert this text into a scannable bullet point format', range, iconPosition);
+}
+
+/**
+ * Handle Convert to Table button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextConvertTable(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Convert the structured information in this text into a table format', range, iconPosition);
+}
+
+/**
+ * Handle Convert to Diagram button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextConvertDiagram(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Convert this text into a text-based conceptual flow diagram', range, iconPosition);
+}
+
+/**
+ * Handle Create Mind Map button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextCreateMindMap(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Create a structured mind map representation of the ideas in this text', range, iconPosition);
+}
+
+/**
+ * Handle Convert to Email button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextConvertEmail(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Convert this text into a professional email', range, iconPosition);
+}
+
+/**
+ * Handle Convert to WhatsApp button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextConvertWhatsApp(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Convert this text into a short, friendly WhatsApp message', range, iconPosition);
+}
+
+/**
+ * Handle Convert to LinkedIn button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextConvertLinkedIn(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Convert this text into a LinkedIn post format', range, iconPosition);
+}
+
+/**
+ * Handle Convert to Tweet button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextConvertTweet(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Convert this text into a concise tweet', range, iconPosition);
+}
+
+/**
+ * Handle Convert to Presentation button click from ContentActions 3-dot menu for TEXT selection.
+ */
+async function handleTextConvertPresentation(selectedText: string, range?: Range, iconPosition?: { x: number; y: number }): Promise<void> {
+  await handleTextAskAIAction(selectedText, 'Convert this text into presentation-ready bullet points for slides', range, iconPosition);
 }
 
 /**
@@ -5622,16 +6226,45 @@ function updateTextExplanationPanel(): void {
             },
             onError: (errorCode, errorMsg) => {
               console.error('[Content Script] Question error:', errorCode, errorMsg);
-              // Clear abort controller on error as well
+              showToast(errorMsg || 'Failed to process question. Please try again.', 'error');
+              // Clear abort controller and loading state on error
               updateExplanationInMap(explanationId, (state) => {
                 state.abortController = null;
+                state.streamingText = '';
                 state.firstChunkReceived = false;
+                state.pendingQuestion = undefined;
                 state.isSimplifyRequest = undefined; // Clear simplify request flag
                 return state;
               });
+              updateTextExplanationPanel();
             },
             onLoginRequired: () => {
+              console.log('[Content Script] Login required for question');
+              // Clear loading state
+              updateExplanationInMap(explanationId, (state) => {
+                state.abortController = null;
+                state.streamingText = '';
+                state.firstChunkReceived = false;
+                state.pendingQuestion = undefined;
+                state.isSimplifyRequest = undefined;
+                return state;
+              });
+              updateTextExplanationPanel();
               store.set(showLoginModalAtom, true);
+            },
+            onSubscriptionRequired: () => {
+              console.log('[Content Script] Subscription required for question');
+              // Clear loading state
+              updateExplanationInMap(explanationId, (state) => {
+                state.abortController = null;
+                state.streamingText = '';
+                state.firstChunkReceived = false;
+                state.pendingQuestion = undefined;
+                state.isSimplifyRequest = undefined;
+                return state;
+              });
+              updateTextExplanationPanel();
+              store.set(showSubscriptionModalAtom, true);
             },
           },
           newAbortController
@@ -5778,8 +6411,27 @@ function updateTextExplanationPanel(): void {
             },
             onError: (errorCode, errorMsg) => {
               console.error('[Content Script] Simplify error:', errorCode, errorMsg);
+              showToast(errorMsg || 'Failed to simplify. Please try again.', 'error');
+              updateExplanationInMap(explanationId, (state) => {
+                state.abortController = null;
+                state.streamingText = '';
+                state.firstChunkReceived = false;
+                state.isSimplifyRequest = undefined;
+                return state;
+              });
+              updateTextExplanationPanel();
             },
             onLoginRequired: () => {
+              console.log('[Content Script] Login required for text explanation (simplify)');
+              // Clear loading state
+              updateExplanationInMap(explanationId, (state) => {
+                state.abortController = null;
+                state.streamingText = '';
+                state.firstChunkReceived = false;
+                state.isSimplifyRequest = undefined;
+                return state;
+              });
+              updateTextExplanationPanel();
               store.set(showLoginModalAtom, true);
             },
             onSubscriptionRequired: () => {
@@ -5945,9 +6597,44 @@ function updateTextExplanationPanel(): void {
             },
             onError: (errorCode, errorMsg) => {
               console.error('[Content Script] Input error:', errorCode, errorMsg);
+              showToast(errorMsg || 'Failed to process. Please try again.', 'error');
+              updateExplanationInMap(explanationId, (state) => {
+                state.abortController = null;
+                state.streamingText = '';
+                state.firstChunkReceived = false;
+                state.pendingQuestion = undefined;
+                state.isSimplifyRequest = undefined;
+                return state;
+              });
+              updateTextExplanationPanel();
             },
             onLoginRequired: () => {
+              console.log('[Content Script] Login required for input');
+              // Clear loading state
+              updateExplanationInMap(explanationId, (state) => {
+                state.abortController = null;
+                state.streamingText = '';
+                state.firstChunkReceived = false;
+                state.pendingQuestion = undefined;
+                state.isSimplifyRequest = undefined;
+                return state;
+              });
+              updateTextExplanationPanel();
               store.set(showLoginModalAtom, true);
+            },
+            onSubscriptionRequired: () => {
+              console.log('[Content Script] Subscription required for input');
+              // Clear loading state
+              updateExplanationInMap(explanationId, (state) => {
+                state.abortController = null;
+                state.streamingText = '';
+                state.firstChunkReceived = false;
+                state.pendingQuestion = undefined;
+                state.isSimplifyRequest = undefined;
+                return state;
+              });
+              updateTextExplanationPanel();
+              store.set(showSubscriptionModalAtom, true);
             },
           },
           newAbortController

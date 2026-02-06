@@ -544,8 +544,118 @@
 .simplifyButtonContainer {
   display: flex !important;
   justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
   padding: 8px 16px 0 16px !important;
   background: var(--color-bg-primary-theme) !important;
+}
+
+/* Text More Prompts (3-dot icon) Wrapper */
+.textMorePromptsWrapper {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.textMorePromptsDotButton {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  background: var(--color-bg-primary-theme) !important;
+  color: var(--color-text-secondary-theme) !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
+  border-radius: 999px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+}
+
+.textMorePromptsDotButton:hover:not(:disabled) {
+  background: var(--color-primary-opacity-8) !important;
+  color: var(--color-primary, #0d8070) !important;
+  border-color: var(--color-primary-opacity-20) !important;
+}
+
+.textMorePromptsDotButton:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.textMorePromptsDotButton svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+.textMorePromptsPopover {
+  position: absolute !important;
+  bottom: calc(100% + 8px) !important;
+  left: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  background: var(--color-bg-primary-theme) !important;
+  border-radius: 15px !important;
+  padding: 4px !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  z-index: 100 !important;
+  width: max-content !important;
+  min-width: 180px !important;
+  max-height: 420px !important;
+  overflow-y: auto !important;
+}
+
+.textMorePromptsOption {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 7px 12px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  font-family: var(--font-family-primary) !important;
+  color: var(--color-text-primary-theme) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+  width: 100% !important;
+}
+
+.textMorePromptsOption:hover:not(:disabled) {
+  background: var(--color-primary-opacity-8) !important;
+  color: var(--color-primary, #0d8070) !important;
+}
+
+.textMorePromptsOption:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.textMorePromptsOption svg {
+  width: 14px !important;
+  height: 14px !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5 !important;
+  flex-shrink: 0 !important;
+}
+
+.textMorePromptsOption span {
+  flex: 1 !important;
+}
+
+.textMorePromptsSeparator {
+  height: 1px !important;
+  background: var(--color-border-default-theme) !important;
+  margin: 3px 8px !important;
+  flex-shrink: 0 !important;
 }
 
 .simplifyButton {

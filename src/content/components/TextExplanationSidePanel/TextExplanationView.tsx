@@ -1,7 +1,12 @@
 // src/content/components/TextExplanationSidePanel/TextExplanationView.tsx
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ArrowUp, Trash2, Plus, Square, Loader2, Check } from 'lucide-react';
+import {
+  ArrowUp, Trash2, Plus, Square, Loader2, Check, MoreVertical,
+  FileText, ListOrdered, RefreshCw, Wand2, CheckCircle,
+  Mic, LayoutList, Table2, GitBranch, Brain,
+  Mail, MessageCircle, Linkedin, Twitter, Presentation, PenLine,
+} from 'lucide-react';
 import { Dropdown, type DropdownOption } from '../SidePanel/Dropdown';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { getLanguageName } from '@/api-services/TranslateService';
@@ -82,6 +87,59 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
   const previousTranslationsLengthRef = useRef<number>(0);
   const sendButtonRef = useRef<HTMLButtonElement>(null);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  const [showMorePromptsPopover, setShowMorePromptsPopover] = useState(false);
+  const morePromptsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // More prompts options for the 3-dot popover
+  const morePromptOptions = React.useMemo(() => [
+    { icon: FileText, label: 'Summarize', question: 'Summarize this text concisely' },
+    { icon: ListOrdered, label: 'Key points', question: 'Extract the key points from this text' },
+    { icon: RefreshCw, label: 'Rewrite (clearer)', question: 'Rewrite this text to make it clearer and easier to understand' },
+    { icon: Wand2, label: 'Paraphrase', question: 'Paraphrase this text using different wording while keeping the same meaning' },
+    { icon: PenLine, label: 'Improve writing', question: 'Improve this text to make it more polished and professional' },
+    { icon: CheckCircle, label: 'Fix grammar', question: 'Fix the grammar, spelling, and punctuation errors in this text' },
+    { separator: true },
+    { icon: Mic, label: 'What is the tone?', question: 'What is the tone of this passage? Is it informative, persuasive, critical, or something else?' },
+    { icon: LayoutList, label: 'Convert to bullet points', question: 'Convert this text into a scannable bullet point format' },
+    { icon: Table2, label: 'Convert to table', question: 'Convert the structured information in this text into a table format' },
+    { icon: GitBranch, label: 'Convert to diagram', question: 'Convert this text into a text-based conceptual flow diagram' },
+    { icon: Brain, label: 'Create a mind map', question: 'Create a structured mind map representation of the ideas in this text' },
+    { separator: true },
+    { icon: Mail, label: 'Convert to email', question: 'Convert this text into a professional email' },
+    { icon: MessageCircle, label: 'Convert to WhatsApp message', question: 'Convert this text into a short, friendly WhatsApp message' },
+    { icon: Linkedin, label: 'Convert to LinkedIn post', question: 'Convert this text into a LinkedIn post format' },
+    { icon: Twitter, label: 'Convert to tweet', question: 'Convert this text into a concise tweet' },
+    { icon: Presentation, label: 'Convert to presentation bullets', question: 'Convert this text into presentation-ready bullet points for slides' },
+  ] as Array<{ icon?: React.FC<any>; label?: string; question?: string; separator?: boolean }>, []);
+
+  // Hover handlers for more prompts popover
+  const handleMorePromptsMouseEnter = useCallback(() => {
+    if (morePromptsTimeoutRef.current) {
+      clearTimeout(morePromptsTimeoutRef.current);
+      morePromptsTimeoutRef.current = null;
+    }
+    setShowMorePromptsPopover(true);
+  }, []);
+
+  const handleMorePromptsMouseLeave = useCallback(() => {
+    morePromptsTimeoutRef.current = setTimeout(() => {
+      setShowMorePromptsPopover(false);
+    }, 300);
+  }, []);
+
+  const handleMorePromptClick = useCallback((question: string) => {
+    setShowMorePromptsPopover(false);
+    onQuestionClickRef.current?.(question);
+  }, []);
+
+  // Cleanup more prompts timeout
+  useEffect(() => {
+    return () => {
+      if (morePromptsTimeoutRef.current) {
+        clearTimeout(morePromptsTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Language options - same as SettingsView
   const languageOptions: DropdownOption[] = [
@@ -538,9 +596,50 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
         )}
       </div>
 
-      {/* Simplify Button - Show above input when shouldAllowSimplifyMore is true or when there's no content */}
+      {/* Simplify Button + More Prompts - Show above input when shouldAllowSimplifyMore is true or when there's no content */}
       {(shouldAllowSimplifyMore || (chatMessages.length === 0 && streamingText.trim().length === 0 && !displayText)) && (
         <div className={getClassName('simplifyButtonContainer')}>
+          {/* More Prompts 3-dot icon */}
+          <div
+            className={getClassName('textMorePromptsWrapper')}
+            onMouseEnter={handleMorePromptsMouseEnter}
+            onMouseLeave={handleMorePromptsMouseLeave}
+          >
+            <button
+              className={getClassName('textMorePromptsDotButton')}
+              aria-label="More prompts"
+              type="button"
+              disabled={isSimplifying || isRequesting}
+            >
+              <MoreVertical size={16} />
+            </button>
+            {showMorePromptsPopover && (
+              <div
+                className={getClassName('textMorePromptsPopover')}
+                onMouseEnter={handleMorePromptsMouseEnter}
+                onMouseLeave={handleMorePromptsMouseLeave}
+              >
+                {morePromptOptions.map((option, index) => {
+                  if (option.separator) {
+                    return <div key={`sep-${index}`} className={getClassName('textMorePromptsSeparator')} />;
+                  }
+                  const Icon = option.icon!;
+                  return (
+                    <button
+                      key={index}
+                      className={getClassName('textMorePromptsOption')}
+                      onClick={() => handleMorePromptClick(option.question!)}
+                      disabled={isSimplifying || isRequesting}
+                    >
+                      <Icon size={14} />
+                      <span>{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <button
             className={getClassName('simplifyButton')}
             onClick={onSimplify}

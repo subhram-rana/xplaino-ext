@@ -36,6 +36,41 @@ export interface ContentActionsButtonGroupProps {
   onBetterCasual?: () => void;
   /** Callback when Better Alternative (academic) is clicked */
   onBetterAcademic?: () => void;
+  // --- Text selection callbacks ---
+  /** Callback when Ask AI is clicked (text selection) */
+  onTextAskAI?: () => void;
+  /** Callback when Summarize is clicked */
+  onSummarize?: () => void;
+  /** Callback when Key Points is clicked */
+  onKeyPoints?: () => void;
+  /** Callback when Rewrite is clicked */
+  onRewrite?: () => void;
+  /** Callback when Paraphrase is clicked */
+  onParaphrase?: () => void;
+  /** Callback when Improve Writing is clicked */
+  onImproveWriting?: () => void;
+  /** Callback when Fix Grammar is clicked */
+  onFixGrammar?: () => void;
+  /** Callback when Tone is clicked */
+  onTone?: () => void;
+  /** Callback when Convert to Bullets is clicked */
+  onConvertBullets?: () => void;
+  /** Callback when Convert to Table is clicked */
+  onConvertTable?: () => void;
+  /** Callback when Convert to Diagram is clicked */
+  onConvertDiagram?: () => void;
+  /** Callback when Create Mind Map is clicked */
+  onCreateMindMap?: () => void;
+  /** Callback when Convert to Email is clicked */
+  onConvertEmail?: () => void;
+  /** Callback when Convert to WhatsApp is clicked */
+  onConvertWhatsApp?: () => void;
+  /** Callback when Convert to LinkedIn is clicked */
+  onConvertLinkedIn?: () => void;
+  /** Callback when Convert to Tweet is clicked */
+  onConvertTweet?: () => void;
+  /** Callback when Convert to Presentation is clicked */
+  onConvertPresentation?: () => void;
   /** Callback when mouse enters (to keep container active) */
   onMouseEnter?: () => void;
   /** Callback when mouse leaves (to hide container) */
@@ -65,6 +100,24 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   onBetterFormal,
   onBetterCasual,
   onBetterAcademic,
+  // Text selection props
+  onTextAskAI,
+  onSummarize,
+  onKeyPoints,
+  onRewrite,
+  onParaphrase,
+  onImproveWriting,
+  onFixGrammar,
+  onTone,
+  onConvertBullets,
+  onConvertTable,
+  onConvertDiagram,
+  onCreateMindMap,
+  onConvertEmail,
+  onConvertWhatsApp,
+  onConvertLinkedIn,
+  onConvertTweet,
+  onConvertPresentation,
   onMouseEnter,
   onMouseLeave,
   onKeepActive,
@@ -348,6 +401,23 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
             onBetterFormal={onBetterFormal}
             onBetterCasual={onBetterCasual}
             onBetterAcademic={onBetterAcademic}
+            onTextAskAI={onTextAskAI}
+            onSummarize={onSummarize}
+            onKeyPoints={onKeyPoints}
+            onRewrite={onRewrite}
+            onParaphrase={onParaphrase}
+            onImproveWriting={onImproveWriting}
+            onFixGrammar={onFixGrammar}
+            onTone={onTone}
+            onConvertBullets={onConvertBullets}
+            onConvertTable={onConvertTable}
+            onConvertDiagram={onConvertDiagram}
+            onCreateMindMap={onCreateMindMap}
+            onConvertEmail={onConvertEmail}
+            onConvertWhatsApp={onConvertWhatsApp}
+            onConvertLinkedIn={onConvertLinkedIn}
+            onConvertTweet={onConvertTweet}
+            onConvertPresentation={onConvertPresentation}
             onHideButtonGroup={handleHideButtonGroup}
             onPopoverMouseEnter={handleOptionsMouseEnter}
             onPopoverMouseLeave={handlePopoverMouseLeave}

@@ -260,7 +260,7 @@ export const FAB: React.FC<FABProps> = ({
         const naturalHeight = element.scrollHeight;
         lastMeasuredHeight.current = naturalHeight; // Store for closing animation
 
-        const firstButtonHeight = 30; // Approximate height of first button
+        const firstButtonHeight = 38; // Approximate height of first button
 
         // Restore max-height
         element.style.maxHeight = savedMaxHeight || '500px';
