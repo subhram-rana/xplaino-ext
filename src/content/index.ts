@@ -8920,7 +8920,7 @@ function updateWarningToast(): void {
         React.createElement(
           'div',
           { style: { flex: '1', lineHeight: '1.5' } },
-          'Set your native language'
+          'First select your native language'
         ),
         React.createElement(
           'button',

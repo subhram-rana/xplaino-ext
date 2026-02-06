@@ -773,9 +773,8 @@ export class ChromeStorage {
 
     // Sync nested values to flat keys for backward compatibility
     if (settings.settings) {
-      if (settings.settings.nativeLanguage) {
-        updates[this.KEYS.USER_SETTING_NATIVE_LANGUAGE] = settings.settings.nativeLanguage;
-      }
+      // Always sync nativeLanguage -- write null to clear stale values
+      updates[this.KEYS.USER_SETTING_NATIVE_LANGUAGE] = settings.settings.nativeLanguage ?? null;
 
       if (settings.settings.pageTranslationView) {
         updates[this.KEYS.USER_SETTING_PAGE_TRANSLATION_VIEW] =
