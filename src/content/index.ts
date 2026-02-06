@@ -10781,35 +10781,14 @@ let themeRefreshInProgress = false;
 let themeRefreshPending = false;
 
 /**
- * Check if a style element contains color variables CSS
- * More specific detection to avoid removing component styles
+ * Check if a style element contains color variables CSS.
+ * Only matches styles explicitly tagged with the data-xplaino-color-variables attribute.
+ * Content-based heuristics (e.g. checking for :host + --color-) were removed because
+ * they falsely matched component shadow CSS (fab.shadow.css, contentActions.shadow.css, etc.)
+ * which also contain :host selectors and --color- variable definitions as fallbacks.
  */
 function isColorVariablesStyle(styleElement: HTMLStyleElement): boolean {
-  const content = styleElement.textContent || '';
-  
-  // Check for data attribute first (most reliable)
-  if (styleElement.getAttribute('data-xplaino-color-variables') === 'true') {
-    return true;
-  }
-  
-  // Check for :host selector (color variables use :host)
-  if (content.includes(':host') && content.includes('--color-')) {
-    return true;
-  }
-  
-  // Check for multiple color variable markers (more specific than just --color-primary)
-  const colorVariableMarkers = [
-    '--color-primary:',
-    '--color-bg-primary-theme:',
-    '--color-text-primary-theme:',
-    '--color-bg-secondary-theme:',
-    '--color-border-default-theme:',
-  ];
-  
-  const markerCount = colorVariableMarkers.filter(marker => content.includes(marker)).length;
-  // If it has 3+ color variable markers, it's likely the color variables style
-  // This avoids matching component styles that might reference one or two variables
-  return markerCount >= 3;
+  return styleElement.getAttribute('data-xplaino-color-variables') === 'true';
 }
 
 /**
@@ -10971,7 +10950,7 @@ async function refreshThemeInAllShadowRoots(): Promise<void> {
           setTimeout(() => refreshThemeInAllShadowRoots(), 0);
         }
       }
-    }, 50); // 50ms debounce
+    }, 300); // 300ms debounce — absorbs rapid successive storage change events
   });
 }
 

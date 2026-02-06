@@ -762,28 +762,35 @@ export class ChromeStorage {
    * Also syncs nested values to flat keys for backward compatibility
    */
   static async setUserAccountSettings(settings: UserAccountSettingsDTO): Promise<void> {
-    // Store the full response
-    await this.set('xplaino-user-account-settings', settings);
-    
+    // Batch all storage writes into a single chrome.storage.local.set() call.
+    // Previously each key was written sequentially, firing separate onChanged events
+    // which triggered multiple redundant theme refreshes and caused CSS corruption.
+    const updates: Record<string, unknown> = {
+      'xplaino-user-account-settings': settings,
+    };
+
     // Sync nested values to flat keys for backward compatibility
     if (settings.settings) {
-      // Sync native language
       if (settings.settings.nativeLanguage) {
-        await this.set(this.KEYS.USER_SETTING_NATIVE_LANGUAGE, settings.settings.nativeLanguage);
+        updates[this.KEYS.USER_SETTING_NATIVE_LANGUAGE] = settings.settings.nativeLanguage;
       }
-      
-      // Sync page translation view (convert uppercase to lowercase)
+
       if (settings.settings.pageTranslationView) {
-        const view = settings.settings.pageTranslationView.toLowerCase() as 'append' | 'replace';
-        await this.set(this.KEYS.USER_SETTING_PAGE_TRANSLATION_VIEW, view);
+        updates[this.KEYS.USER_SETTING_PAGE_TRANSLATION_VIEW] =
+          settings.settings.pageTranslationView.toLowerCase() as 'append' | 'replace';
       }
-      
-      // Sync theme (convert uppercase to lowercase)
+
       if (settings.settings.theme) {
-        const theme = settings.settings.theme.toLowerCase() as 'light' | 'dark';
-        await this.set(this.KEYS.USER_SETTING_GLOBAL_THEME, theme);
+        updates[this.KEYS.USER_SETTING_GLOBAL_THEME] =
+          settings.settings.theme.toLowerCase() as 'light' | 'dark';
       }
     }
+
+    return new Promise((resolve) => {
+      chrome.storage.local.set(updates, () => {
+        resolve();
+      });
+    });
   }
 
   // ============================================
