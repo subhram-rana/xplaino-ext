@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
-  ArrowUp, Trash2, Plus, Square, Loader2, Check, MoreVertical,
+  ArrowUp, Trash2, Plus, Square, Loader2, Check, MoreVertical, Copy,
   FileText, ListOrdered, RefreshCw, Wand2, CheckCircle,
   Mic, LayoutList, Table2, GitBranch, Brain,
   Mail, MessageCircle, Linkedin, Twitter, Presentation, PenLine,
@@ -89,6 +89,7 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
   const [showMorePromptsPopover, setShowMorePromptsPopover] = useState(false);
   const morePromptsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
   // More prompts options for the 3-dot popover
   const morePromptOptions = React.useMemo(() => [
@@ -130,6 +131,17 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
   const handleMorePromptClick = useCallback((question: string) => {
     setShowMorePromptsPopover(false);
     onQuestionClickRef.current?.(question);
+  }, []);
+
+  // Copy message content to clipboard
+  const handleCopyMessage = useCallback(async (content: string, messageId: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(messageId);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (err) {
+      console.error('[TextExplanationView] Failed to copy:', err);
+    }
   }, []);
 
   // Cleanup more prompts timeout
@@ -507,6 +519,14 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
                 {`## Simplified explanation 1\n\n${displayText}`}
               </ReactMarkdown>
               <span className={getClassName('cursor')}>|</span>
+              <button
+                className={getClassName('copyMessageButton')}
+                onClick={() => handleCopyMessage(displayText, 'initial')}
+                aria-label="Copy reply"
+                type="button"
+              >
+                {copiedMessageId === 'initial' ? <Check size={14} /> : <Copy size={14} />}
+              </button>
             </div>
 
             {/* Possible Questions for initial explanation */}
@@ -536,9 +556,19 @@ export const TextExplanationView: React.FC<TextExplanationViewProps> = ({
                   className={`${getClassName('message')} ${getClassName(message.role === 'user' ? 'userMessage' : 'assistantMessage')}`}
                 >
                   {message.role === 'assistant' ? (
-                    <ReactMarkdown components={markdownComponents}>
-                      {message.content}
-                    </ReactMarkdown>
+                    <>
+                      <ReactMarkdown components={markdownComponents}>
+                        {message.content}
+                      </ReactMarkdown>
+                      <button
+                        className={getClassName('copyMessageButton')}
+                        onClick={() => handleCopyMessage(message.content, `chat-${index}`)}
+                        aria-label="Copy reply"
+                        type="button"
+                      >
+                        {copiedMessageId === `chat-${index}` ? <Check size={14} /> : <Copy size={14} />}
+                      </button>
+                    </>
                   ) : (
                     message.content
                   )}
