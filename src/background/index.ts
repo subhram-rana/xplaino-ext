@@ -5,11 +5,18 @@ import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { ApiService } from '@/api-services/ApiService';
 import { extractDomain } from '@/utils/domain';
 import { DomainStatus } from '@/types/domain';
+import { ENV } from '@/config/env';
 
 // This file serves as the entry point for the background script
 // Add background logic here (message handling, alarms, etc.)
 
 console.log('Background service worker initialized');
+
+// Redirect to feedback page when user uninstalls the extension
+const version = chrome.runtime.getManifest().version;
+chrome.runtime.setUninstallURL(
+  `${ENV.XPLAINO_WEBSITE_BASE_URL}/uninstall-extension-feedback?version=${version}`
+);
 
 /**
  * Sync domain status with API

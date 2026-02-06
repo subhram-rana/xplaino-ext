@@ -183,7 +183,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
       if (updatedData?.settings?.theme) {
         setBackendTheme(updatedData.settings.theme);
       }
-      console.log('[SettingsView] Account settings updated successfully');
+
+      // Re-fetch settings from server to ensure Chrome storage has the
+      // authoritative state (refreshes all flat keys like pageTranslationView)
+      await UserSettingsService.syncUserAccountSettings();
+
+      console.log('[SettingsView] Account settings updated and re-synced successfully');
     } catch (error) {
       console.error('[SettingsView] Error updating account settings:', error);
     } finally {
