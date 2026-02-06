@@ -86,10 +86,8 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
         return;
       }
 
-      // Position container outside image, to the left of top-left corner with margin
-      // left: imageRect.left - 30px (margin to left)
-      // top: imageRect.top + 8px (slight margin from top)
-      const iconX = imageRect.left - 30;
+      // Position container inside image, at top-left corner with small inset
+      const iconX = imageRect.left + 8;
       const iconY = imageRect.top + 8;
       
       // Update container position directly via DOM for immediate update

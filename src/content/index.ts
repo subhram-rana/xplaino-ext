@@ -6330,9 +6330,9 @@ function handleImageHover(imageElement: HTMLImageElement): void {
     return;
   }
   
-  // Calculate icon position (outside image, to the left of top-left corner)
+  // Calculate icon position (inside image, top-left corner)
   const iconPosition = {
-    x: rect.left - 30,
+    x: rect.left + 8,
     y: rect.top + 8,
   };
   
