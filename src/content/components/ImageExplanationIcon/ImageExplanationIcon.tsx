@@ -205,6 +205,7 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
         ariaLabel="Simplify image"
         hoverMessage="View explanation"
         bookmarkHoverMessage="Remove bookmark"
+        imageMode={true}
       />
     </div>
   );

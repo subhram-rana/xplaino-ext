@@ -42,6 +42,8 @@ export interface ExplanationIconButtonProps {
   hoverMessage?: string;
   /** Hover message for the bookmark icon */
   bookmarkHoverMessage?: string;
+  /** Whether this is for an image icon (circular border, white bg in light theme) */
+  imageMode?: boolean;
 }
 
 /**
@@ -105,6 +107,7 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
   ariaLabel = 'View explanation',
   hoverMessage = 'View explanation',
   bookmarkHoverMessage = 'Remove bookmark',
+  imageMode = false,
 }) => {
   const internalContainerRef = useRef<HTMLDivElement | null>(null);
   const iconElementRef = useRef<HTMLButtonElement | null>(null);
@@ -195,6 +198,8 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
     firstChunkReceived ? getClassName('greenIcon') : '',
     isHiding ? getClassName('hiding') : '',
     isSpinning ? getClassName('spinning') : '',
+    imageMode ? getClassName('imageMode') : '',
+    imageMode && !isDarkMode ? getClassName('lightBg') : '',
   ].filter(Boolean).join(' ');
 
   // Bookmark button style (same dimensions as book icon button)

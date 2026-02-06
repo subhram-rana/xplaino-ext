@@ -101,10 +101,10 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
         y: rect.bottom + 4, // 4px below the word
       };
     } else {
-      // For text selection: position at end of selected text (bottom-right)
+      // For text selection: position lower-right of mouse release point
       return {
-        x: rect.right + 8, // 8px to the right of the selection end
-        y: rect.bottom + 4, // 4px below the selection
+        x: lastMousePosition.current.x + 24, // 24px to the right (increased from 12px to prevent immediate hover)
+        y: lastMousePosition.current.y + 8,  // 8px below mouse
       };
     }
   }, []);

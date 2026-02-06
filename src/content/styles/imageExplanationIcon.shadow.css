@@ -24,9 +24,9 @@
 
 /* Image Explanation Icon */
 .imageExplanationIcon {
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
   background: transparent !important;
   border: 2px solid #FFFFFF !important;
   cursor: pointer !important;

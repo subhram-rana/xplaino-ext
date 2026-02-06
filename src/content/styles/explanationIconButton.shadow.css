@@ -62,6 +62,26 @@
   box-shadow: none !important;
 }
 
+/* Image mode: circular border, larger button, white bg in light theme */
+.explanationIconButton.imageMode {
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
+  border: 2px solid #FFFFFF !important;
+}
+
+.explanationIconButton.imageMode.lightBg {
+  background: #FFFFFF !important;
+}
+
+.explanationIconButton.imageMode.lightBg.spinning {
+  background: #FFFFFF !important;
+}
+
+.explanationIconButton.imageMode.lightBg.greenIcon {
+  background: #FFFFFF !important;
+}
+
 .explanationIconButton:active {
   transform: scale(0.95) !important;
 }
