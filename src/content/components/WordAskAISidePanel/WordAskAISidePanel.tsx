@@ -6,9 +6,11 @@ import ReactMarkdown from 'react-markdown';
 import { MinimizeIcon } from '../ui/MinimizeIcon';
 import styles from './WordAskAISidePanel.module.css';
 import { ChatMessage } from '@/store/wordExplanationAtoms';
+import { useAtomValue } from 'jotai';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
 import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
+import { isFreeTrialAtom } from '@/store/uiAtoms';
 
 // Custom expand icon - arrows pointing away from center (up and down)
 const ExpandVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
@@ -108,6 +110,9 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
   askAIButtonRef,
   isWordPopoverOpen = false,
 }) => {
+  // Subscription status for conditional upgrade footer
+  const isFreeTrial = useAtomValue(isFreeTrialAtom);
+  
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
   const [expandedLoaded, setExpandedLoaded] = useState(false);
@@ -615,8 +620,8 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
           )}
         </div>
 
-        {/* Upgrade Footer with Upgrade and Coupon buttons */}
-        <UpgradeFooter useShadowDom={useShadowDom} />
+        {/* Upgrade Footer - only shown for free trial users */}
+        {isFreeTrial && <UpgradeFooter useShadowDom={useShadowDom} />}
       </div>
     </div>
   );

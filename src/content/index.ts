@@ -78,6 +78,7 @@ import { SavedParagraphService } from '../api-services/SavedParagraphService';
 import { SavedLinkService } from '../api-services/SavedLinkService';
 import { SavedImageService } from '../api-services/SavedImageService';
 import { UserSettingsService } from '../api-services/UserSettingsService';
+import { SubscriptionService } from '../api-services/SubscriptionService';
 import type { FolderWithSubFoldersResponse } from '../api-services/dto/FolderDTO';
 import { extractAndStorePageContent, getStoredPageContent } from './utils/pageContentExtractor';
 import { addTextUnderline, removeTextUnderline, pulseTextBackground, changeUnderlineColor, type UnderlineState } from './utils/textSelectionUnderline';
@@ -90,7 +91,7 @@ import {
   messageQuestionsAtom,
   pageReadingStateAtom,
 } from '../store/summaryAtoms';
-import { showLoginModalAtom, showSubscriptionModalAtom, showFeatureRequestModalAtom, userAuthInfoAtom, currentThemeAtom } from '../store/uiAtoms';
+import { showLoginModalAtom, showSubscriptionModalAtom, showFeatureRequestModalAtom, userAuthInfoAtom, currentThemeAtom, subscriptionStatusAtom } from '../store/uiAtoms';
 import {
   textExplanationsAtom,
   activeTextExplanationIdAtom,
@@ -10395,6 +10396,21 @@ async function initContentScript(): Promise<void> {
   // This also ensures extension settings exist with default value
   await UserSettingsService.syncUserAccountSettings();
   await ChromeStorage.ensureUserExtensionSettings();
+
+  // Sync subscription status from backend API (after user settings are available)
+  // This requires userId from user account settings, so must come after settings sync
+  await SubscriptionService.syncSubscriptionStatus();
+  try {
+    const subscriptionStatus = await ChromeStorage.getSubscriptionStatus();
+    if (subscriptionStatus) {
+      store.set(subscriptionStatusAtom, subscriptionStatus);
+      console.log('[Content Script] subscriptionStatusAtom initialized:', {
+        has_active_subscription: subscriptionStatus.has_active_subscription,
+      });
+    }
+  } catch (error) {
+    console.warn('[Content Script] Error loading subscription status:', error);
+  }
   
   // Handle xplaino_text query parameter for auto-search
   handleXplainoTextSearch();

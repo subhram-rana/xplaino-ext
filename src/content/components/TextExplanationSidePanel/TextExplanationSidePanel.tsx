@@ -1,6 +1,6 @@
 // src/content/components/TextExplanationSidePanel/TextExplanationSidePanel.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSetAtom } from 'jotai';
+import { useSetAtom, useAtomValue } from 'jotai';
 import type { RefObject } from 'react';
 import styles from './TextExplanationSidePanel.module.css';
 import { TextExplanationHeader } from './TextExplanationHeader';
@@ -8,7 +8,7 @@ import { TextExplanationFooter } from './TextExplanationFooter';
 import { TextExplanationView } from './TextExplanationView';
 import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
-import { showLoginModalAtom } from '@/store/uiAtoms';
+import { showLoginModalAtom, isFreeTrialAtom } from '@/store/uiAtoms';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
 
 export interface TextExplanationSidePanelProps {
@@ -131,6 +131,9 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   
   // Jotai setter for login modal
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
+  
+  // Subscription status for conditional upgrade footer
+  const isFreeTrial = useAtomValue(isFreeTrialAtom);
 
   // Animation hook
   const {
@@ -442,8 +445,8 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         />
       )}
 
-      {/* Upgrade Footer with coupon and upgrade buttons (always shown) */}
-      <UpgradeFooter useShadowDom={useShadowDom} />
+      {/* Upgrade Footer - only shown for free trial users */}
+      {isFreeTrial && <UpgradeFooter useShadowDom={useShadowDom} />}
     </div>
   );
 };

@@ -1,8 +1,8 @@
 // src/content/components/SidePanel/SettingsView.tsx
 import React, { useEffect, useState, useCallback } from 'react';
-import { Settings, LayoutDashboard, LogOut, RefreshCw, Layers } from 'lucide-react';
+import { Settings, LayoutDashboard, LogOut, RefreshCw, Layers, Crown, Check } from 'lucide-react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { userAuthInfoAtom, showLoginModalAtom } from '@/store/uiAtoms';
+import { userAuthInfoAtom, showLoginModalAtom, userPlanTypeAtom, userPlanNameAtom } from '@/store/uiAtoms';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { DomainStatus } from '@/types/domain';
 import { extractDomain } from '@/utils/domain';
@@ -24,6 +24,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
   const userAuthInfo = useAtomValue(userAuthInfoAtom);
   const setUserAuthInfo = useSetAtom(userAuthInfoAtom);
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
+  const planType = useAtomValue(userPlanTypeAtom);
+  const planName = useAtomValue(userPlanNameAtom);
   const isLoggedIn = userAuthInfo?.isLoggedIn ?? false;
 
   const getClassName = useCallback((baseClass: string) => {
@@ -231,6 +233,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
     window.open(dashboardUrl, '_blank');
   };
 
+  const handleUpgradeClick = () => {
+    const pricingUrl = `${ENV.XPLAINO_WEBSITE_BASE_URL}/pricing`;
+    window.open(pricingUrl, '_blank');
+  };
+
   const handleLogoutClick = async () => {
     console.log('[SettingsView] Logout button clicked, calling AuthService.logout()');
     try {
@@ -299,9 +306,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                   <div className={getClassName('accountName')}>
                     {userAuthInfo.user.name || 'Name'}
                   </div>
-                  <span className={getClassName('accountFreeTrialBadge')}>
-                    Free trial
-                  </span>
+                  {planType === 'free_trial' && (
+                    <span className={getClassName('accountFreeTrialBadge')}>
+                      FREE TRIAL
+                    </span>
+                  )}
+                  {planType === 'plus' && (
+                    <span className={getClassName('accountPlusBadge')}>
+                      {planName || 'PLUS'}
+                    </span>
+                  )}
+                  {planType === 'ultra' && (
+                    <span className={getClassName('accountUltraBadge')}>
+                      {planName || 'ULTRA'}
+                    </span>
+                  )}
                 </div>
                 <div className={getClassName('accountEmail')}>
                   {userAuthInfo.user.email || 'Email'}
@@ -340,6 +359,63 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                 <span>My Dashboard</span>
               </button>
             </div>
+
+            {/* Upgrade Section for Free Trial Users */}
+            {planType === 'free_trial' && (
+              <div className={getClassName('settingsUpgradeSection')}>
+                <div className={getClassName('ultraBenefits')}>
+                  <p className={getClassName('ultraBenefitsTitle')}>
+                    <Crown size={14} />
+                    <span>Unlock Ultra features</span>
+                  </p>
+                  <ul className={getClassName('ultraBenefitsList')}>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Unlimited page summaries & AI chat</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Unlimited text & image explanations</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Results in your native language</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Unlimited page translations in 60+ languages</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Unlimited contextual word meanings & vocabulary</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Revisit your reading history</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Unlimited bookmarks with source links</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Unlimited notes & AI chat</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Priority support anytime</span></li>
+                  </ul>
+                </div>
+                <button
+                  className={getClassName('settingsUpgradeButton')}
+                  onClick={handleUpgradeClick}
+                  type="button"
+                >
+                  <Crown size={16} strokeWidth={2.5} />
+                  <span>Upgrade to Ultra Yearly</span>
+                </button>
+              </div>
+            )}
+
+            {/* Upgrade to Ultra Section for Plus Plan Users */}
+            {planType === 'plus' && (
+              <div className={getClassName('settingsUpgradeSection')}>
+                <div className={getClassName('ultraBenefits')}>
+                  <p className={getClassName('ultraBenefitsTitle')}>
+                    <Crown size={14} />
+                    <span>What's extra in Ultra</span>
+                  </p>
+                  <ul className={getClassName('ultraBenefitsList')}>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Save any page, summary, passage & images to your dashboard</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Get back to the original source in one click</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Chat with saved content to quickly revise your learnings</span></li>
+                    <li><Check size={13} strokeWidth={2.5} /><span>Create your own notes from saved content</span></li>
+                  </ul>
+                </div>
+                <button
+                  className={getClassName('settingsUpgradeButton')}
+                  onClick={handleUpgradeClick}
+                  type="button"
+                >
+                  <Crown size={16} strokeWidth={2.5} />
+                  <span>Upgrade to Ultra Yearly</span>
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div className={getClassName('accountLoginSection')}>

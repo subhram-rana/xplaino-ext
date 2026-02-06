@@ -8,7 +8,7 @@ import { SummaryView } from './SummaryView';
 import { SettingsView } from './SettingsView';
 import { SaveLinkModal } from '../SaveLinkModal/SaveLinkModal';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
-import { showLoginModalAtom, currentThemeAtom } from '@/store/uiAtoms';
+import { showLoginModalAtom, currentThemeAtom, isFreeTrialAtom } from '@/store/uiAtoms';
 import { summaryAtom, summariseStateAtom } from '@/store/summaryAtoms';
 import { SavedLinkService } from '@/api-services/SavedLinkService';
 
@@ -92,6 +92,9 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   
   // Jotai setter for login modal
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
+  
+  // Subscription status for conditional upgrade footer
+  const isFreeTrial = useAtomValue(isFreeTrialAtom);
   
   // Get summary state to determine bookmark visibility
   const summary = useAtomValue(summaryAtom);
@@ -384,8 +387,10 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         )}
       </div>
 
-      {/* Upgrade Footer */}
-      <UpgradeFooter useShadowDom={useShadowDom} />
+      {/* Upgrade Footer - only shown for free trial users and not on settings tab */}
+      {isFreeTrial && activeTab !== 'settings' && (
+        <UpgradeFooter useShadowDom={useShadowDom} />
+      )}
 
       {/* Save Link Modal */}
       <SaveLinkModal

@@ -471,3 +471,137 @@
 .accountLoginButton:active {
   transform: scale(0.98) !important;
 }
+
+/* =============================================================================
+ * PLAN BADGE STYLES
+ * ============================================================================= */
+
+.accountPlusBadge {
+  padding: 4px 10px !important;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(245, 158, 11, 0.18) 100%) !important;
+  color: #b45309 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+  letter-spacing: 0.02em !important;
+}
+
+.accountUltraBadge {
+  padding: 4px 10px !important;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.14) 100%) !important;
+  color: #7c3aed !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* =============================================================================
+ * UPGRADE SECTION STYLES (inside Settings user profile area)
+ * ============================================================================= */
+
+.settingsUpgradeSection {
+  margin-top: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.ultraBenefits {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.04) 0%, rgba(168, 85, 247, 0.08) 100%) !important;
+  border: 1px solid rgba(139, 92, 246, 0.12) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+}
+
+.ultraBenefitsTitle {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #7c3aed !important;
+  margin: 0 0 10px 0 !important;
+}
+
+.ultraBenefitsTitle svg {
+  color: #7c3aed !important;
+  flex-shrink: 0 !important;
+}
+
+.ultraBenefitsList {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.ultraBenefitsList li {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  font-size: 12.5px !important;
+  font-weight: 400 !important;
+  color: var(--color-text-primary-theme) !important;
+  line-height: 1.4 !important;
+}
+
+.ultraBenefitsList li svg {
+  color: #7c3aed !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+
+.settingsUpgradeButton {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  padding: 10px 20px !important;
+  background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #ec4899, #ef4444) !important;
+  background-size: 300% 100% !important;
+  animation: upgradeGradientShift 4s linear infinite !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+@keyframes upgradeGradientShift {
+  0% {
+    background-position: 0% 50% !important;
+  }
+  100% {
+    background-position: 300% 50% !important;
+  }
+}
+
+.settingsUpgradeButton:hover {
+  opacity: 0.92 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+.settingsUpgradeButton:active {
+  opacity: 0.85 !important;
+  transform: scale(0.98) !important;
+}
+
+.settingsUpgradeButton svg {
+  color: #FFFFFF !important;
+  flex-shrink: 0 !important;
+}

@@ -1,5 +1,7 @@
 // src/store/uiAtoms.ts
 import { atom } from 'jotai';
+import type { SubscriptionStatusDTO, PlanType } from '@/api-services/dto/SubscriptionDTO';
+import { derivePlanType, getPlanName } from '@/api-services/dto/SubscriptionDTO';
 
 // Types
 export interface UserAuthInfo {
@@ -92,6 +94,31 @@ export const isUserLoggedInAtom = atom((get) => {
   }
 
   return true;
+});
+
+// ============================================
+// SUBSCRIPTION STATUS STATE
+// ============================================
+
+/** Subscription status atom - synced from GET /api/subscription/{userId} */
+export const subscriptionStatusAtom = atom<SubscriptionStatusDTO | null>(null);
+
+/** Derived plan type: 'free_trial' | 'plus' | 'ultra' */
+export const userPlanTypeAtom = atom<PlanType>((get) => {
+  const status = get(subscriptionStatusAtom);
+  return derivePlanType(status);
+});
+
+/** Derived: plan display name (e.g., "Ultra Yearly", "Plus Monthly") */
+export const userPlanNameAtom = atom<string | null>((get) => {
+  const status = get(subscriptionStatusAtom);
+  if (!status?.subscription) return null;
+  return getPlanName(status.subscription);
+});
+
+/** Derived: whether user is on free trial (no active subscription) */
+export const isFreeTrialAtom = atom<boolean>((get) => {
+  return get(userPlanTypeAtom) === 'free_trial';
 });
 
 // ============================================

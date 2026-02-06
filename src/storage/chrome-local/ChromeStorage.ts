@@ -7,6 +7,7 @@ import type {
   ExtensionSettingsDTO,
 } from './dto';
 import type { DomainStatus } from '@/types/domain';
+import type { SubscriptionStatusDTO } from '@/api-services/dto/SubscriptionDTO';
 
 /**
  * Central class for all chrome.storage.local operations
@@ -43,6 +44,7 @@ export class ChromeStorage {
     DONT_SHOW_XPLAINO_WORD_BOOKMARK_SAVED_LINK_TOAST: 'dont_show_xplaino_word_bookmark_saved_link_toast',
     DONT_SHOW_XPLAINO_IMAGE_BOOKMARK_SAVED_LINK_TOAST: 'dont_show_xplaino_image_bookmark_saved_link_toast',
     DONT_SHOW_WELCOME_MODAL: 'dont_show_welcome_modal',
+    SUBSCRIPTION_STATUS: 'xplaino-subscription-status',
   } as const;
 
   // ============================================
@@ -791,6 +793,25 @@ export class ChromeStorage {
         resolve();
       });
     });
+  }
+
+  // ============================================
+  // SUBSCRIPTION STATUS (from backend API)
+  // ============================================
+
+  /**
+   * Get cached subscription status from GET /api/subscription/{userId}
+   * Stored under xplaino-subscription-status
+   */
+  static async getSubscriptionStatus(): Promise<SubscriptionStatusDTO | null> {
+    return this.get<SubscriptionStatusDTO>(this.KEYS.SUBSCRIPTION_STATUS);
+  }
+
+  /**
+   * Set subscription status (from backend API response)
+   */
+  static async setSubscriptionStatus(status: SubscriptionStatusDTO): Promise<void> {
+    return this.set(this.KEYS.SUBSCRIPTION_STATUS, status);
   }
 
   // ============================================

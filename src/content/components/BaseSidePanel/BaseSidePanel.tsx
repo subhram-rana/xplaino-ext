@@ -2,10 +2,12 @@
 // Unified base side panel component that all panels can use
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { RefObject } from 'react';
+import { useAtomValue } from 'jotai';
 import styles from './BaseSidePanel.module.css';
 import { UpgradeFooter } from './UpgradeFooter';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
+import { isFreeTrialAtom } from '@/store/uiAtoms';
 
 const MIN_WIDTH = 300;
 const MAX_WIDTH = 800;
@@ -61,6 +63,9 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
   useSlideAnimation = false,
   isSlidingOut = false,
 }) => {
+  // Subscription status for conditional upgrade footer
+  const isFreeTrial = useAtomValue(isFreeTrialAtom);
+  
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [internalExpanded, setInternalExpanded] = useState(false);
   const [expandedLoaded, setExpandedLoaded] = useState(false);
@@ -280,8 +285,8 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
       {/* Footer Slot (optional custom footer) */}
       {footer}
 
-      {/* Upgrade Footer (optional) */}
-      {showUpgradeFooter && <UpgradeFooter useShadowDom={useShadowDom} />}
+      {/* Upgrade Footer - only shown for free trial users when enabled */}
+      {showUpgradeFooter && isFreeTrial && <UpgradeFooter useShadowDom={useShadowDom} />}
     </div>
   );
 };
