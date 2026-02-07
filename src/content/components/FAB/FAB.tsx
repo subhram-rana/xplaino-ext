@@ -1,5 +1,6 @@
 // src/content/components/FAB/FAB.tsx
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { ActionButton } from './ActionButton';
 import { FABDisablePopover } from './FABDisablePopover';
 import { TranslationControlPopover } from './TranslationControlPopover';
@@ -68,15 +69,9 @@ export const FAB: React.FC<FABProps> = ({
   const [showPulse, setShowPulse] = useState(true);
   const [showDisablePopover, setShowDisablePopover] = useState(false);
   const [showTranslationPopover, setShowTranslationPopover] = useState(false);
-  const [animationComplete, setAnimationComplete] = useState(false); // Track when height animation completes
-  const [isClosing, setIsClosing] = useState(false); // Track closing animation state
   const [iconUrl, setIconUrl] = useState<string>('');
   const parentRef = useRef<HTMLDivElement>(null);
-  const actionsContainerRef = useRef<HTMLDivElement>(null); // Ref for height animation
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Track animation timeout
-  const closingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Track closing animation timeout
-  const lastMeasuredHeight = useRef<number>(0); // Store the last measured height for closing animation
   const isHoveringRef = useRef(false);
   const isDisablingRef = useRef(false);
   const disableButtonClickedRef = useRef(false); // Track if disable button was just clicked
@@ -137,9 +132,8 @@ export const FAB: React.FC<FABProps> = ({
   // Handle parent container mouse leave - hides actions after delay
   const handleParentMouseLeave = useCallback(() => {
     isHoveringRef.current = false;
-    // Don't hide if summarising, translating, if actions shouldn't be hidden yet, if any popover is open, or if disable action is in progress
-    const isTranslating = translationState === 'translating';
-    if (isSummarising || isTranslating || !canHideActions || showDisablePopover || showTranslationPopover || isDisablingRef.current) {
+    // Don't hide if summarising, if actions shouldn't be hidden yet, if any popover is open, or if disable action is in progress
+    if (isSummarising || !canHideActions || showDisablePopover || showTranslationPopover || isDisablingRef.current) {
       return;
     }
     clearHideTimeout();
@@ -148,7 +142,7 @@ export const FAB: React.FC<FABProps> = ({
         setActionsVisible(false);
       }
     }, 300); // Small delay before hiding
-  }, [clearHideTimeout, isSummarising, translationState, canHideActions, showDisablePopover, showTranslationPopover]);
+  }, [clearHideTimeout, isSummarising, canHideActions, showDisablePopover, showTranslationPopover]);
 
   // Hide actions immediately when any panel opens
   useEffect(() => {
@@ -156,6 +150,13 @@ export const FAB: React.FC<FABProps> = ({
       setActionsVisible(false);
     }
   }, [isPanelOpen]);
+
+  // Hide actions immediately when page translation starts
+  useEffect(() => {
+    if (translationState === 'translating') {
+      setActionsVisible(false);
+    }
+  }, [translationState]);
 
   // Don't hide actions if any popover is visible
   useEffect(() => {
@@ -175,122 +176,15 @@ export const FAB: React.FC<FABProps> = ({
       if (hideTimeoutRef.current) {
         clearTimeout(hideTimeoutRef.current);
       }
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-      }
-      if (closingTimeoutRef.current) {
-        clearTimeout(closingTimeoutRef.current);
-      }
     };
   }, []);
 
-  // Height animation for actions container (similar to ContentActionsButtonGroup width animation)
+  // Close popovers when actions become hidden
   useEffect(() => {
-    if (!actionsContainerRef.current) {
-      return;
-    }
-
-    const element = actionsContainerRef.current;
-    const heightAnimationDuration = 400; // ms
-
     if (!actionsVisible) {
-      // CLOSING: Animate height from current size to 0
-      setAnimationComplete(false);
-      setShowDisablePopover(false); // Close any open popovers
+      setShowDisablePopover(false);
       setShowTranslationPopover(false);
-
-      // Clear any pending animation timeout
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-        animationTimeoutRef.current = null;
-      }
-
-      // Start from the last measured height (or current height)
-      const currentHeightValue = element.style.getPropertyValue('--button-group-height');
-      const currentHeight = currentHeightValue ? parseFloat(currentHeightValue) : lastMeasuredHeight.current;
-
-      if (currentHeight > 0) {
-        // Set closing state to keep element visible during animation
-        setIsClosing(true);
-
-        // Set current height first to ensure smooth transition
-        element.style.setProperty('--button-group-height', `${currentHeight}px`);
-        void element.offsetHeight; // Force reflow
-
-        // Then animate to 0
-        requestAnimationFrame(() => {
-          element.style.setProperty('--button-group-height', '0px');
-        });
-
-        // Clear closing state after animation completes
-        closingTimeoutRef.current = setTimeout(() => {
-          setIsClosing(false);
-        }, heightAnimationDuration + 50);
-      } else {
-        element.style.setProperty('--button-group-height', '0px');
-        setIsClosing(false);
-      }
-
-      return;
     }
-
-    // OPENING: Animate height from 0 to natural size
-    setAnimationComplete(false);
-    setIsClosing(false);
-
-    // Wait for DOM to be ready
-    const rafId1 = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!element) return;
-
-        // Get current height if it exists
-        const currentHeightValue = element.style.getPropertyValue('--button-group-height');
-        const currentHeight = currentHeightValue ? parseFloat(currentHeightValue) : 0;
-
-        // Temporarily remove constraints to measure natural height
-        const savedMaxHeight = element.style.maxHeight;
-        element.style.maxHeight = 'none';
-        element.style.height = 'auto';
-        element.style.setProperty('--button-group-height', 'auto');
-
-        // Force layout recalculation
-        void element.offsetHeight;
-
-        // Measure the natural height
-        const naturalHeight = element.scrollHeight;
-        lastMeasuredHeight.current = naturalHeight; // Store for closing animation
-
-        const firstButtonHeight = 38; // Approximate height of first button
-
-        // Restore max-height
-        element.style.maxHeight = savedMaxHeight || '500px';
-        element.style.height = '';
-
-        // If initial appearance, start from first button height
-        if (currentHeight === 0) {
-          element.style.setProperty('--button-group-height', `${firstButtonHeight}px`);
-          void element.offsetHeight;
-        }
-
-        // Trigger height animation to expand
-        requestAnimationFrame(() => {
-          if (!element) return;
-          element.style.setProperty('--button-group-height', `${naturalHeight}px`);
-
-          animationTimeoutRef.current = setTimeout(() => {
-            setAnimationComplete(true);
-          }, heightAnimationDuration + 100);
-        });
-      });
-    });
-
-    return () => {
-      cancelAnimationFrame(rafId1);
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-        animationTimeoutRef.current = null;
-      }
-    };
   }, [actionsVisible]);
 
   // Click outside handler - close popovers and hide actions when clicking outside
@@ -445,8 +339,8 @@ export const FAB: React.FC<FABProps> = ({
     styles.fabParent
   );
   const actionsContainerClass = getClassName(
-    `actionsContainer ${actionsVisible ? 'visible' : ''} ${isClosing ? 'closing' : ''} ${animationComplete ? 'animationComplete' : ''}`,
-    `${styles.actionsContainer} ${actionsVisible ? styles.visible : ''} ${isClosing ? styles.closing : ''} ${animationComplete ? styles.animationComplete : ''}`
+    `actionsContainer ${actionsVisible ? 'visible' : ''}`,
+    `${styles.actionsContainer} ${actionsVisible ? styles.visible : ''}`
   );
   const actionButtonClass = getClassName('actionButton', styles.actionButton);
   const fabContainerClass = getClassName('fabContainer', styles.fabContainer);
@@ -454,6 +348,7 @@ export const FAB: React.FC<FABProps> = ({
     `fabButton ${showPulse ? 'pulse' : ''} ${actionsVisible ? 'actionsVisible' : ''}`,
     `${styles.fabButton} ${showPulse ? styles.pulse : ''} ${actionsVisible ? styles.actionsVisible : ''}`
   );
+  const translationSpinnerClass = getClassName('translationSpinner', styles.translationSpinner);
 
   return (
     <div
@@ -463,7 +358,7 @@ export const FAB: React.FC<FABProps> = ({
       onMouseLeave={handleParentMouseLeave}
     >
       {/* Actions Container - on the left */}
-      <div ref={actionsContainerRef} className={actionsContainerClass}>
+      <div className={actionsContainerClass}>
         <ActionButton
           icon="summarise"
           tooltip={hasSummary ? 'View summary' : 'Summarise page'}
@@ -541,6 +436,13 @@ export const FAB: React.FC<FABProps> = ({
           />
         </div>
       </div>
+
+      {/* Translation Spinner - shown to the left of FAB when translating (hidden when actions are visible) */}
+      {translationState === 'translating' && !actionsVisible && (
+        <div className={translationSpinnerClass}>
+          <Loader2 size={16} strokeWidth={2.5} />
+        </div>
+      )}
 
       {/* FAB Container - on the right */}
       <div className={fabContainerClass}>
