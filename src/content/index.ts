@@ -573,7 +573,7 @@ async function injectFAB(): Promise<void> {
   injectStyles(shadow, spinnerStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   fabRoot = ReactDOM.createRoot(mountPoint);
@@ -1108,7 +1108,7 @@ async function injectSidePanel(): Promise<void> {
   injectStyles(shadow, baseSidePanelStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   sidePanelRoot = ReactDOM.createRoot(mountPoint);
@@ -1165,7 +1165,7 @@ async function injectContentActions(): Promise<void> {
   injectStyles(shadow, contentActionsStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component with Jotai Provider for theme access
   contentActionsRoot = ReactDOM.createRoot(mountPoint);
@@ -6935,7 +6935,7 @@ async function injectTextExplanationPanel(): Promise<void> {
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
 
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   textExplanationPanelRoot = ReactDOM.createRoot(mountPoint);
   updateTextExplanationPanel();
@@ -7336,7 +7336,7 @@ async function injectImageExplanationIconContainer(): Promise<void> {
   injectStyles(shadow, explanationIconButtonStyles);
   injectStyles(shadow, spinnerStyles);
 
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
   
   imageExplanationIconRoot = ReactDOM.createRoot(mountPoint);
   updateImageExplanationIconContainer();
@@ -8487,7 +8487,7 @@ async function injectImageExplanationPanel(): Promise<void> {
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
   
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
   console.log('[Content Script] Image explanation panel host appended to body');
   
   imageExplanationPanelRoot = ReactDOM.createRoot(mountPoint);
@@ -8630,7 +8630,7 @@ async function injectWordExplanationPopover(): Promise<void> {
   hostResult.shadow.appendChild(styleSheet);
 
   // Append host to document body (THIS WAS MISSING!)
-  document.body.appendChild(hostResult.host);
+  document.documentElement.appendChild(hostResult.host);
   console.log('[Content Script] Word explanation popover host appended to body');
 
   // Render React component
@@ -9062,7 +9062,7 @@ async function injectWordAskAISidePanel(): Promise<void> {
   injectStyles(hostResult.shadow, baseSidePanelStyles);
 
   // Append host to document body
-  document.body.appendChild(hostResult.host);
+  document.documentElement.appendChild(hostResult.host);
   console.log('[Content Script] Word Ask AI side panel host appended to body');
 
   // Render React component
@@ -9229,7 +9229,7 @@ async function injectTextExplanationIconContainer(): Promise<void> {
   injectStyles(shadow, explanationIconButtonStyles);
   injectStyles(shadow, spinnerStyles);
 
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   textExplanationIconRoot = ReactDOM.createRoot(mountPoint);
   updateTextExplanationIconContainer();
@@ -9466,7 +9466,7 @@ async function injectDisableModal(): Promise<void> {
   injectStyles(shadow, disableNotificationModalStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   disableModalRoot = ReactDOM.createRoot(mountPoint);
@@ -9622,7 +9622,7 @@ async function injectToast(): Promise<void> {
   injectStyles(shadow, toastStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   toastRoot = ReactDOM.createRoot(mountPoint);
@@ -9753,7 +9753,7 @@ async function injectBookmarkToast(): Promise<void> {
   injectStyles(shadow, bookmarkSavedToastStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   bookmarkToastRoot = ReactDOM.createRoot(mountPoint);
@@ -9881,7 +9881,7 @@ async function injectWarningToast(): Promise<void> {
   injectStyles(shadow, styles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   warningToastRoot = ReactDOM.createRoot(mountPoint);
@@ -10031,7 +10031,7 @@ async function injectFolderListModal(): Promise<void> {
   injectStyles(shadow, folderListModalStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   folderListModalRoot = ReactDOM.createRoot(mountPoint);
@@ -11110,7 +11110,7 @@ async function injectLoginModal(): Promise<void> {
   injectStyles(shadow, loginModalStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   loginModalRoot = ReactDOM.createRoot(mountPoint);
@@ -11191,7 +11191,7 @@ async function injectSubscriptionModal(): Promise<void> {
   injectStyles(shadow, subscriptionModalStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   subscriptionModalRoot = ReactDOM.createRoot(mountPoint);
@@ -11243,7 +11243,7 @@ async function injectFeatureRequestModal(): Promise<void> {
   injectStyles(shadow, featureRequestModalStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   featureRequestModalRoot = ReactDOM.createRoot(mountPoint);
@@ -11296,7 +11296,7 @@ async function injectWelcomeModal(): Promise<void> {
   injectStyles(shadow, welcomeModalStyles);
 
   // Append to document
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   // Render React component
   welcomeModalRoot = ReactDOM.createRoot(mountPoint);
@@ -11429,6 +11429,43 @@ function handleXplainoTextSearch(): void {
   }
 }
 
+// =============================================================================
+// USER-SELECT OVERRIDE
+// =============================================================================
+
+const USER_SELECT_STYLE_ID = 'xplaino-user-select-override';
+
+/**
+ * Inject a global stylesheet that forces page content to be selectable.
+ * Many sites (e.g. paddle.com) apply `user-select: none` broadly, which
+ * prevents window.getSelection() from returning any text and breaks our
+ * text/word selection features. The selector intentionally excludes
+ * interactive elements (buttons, inputs, draggables) to minimise side-effects.
+ */
+function injectUserSelectOverride(): void {
+  // Only inject once
+  if (document.getElementById(USER_SELECT_STYLE_ID)) return;
+
+  const style = document.createElement('style');
+  style.id = USER_SELECT_STYLE_ID;
+  style.textContent = `
+    /* Xplaino: ensure page text is selectable for word/text explanation features */
+    body *:not(button):not(input):not(textarea):not(select):not(a):not([role="button"]):not([draggable="true"]) {
+      -webkit-user-select: text !important;
+      user-select: text !important;
+    }
+  `;
+  (document.head || document.documentElement).appendChild(style);
+}
+
+/**
+ * Remove the user-select override (called when extension is disallowed on a page).
+ */
+function removeUserSelectOverride(): void {
+  const style = document.getElementById(USER_SELECT_STYLE_ID);
+  if (style) style.remove();
+}
+
 /**
  * Main content script logic
  */
@@ -11489,6 +11526,12 @@ async function initContentScript(): Promise<void> {
   
   if (allowed) {
     console.log('[Content Script] Running content script functionality...');
+
+    // Inject a global stylesheet that forces text to be selectable.
+    // Many sites set user-select: none which prevents our selection handlers
+    // from reading any selected text via window.getSelection().
+    injectUserSelectOverride();
+
     // Inject all components in parallel with proper async handling
     await Promise.all([
       injectFAB(),
@@ -11542,6 +11585,7 @@ async function initContentScript(): Promise<void> {
     removeToast();
     removeWelcomeModal();
     removeYouTubeAskAIButton();
+    removeUserSelectOverride();
   }
 }
 
@@ -11681,7 +11725,7 @@ async function injectSavedParagraphIconContainer(): Promise<void> {
   injectStyles(shadow, colorVariables);
   injectStyles(shadow, savedParagraphIconStyles);
 
-  document.body.appendChild(host);
+  document.documentElement.appendChild(host);
 
   savedParagraphIconRoot = ReactDOM.createRoot(mountPoint);
   updateSavedParagraphIconContainer();

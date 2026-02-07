@@ -359,16 +359,17 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     }, 10);
   }, [selection]);
 
-  // Set up event listeners
+  // Set up event listeners in capture phase so they fire before
+  // the host page can call stopPropagation() and swallow the events.
   useEffect(() => {
-    document.addEventListener('dblclick', handleDoubleClick);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('selectionchange', handleSelectionChange);
+    document.addEventListener('dblclick', handleDoubleClick, true);
+    document.addEventListener('mouseup', handleMouseUp, true);
+    document.addEventListener('selectionchange', handleSelectionChange, true);
 
     return () => {
-      document.removeEventListener('dblclick', handleDoubleClick);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('selectionchange', handleSelectionChange);
+      document.removeEventListener('dblclick', handleDoubleClick, true);
+      document.removeEventListener('mouseup', handleMouseUp, true);
+      document.removeEventListener('selectionchange', handleSelectionChange, true);
     };
   }, [handleDoubleClick, handleMouseUp, handleSelectionChange]);
 

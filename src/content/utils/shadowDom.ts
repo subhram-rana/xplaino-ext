@@ -15,18 +15,46 @@ export interface ShadowHostResult {
 }
 
 /**
- * Creates a Shadow DOM host element with proper isolation
+ * Creates a Shadow DOM host element with proper isolation.
+ * The host is a zero-size fixed anchor with pointer-events disabled,
+ * so it does not interfere with page layout. The shadow content inside
+ * re-enables pointer-events so the extension UI remains interactive.
+ * Using overflow: visible ensures the shadow content is never clipped,
+ * even if the host page creates stacking contexts on <body>.
  */
 export function createShadowHost(options: ShadowHostOptions): ShadowHostResult {
   const { id, zIndex = 2147483647 } = options;
 
-  // Create host element
+  // Create host element — zero-size anchor that won't be clipped
   const host = document.createElement('div');
   host.id = id;
-  host.style.cssText = `all: initial; position: fixed; z-index: ${zIndex};`;
+  host.style.cssText = [
+    'all: initial',
+    'position: fixed',
+    `z-index: ${zIndex}`,
+    'top: 0',
+    'left: 0',
+    'width: 0',
+    'height: 0',
+    'overflow: visible',
+    'pointer-events: none',
+  ].join('; ') + ';';
 
   // Attach Shadow DOM
   const shadow = host.attachShadow({ mode: 'open' });
+
+  // Inject base isolation styles so shadow content is interactive
+  const baseStyle = document.createElement('style');
+  baseStyle.textContent = `
+    :host {
+      pointer-events: none !important;
+      overflow: visible !important;
+    }
+    #${CSS.escape(id)}-root {
+      pointer-events: auto;
+    }
+  `;
+  shadow.appendChild(baseStyle);
 
   // Create React mount point
   const mountPoint = document.createElement('div');
