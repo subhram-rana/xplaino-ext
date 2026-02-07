@@ -6962,6 +6962,8 @@ const hoveredImages = new Map<HTMLImageElement, { iconId: string }>();
 const imageHideTimeouts = new Map<HTMLImageElement, ReturnType<typeof setTimeout>>();
 // Track if mouse is over icon (to keep it visible)
 const iconHoverStates = new Map<string, boolean>();
+// Track the MutationObserver for image hover detection so it can be disconnected
+let imageHoverObserver: MutationObserver | null = null;
 
 /**
  * Convert base64 data URL to File
@@ -7376,9 +7378,10 @@ function handleImageHover(imageElement: HTMLImageElement): void {
   }
   
   // Calculate icon position (inside image, top-left corner)
+  // Clamp Y so the icon stays within the viewport when image top is above the fold
   const iconPosition = {
     x: rect.left + 8,
-    y: rect.top + 8,
+    y: Math.max(8, rect.top + 8),
   };
   
   const iconId = `image-icon-${Date.now()}-${Math.random()}`;
@@ -8536,6 +8539,12 @@ function setupImageHoverDetection(): void {
     (img as any).__xplainoImageMouseLeave = handleMouseLeave;
   });
   
+  // Disconnect any previous observer before creating a new one
+  if (imageHoverObserver) {
+    imageHoverObserver.disconnect();
+    imageHoverObserver = null;
+  }
+
   // Use MutationObserver to handle dynamically added images
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -8577,8 +8586,50 @@ function setupImageHoverDetection(): void {
     childList: true,
     subtree: true,
   });
+
+  // Store reference so it can be disconnected on teardown
+  imageHoverObserver = observer;
   
   console.log('[Content Script] Image hover detection setup complete');
+}
+
+/**
+ * Teardown image hover detection - remove all listeners, disconnect observer, clear state
+ */
+function teardownImageHoverDetection(): void {
+  // Disconnect the MutationObserver
+  if (imageHoverObserver) {
+    imageHoverObserver.disconnect();
+    imageHoverObserver = null;
+  }
+
+  // Remove event listeners from all images that have them
+  const images = document.querySelectorAll('img');
+  images.forEach((img) => {
+    if ((img as any).__xplainoImageListener) {
+      const mouseEnter = (img as any).__xplainoImageMouseEnter;
+      const mouseLeave = (img as any).__xplainoImageMouseLeave;
+      if (mouseEnter) {
+        img.removeEventListener('mouseenter', mouseEnter);
+      }
+      if (mouseLeave) {
+        img.removeEventListener('mouseleave', mouseLeave);
+      }
+      (img as any).__xplainoImageListener = false;
+      (img as any).__xplainoImageMouseEnter = null;
+      (img as any).__xplainoImageMouseLeave = null;
+    }
+  });
+
+  // Clear all pending hide timeouts
+  imageHideTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+  imageHideTimeouts.clear();
+
+  // Clear tracking maps
+  hoveredImages.clear();
+  iconHoverStates.clear();
+
+  console.log('[Content Script] Image hover detection teardown complete');
 }
 
 // =============================================================================
@@ -11511,6 +11562,7 @@ async function initContentScript(): Promise<void> {
     removeTextExplanationIconContainer();
     removeImageExplanationPanel();
     removeImageExplanationIconContainer();
+    teardownImageHoverDetection();
     removeToast();
     removeWelcomeModal();
     
@@ -11582,6 +11634,7 @@ async function initContentScript(): Promise<void> {
     removeTextExplanationIconContainer();
     removeImageExplanationPanel();
     removeImageExplanationIconContainer();
+    teardownImageHoverDetection();
     removeToast();
     removeWelcomeModal();
     removeYouTubeAskAIButton();
