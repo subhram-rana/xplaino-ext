@@ -215,6 +215,36 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
+/* Upgrade Button Group - wraps the limited time text and button */
+.upgradeFooter .upgradeButtonGroup {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+/* Limited Time Offer Badge */
+.upgradeFooter .limitedTimeOffer {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #ef4444 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
+  animation: offerPulse 2s ease-in-out infinite !important;
+}
+
+@keyframes offerPulse {
+  0%, 100% {
+    opacity: 1 !important;
+  }
+  50% {
+    opacity: 0.7 !important;
+  }
+}
+
 /* Upgrade Button - Flashy Animated Pill Shape (same as coupon) */
 .upgradeFooter .upgradeButton {
   display: flex !important;

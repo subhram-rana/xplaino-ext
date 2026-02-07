@@ -1821,12 +1821,39 @@
   margin-top: 2px !important;
 }
 
+.settingsUpgradeButtonGroup {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+}
+
+.settingsLimitedTimeOffer {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #ef4444 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
+  animation: settingsOfferPulse 2s ease-in-out infinite !important;
+}
+
+@keyframes settingsOfferPulse {
+  0%, 100% {
+    opacity: 1 !important;
+  }
+  50% {
+    opacity: 0.7 !important;
+  }
+}
+
 .settingsUpgradeButton {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 8px !important;
-  width: 100% !important;
+  width: auto !important;
   padding: 10px 20px !important;
   background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #ec4899, #ef4444) !important;
   background-size: 300% 100% !important;

@@ -514,7 +514,7 @@ export const FAB: React.FC<FABProps> = ({
         />
         <ActionButton
           icon="featureRequest"
-          tooltip="Feature request"
+          tooltip="Request a feature"
           onClick={handleFeatureRequest}
           className={actionButtonClass}
         />

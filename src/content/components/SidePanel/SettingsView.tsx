@@ -385,14 +385,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                     <li><Check size={13} strokeWidth={2.5} /><span>Priority support anytime</span></li>
                   </ul>
                 </div>
-                <button
-                  className={getClassName('settingsUpgradeButton')}
-                  onClick={handleUpgradeClick}
-                  type="button"
-                >
-                  <Crown size={16} strokeWidth={2.5} />
-                  <span>Upgrade to Ultra Yearly</span>
-                </button>
+                <div className={getClassName('settingsUpgradeButtonGroup')}>
+                  <span className={getClassName('settingsLimitedTimeOffer')}>Limited time: 30% off</span>
+                  <button
+                    className={getClassName('settingsUpgradeButton')}
+                    onClick={handleUpgradeClick}
+                    type="button"
+                  >
+                    <Crown size={16} strokeWidth={2.5} />
+                    <span>Upgrade to Ultra Yearly</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -411,14 +414,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                     <li><Check size={13} strokeWidth={2.5} /><span>Create your own notes from saved content</span></li>
                   </ul>
                 </div>
-                <button
-                  className={getClassName('settingsUpgradeButton')}
-                  onClick={handleUpgradeClick}
-                  type="button"
-                >
-                  <Crown size={16} strokeWidth={2.5} />
-                  <span>Upgrade to Ultra Yearly</span>
-                </button>
+                <div className={getClassName('settingsUpgradeButtonGroup')}>
+                  <span className={getClassName('settingsLimitedTimeOffer')}>Limited time: 30% off</span>
+                  <button
+                    className={getClassName('settingsUpgradeButton')}
+                    onClick={handleUpgradeClick}
+                    type="button"
+                  >
+                    <Crown size={16} strokeWidth={2.5} />
+                    <span>Upgrade to Ultra Yearly</span>
+                  </button>
+                </div>
               </div>
             )}
           </>

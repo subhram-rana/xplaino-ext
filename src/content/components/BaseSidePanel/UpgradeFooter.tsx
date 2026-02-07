@@ -133,14 +133,17 @@ export const UpgradeFooter: React.FC<UpgradeFooterProps> = ({ useShadowDom = fal
             </span>
           </button>
         )}
-        <button
-          className={`${getClassName('upgradeButton')} ${!hasCoupon ? getClassName('upgradeButtonCentered') : ''}`}
-          onClick={handleUpgradeClick}
-          type="button"
-        >
-          <Crown size={16} strokeWidth={2.5} />
-          <span>Upgrade</span>
-        </button>
+        <div className={getClassName('upgradeButtonGroup')}>
+          <span className={getClassName('limitedTimeOffer')}>Limited time: 30% off</span>
+          <button
+            className={getClassName('upgradeButton')}
+            onClick={handleUpgradeClick}
+            type="button"
+          >
+            <Crown size={16} strokeWidth={2.5} />
+            <span>Upgrade</span>
+          </button>
+        </div>
       </div>
     </div>
   );

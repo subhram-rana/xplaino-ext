@@ -140,9 +140,9 @@ export const FeatureRequestModal: React.FC<FeatureRequestModalProps> = ({ useSha
       >
         {/* Header */}
         <div className={getClassName('featureRequestModalHeader')}>
-          <h2 className={getClassName('featureRequestModalTitle')}>Feature Request</h2>
+          <h2 className={getClassName('featureRequestModalTitle')}>Request a Feature</h2>
           <p className={getClassName('featureRequestModalSubtitle')}>
-            Have an idea to improve Xplaino? We'd love to hear it!
+            Tell us what feature would make Xplaino more useful for your workflow
           </p>
         </div>
 
