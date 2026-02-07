@@ -1,5 +1,5 @@
 // src/content/components/SidePanel/Dropdown.tsx
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import styles from './Dropdown.module.css';
 
 export interface DropdownOption {
@@ -20,6 +20,8 @@ export interface DropdownProps {
   label?: string;
   /** Whether to use Shadow DOM styling */
   useShadowDom?: boolean;
+  /** Whether to show a search input for filtering options */
+  searchable?: boolean;
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({
@@ -29,6 +31,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   placeholder = 'Select option',
   label,
   useShadowDom = false,
+  searchable = false,
 }) => {
   const getClassName = useCallback((baseClass: string) => {
     if (useShadowDom) {
@@ -38,13 +41,24 @@ export const Dropdown: React.FC<DropdownProps> = ({
   }, [useShadowDom]);
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const canOpenRef = useRef<boolean>(false);
   // Track if dropdown has ever been opened (to prevent animation on initial mount)
   const hasBeenOpenedRef = useRef<boolean>(false);
 
   const selectedOption = options.find((opt) => opt.value === value);
+
+  // Filter options based on search query
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchQuery.trim()) {
+      return options;
+    }
+    const query = searchQuery.toLowerCase().trim();
+    return options.filter((opt) => opt.label.toLowerCase().includes(query));
+  }, [options, searchQuery, searchable]);
 
   // Prevent dropdown from opening immediately after mount (prevents auto-open glitch)
   useEffect(() => {
@@ -75,6 +89,19 @@ export const Dropdown: React.FC<DropdownProps> = ({
     }
     // Don't animate on initial mount when isOpen is false
   }, [isOpen]);
+
+  // Auto-focus search input when dropdown opens, clear search when it closes
+  useEffect(() => {
+    if (isOpen && searchable) {
+      // Small delay to ensure the input is rendered
+      const timeoutId = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timeoutId);
+    } else if (!isOpen) {
+      setSearchQuery('');
+    }
+  }, [isOpen, searchable]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,30 +178,71 @@ export const Dropdown: React.FC<DropdownProps> = ({
         {(isOpen || isAnimating) && (
           <div 
             ref={menuRef}
-            className={`${getClassName('dropdownMenu')} ${isOpen ? getClassName('menuOpen') : getClassName('menuClosed')}`}
+            className={`${getClassName('dropdownMenu')} ${isOpen ? getClassName('menuOpen') : getClassName('menuClosed')} ${searchable ? getClassName('searchableMenu') : ''}`}
           >
-            {options.map((option) => {
-              const isSelected = value === option.value;
-              return (
-                <div
-                  key={option.value}
-                  className={`${getClassName('dropdownItem')} ${
-                    isSelected ? getClassName('selected') : ''
-                  }`}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    handleSelect(option.value, e);
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                  }}
-                  style={{ cursor: 'pointer' }}
+            {searchable && (
+              <div className={getClassName('searchInputWrapper')}>
+                <svg
+                  className={getClassName('searchIcon')}
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  {option.label}
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  className={getClassName('searchInput')}
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Escape') {
+                      setIsOpen(false);
+                    }
+                  }}
+                />
+              </div>
+            )}
+            <div className={getClassName('dropdownOptionsList')}>
+              {filteredOptions.length > 0 ? (
+                filteredOptions.map((option) => {
+                  const isSelected = value === option.value;
+                  return (
+                    <div
+                      key={option.value}
+                      className={`${getClassName('dropdownItem')} ${
+                        isSelected ? getClassName('selected') : ''
+                      }`}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleSelect(option.value, e);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {option.label}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className={getClassName('noResults')}>
+                  No languages found
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
         )}
       </div>

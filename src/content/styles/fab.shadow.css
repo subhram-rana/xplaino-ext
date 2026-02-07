@@ -166,7 +166,7 @@
 .actionButton {
   width: 32px !important;
   height: 32px !important;
-  border-radius: 3px !important;
+  border-radius: 7px !important;
   background: transparent !important;
   border: none !important;
   cursor: pointer !important;
@@ -185,22 +185,22 @@
 /* Corner button border-radius - match container's 18px radius minus 6px padding = 12px outer corner */
 /* Top-left corner: Summarise (child 1) */
 .actionsContainer > :nth-child(1) .actionButton {
-  border-radius: 12px 3px 3px 3px !important;
+  border-radius: 12px 7px 7px 7px !important;
 }
 
 /* Top-right corner: Translate wrapper (child 2) */
 .actionsContainer > :nth-child(2) .actionButton {
-  border-radius: 3px 12px 3px 3px !important;
+  border-radius: 7px 12px 7px 7px !important;
 }
 
 /* Bottom-left corner: Report Issue (child 7) */
 .actionsContainer > :nth-child(7) .actionButton {
-  border-radius: 3px 3px 3px 12px !important;
+  border-radius: 7px 7px 7px 12px !important;
 }
 
 /* Bottom-right corner: Disable wrapper (child 8) */
 .actionsContainer > :nth-child(8) .actionButton {
-  border-radius: 3px 3px 12px 3px !important;
+  border-radius: 7px 7px 12px 7px !important;
 }
 
 /* Initial state for all buttons - start scaled down and invisible */

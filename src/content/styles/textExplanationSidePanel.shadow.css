@@ -1065,6 +1065,63 @@
   margin-top: 4px !important;
 }
 
+.searchableMenu {
+  max-height: 280px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.searchInputWrapper {
+  position: sticky !important;
+  top: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 10px !important;
+  background: var(--color-bg-primary-theme) !important;
+  border-bottom: 1px solid var(--color-border-default-theme) !important;
+  z-index: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+.searchIcon {
+  width: 14px !important;
+  height: 14px !important;
+  color: var(--color-text-secondary-theme) !important;
+  flex-shrink: 0 !important;
+  margin-right: 8px !important;
+}
+
+.searchInput {
+  width: 100% !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  color: var(--color-text-primary-theme) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  font-family: inherit !important;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-secondary-theme) !important;
+}
+
+.dropdownOptionsList {
+  overflow-y: auto !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+.noResults {
+  padding: 12px !important;
+  text-align: center !important;
+  font-size: 13px !important;
+  color: var(--color-text-secondary-theme) !important;
+}
+
 .dropdownItem {
   padding: 10px 12px !important;
   cursor: pointer !important;

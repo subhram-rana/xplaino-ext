@@ -461,6 +461,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                   onChange={handleNativeLanguageChange}
                   placeholder="None"
                   useShadowDom={useShadowDom}
+                  searchable
                 />
               </div>
             </div>
