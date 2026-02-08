@@ -31,7 +31,8 @@
     "storage",
     "activeTab",
     "tabs",
-    "identity"
+    "identity",
+    "scripting"
   ],
   "oauth2": {
     "client_id": "355884005048-haqbeokpobimcafks356ovc371glnglo.apps.googleusercontent.com",
@@ -48,6 +49,10 @@
     {
       "resources": ["src/content/utils/youtubePageContext.js"],
       "matches": ["https://www.youtube.com/*"]
+    },
+    {
+      "resources": ["src/content/utils/chromeTranslatorBridge.js"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

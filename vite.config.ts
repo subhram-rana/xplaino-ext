@@ -21,11 +21,15 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         youtubePageContext: resolve(__dirname, 'src/content/utils/youtubeTranscriptPageContext.ts'),
+        chromeTranslatorBridge: resolve(__dirname, 'src/content/utils/chromeTranslatorBridge.js'),
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          // Bundle the page-context script separately without hash for easier reference
+          // Bundle page-context / bridge scripts separately without hash
           if (chunkInfo.name === 'youtubePageContext') {
+            return 'src/content/utils/[name].js';
+          }
+          if (chunkInfo.name === 'chromeTranslatorBridge') {
             return 'src/content/utils/[name].js';
           }
           return 'assets/[name]-[hash].js';

@@ -88,7 +88,12 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
 
       // Position container inside image, at top-left corner with small inset
       const iconX = imageRect.left + 8;
-      const iconY = imageRect.top + 8;
+      // Only clamp Y to viewport when in initial state (brand icon, before click).
+      // Once spinning or explanation received, use the original image-relative position.
+      const isInitialState = !isSpinning && !firstChunkReceived;
+      const iconY = isInitialState
+        ? Math.max(8, imageRect.top + 8)
+        : imageRect.top + 8;
       
       // Update container position directly via DOM for immediate update
       containerRef.current.style.left = `${iconX}px`;
@@ -97,7 +102,7 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
       // Silently handle errors (image might be removed from DOM)
       console.error('[ImageExplanationIcon] Error updating position:', error);
     }
-  }, [imageElement]);
+  }, [imageElement, isSpinning, firstChunkReceived]);
 
   // Handle scroll event
   const handleScroll = useCallback(() => {
@@ -203,7 +208,7 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
         spinnerSize="xs"
         showPurpleIconInitially={true}
         ariaLabel="Simplify image"
-        hoverMessage="View explanation"
+        hoverMessage={firstChunkReceived ? "View explanation" : "Explain this image"}
         bookmarkHoverMessage="Remove bookmark"
         imageMode={true}
       />

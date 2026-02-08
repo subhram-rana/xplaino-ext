@@ -45,6 +45,8 @@ export class ChromeStorage {
     DONT_SHOW_XPLAINO_IMAGE_BOOKMARK_SAVED_LINK_TOAST: 'dont_show_xplaino_image_bookmark_saved_link_toast',
     DONT_SHOW_WELCOME_MODAL: 'dont_show_welcome_modal',
     SUBSCRIPTION_STATUS: 'xplaino-subscription-status',
+    HAS_USER_REVIEW_SUBMISSION_ATTEMPTED: 'has_user_review_submission_attempted',
+    USER_TOTAL_API_COUNTER: 'user_total_api_counter',
   } as const;
 
   // ============================================
@@ -882,6 +884,79 @@ export class ChromeStorage {
     const existing = await this.get<ExtensionSettingsDTO>('xplaino-user-extension-settings');
     if (!existing) {
       await this.setUserExtensionSettings({ domainThemes: {} });
+    }
+  }
+
+  // ============================================
+  // REVIEW PROMPT TRACKING
+  // ============================================
+
+  /**
+   * Get whether the user has attempted a review submission
+   * Returns false if not yet set
+   */
+  static async getHasUserReviewSubmissionAttempted(): Promise<boolean> {
+    const value = await this.get<boolean>(this.KEYS.HAS_USER_REVIEW_SUBMISSION_ATTEMPTED);
+    return value ?? false;
+  }
+
+  /**
+   * Set whether the user has attempted a review submission
+   */
+  static async setHasUserReviewSubmissionAttempted(value: boolean): Promise<void> {
+    return this.set(this.KEYS.HAS_USER_REVIEW_SUBMISSION_ATTEMPTED, value);
+  }
+
+  /**
+   * Get the total API call counter for review prompt tracking
+   * Returns 0 if not yet set
+   */
+  static async getUserTotalApiCounter(): Promise<number> {
+    const value = await this.get<number>(this.KEYS.USER_TOTAL_API_COUNTER);
+    return value ?? 0;
+  }
+
+  /**
+   * Set the total API call counter
+   */
+  static async setUserTotalApiCounter(count: number): Promise<void> {
+    return this.set(this.KEYS.USER_TOTAL_API_COUNTER, count);
+  }
+
+  /**
+   * Increment the total API call counter by 1 and return the new value
+   */
+  static async incrementUserTotalApiCounter(): Promise<number> {
+    const current = await this.getUserTotalApiCounter();
+    const newCount = current + 1;
+    await this.setUserTotalApiCounter(newCount);
+    return newCount;
+  }
+
+  /**
+   * Ensure review prompt fields exist in storage with default values
+   * Called on page load to initialize if needed
+   */
+  static async ensureReviewPromptFields(): Promise<void> {
+    const [hasReviewFlag, hasCounter] = await Promise.all([
+      this.get<boolean>(this.KEYS.HAS_USER_REVIEW_SUBMISSION_ATTEMPTED),
+      this.get<number>(this.KEYS.USER_TOTAL_API_COUNTER),
+    ]);
+
+    const updates: Record<string, unknown> = {};
+    if (hasReviewFlag === null || hasReviewFlag === undefined) {
+      updates[this.KEYS.HAS_USER_REVIEW_SUBMISSION_ATTEMPTED] = false;
+    }
+    if (hasCounter === null || hasCounter === undefined) {
+      updates[this.KEYS.USER_TOTAL_API_COUNTER] = 0;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      return new Promise((resolve) => {
+        chrome.storage.local.set(updates, () => {
+          resolve();
+        });
+      });
     }
   }
 }

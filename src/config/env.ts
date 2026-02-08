@@ -12,7 +12,7 @@ export enum Environment {
 /**
  * Current environment setting
  * Change this value to switch between LOCAL and PRODUCTION
- * --------- IMPORTANT ---------: 
+ * --------- IMPORTANT ---------:
  *  1. Change this value to PRODUCTION before deploying to the Chrome Web Store
  *  2. Update value of oauth2.client_id in manifest.json wtih the appropriate GOOGLE_OAUTH_CLIENT_ID value
  *     based on theenvironment

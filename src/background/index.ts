@@ -176,7 +176,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 // Message listener for handling OAuth flow and image fetching
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Handle image fetch from content script (bypasses CORS)
   if (message.type === 'FETCH_IMAGE') {
     const { imageUrl } = message;
@@ -249,6 +249,32 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     // Return true to indicate we'll send response asynchronously
     return true;
+  }
+
+  // Handle request to inject the Translator bridge into the page's main world
+  if (message.type === 'INJECT_TRANSLATOR_BRIDGE') {
+    const tabId = sender.tab?.id;
+    if (!tabId) {
+      sendResponse({ success: false, error: 'No tab ID' });
+      return true;
+    }
+
+    chrome.scripting
+      .executeScript({
+        target: { tabId },
+        world: 'MAIN' as any, // inject into the page's JS context
+        files: ['src/content/utils/chromeTranslatorBridge.js'],
+      })
+      .then(() => {
+        console.log('[Background] Translator bridge injected into tab', tabId);
+        sendResponse({ success: true });
+      })
+      .catch((err) => {
+        console.error('[Background] Failed to inject translator bridge:', err);
+        sendResponse({ success: false, error: String(err) });
+      });
+
+    return true; // async response
   }
 
   // Handle other messages

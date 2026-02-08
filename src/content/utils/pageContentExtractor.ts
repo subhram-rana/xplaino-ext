@@ -489,7 +489,7 @@ function hasTranslatableChildren(element: HTMLElement): boolean {
  */
 export function extractTranslatableElements(): TranslatableElement[] {
   const translatableElements: TranslatableElement[] = [];
-  const maxElements = 200; // Limit for performance
+  const maxElements = 1000; // Raised from 200 – IntersectionObserver handles prioritisation
   
   console.log('[PageContentExtractor] Starting element extraction...');
   

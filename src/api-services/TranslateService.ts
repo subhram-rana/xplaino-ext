@@ -6,6 +6,7 @@ import { TokenRefreshService } from './TokenRefreshService';
 import { ApiHeaders } from './ApiHeaders';
 import { ApiResponseHandler } from './ApiResponseHandler';
 import { TokenRefreshRetry } from './TokenRefreshRetry';
+import { ChromeTranslatorService, toBcp47 } from './ChromeTranslatorService';
 
 // Types
 export interface TranslateTextItem {
@@ -386,5 +387,106 @@ export class TranslateService {
       }
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Unified translation helper – Chrome Translator API first, backend fallback
+// ---------------------------------------------------------------------------
+
+/** Timeout (ms) for the Chrome Translator API path before falling back. */
+const CHROME_API_TIMEOUT_MS = 15_000;
+
+/**
+ * Try the Chrome built-in Translator API first.  If the browser does not
+ * support it, the requested language pair is unavailable, or the call takes
+ * longer than `CHROME_API_TIMEOUT_MS`, fall back to the backend SSE endpoint
+ * transparently.
+ *
+ * The callback interface is identical to `TranslateService.translate()` so
+ * callers can swap in this function without any other changes.
+ */
+export async function translateWithFallback(
+  request: TranslateRequest,
+  callbacks: TranslateCallbacks,
+  abortController?: AbortController,
+): Promise<void> {
+  console.log('[translateWithFallback] Called. Texts count:', request.texts.length,
+    'Target:', request.targetLangugeCode);
+
+  // --- 1. Check if Chrome Translator API is available (direct or via bridge) ---
+  const chromeAvailable = await ChromeTranslatorService.ensureAvailable();
+  console.log('[translateWithFallback] Chrome Translator API available:', chromeAvailable);
+
+  if (chromeAvailable) {
+    try {
+      // Detect page source language (best-effort)
+      const sampleText = request.texts[0]?.text ?? '';
+      const sourceLang = await ChromeTranslatorService.detectSourceLanguage(sampleText);
+      const targetBcp47 = toBcp47(request.targetLangugeCode);
+      console.log('[translateWithFallback] Source lang:', sourceLang, 'Target BCP47:', targetBcp47);
+
+      // Check language pair support
+      const availability = await ChromeTranslatorService.checkLanguagePair(
+        sourceLang,
+        targetBcp47,
+      );
+      console.log('[translateWithFallback] Language pair availability:', availability);
+
+      if (availability !== 'unavailable') {
+        console.log('[translateWithFallback] Using Chrome Translator API');
+
+        // Race the Chrome API against a timeout to avoid blocking forever
+        // (e.g. if a language pack download stalls)
+        const chromeTranslateResult = await Promise.race([
+          (async (): Promise<'success'> => {
+            const results: string[] = [];
+
+            for (let i = 0; i < request.texts.length; i++) {
+              // Respect abort signal
+              if (abortController?.signal.aborted) return 'success';
+
+              const translated = await ChromeTranslatorService.translate(
+                request.texts[i].text,
+                targetBcp47,
+                sourceLang,
+              );
+              results.push(translated);
+              callbacks.onProgress?.(i, translated);
+            }
+
+            callbacks.onSuccess(results);
+            return 'success';
+          })(),
+          new Promise<'timeout'>((resolve) =>
+            setTimeout(() => resolve('timeout'), CHROME_API_TIMEOUT_MS),
+          ),
+        ]);
+
+        if (chromeTranslateResult === 'success') {
+          console.log('[translateWithFallback] Chrome API translation completed successfully');
+          return;
+        }
+
+        // Timeout – fall through to backend
+        console.warn(
+          `[translateWithFallback] Chrome API timed out after ${CHROME_API_TIMEOUT_MS}ms, falling back to backend`,
+        );
+      } else {
+        console.log('[translateWithFallback] Language pair unavailable in Chrome API, using backend');
+      }
+    } catch (err) {
+      // Chrome API failed at some point – fall through to backend
+      console.warn(
+        '[translateWithFallback] Chrome Translator API failed, falling back to backend:',
+        err,
+      );
+    }
+  } else {
+    console.log('[translateWithFallback] Chrome Translator API NOT available in this context, using backend');
+  }
+
+  // --- 2. Fallback: backend SSE translation ---
+  console.log('[translateWithFallback] Falling back to backend TranslateService');
+  await TranslateService.translate(request, callbacks, abortController);
 }
 

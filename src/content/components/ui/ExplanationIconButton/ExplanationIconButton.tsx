@@ -152,9 +152,10 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
     }
   };
 
-  // Update book icon mounted state when firstChunkReceived changes
+  // Update book icon mounted state when icon is rendered (not spinning)
+  // This enables the hover tooltip for both the initial brand icon and the book icon
   useEffect(() => {
-    if ((firstChunkReceived || !showPurpleIconInitially) && iconElementRef.current && !isSpinning) {
+    if (iconElementRef.current && !isSpinning) {
       // Small delay to ensure ref is assigned after render
       const timer = setTimeout(() => {
         setIsBookIconMounted(true);

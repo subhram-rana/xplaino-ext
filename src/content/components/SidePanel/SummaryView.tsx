@@ -716,6 +716,9 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       const nativeLanguage = await ChromeStorage.getUserSettingNativeLanguage();
       const languageCode = nativeLanguage ? (getLanguageCode(nativeLanguage) || undefined) : undefined;
 
+      // Increment API counter for review prompt tracking (fire-and-forget)
+      ChromeStorage.incrementUserTotalApiCounter().catch(() => {});
+
       await SummariseService.summarise(
         {
           text: pageContent,
@@ -785,6 +788,9 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       // Get language code from user settings
       const nativeLanguageForAsk = await ChromeStorage.getUserSettingNativeLanguage();
       const languageCodeForAsk = nativeLanguageForAsk ? (getLanguageCode(nativeLanguageForAsk) || undefined) : undefined;
+
+      // Increment API counter for review prompt tracking (fire-and-forget)
+      ChromeStorage.incrementUserTotalApiCounter().catch(() => {});
 
       await AskService.ask(
         {
