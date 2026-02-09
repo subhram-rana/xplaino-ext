@@ -134,7 +134,7 @@ export const UpgradeFooter: React.FC<UpgradeFooterProps> = ({ useShadowDom = fal
           </button>
         )}
         <div className={getClassName('upgradeButtonGroup')}>
-          <span className={getClassName('limitedTimeOffer')}>Limited time: 30% off</span>
+          <span className={getClassName('limitedTimeOffer')}>Limited time offer: 30% off</span>
           <button
             className={getClassName('upgradeButton')}
             onClick={handleUpgradeClick}

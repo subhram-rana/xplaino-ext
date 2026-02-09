@@ -32,6 +32,7 @@
   --color-error-alt: #ff4444 !important;
   --color-error-opacity-10: rgba(255, 68, 68, 0.1) !important;
   --color-shadow-black-20: rgba(0, 0, 0, 0.2) !important;
+  --color-shadow-fab-group: rgba(20, 160, 138, 0.35) !important;
 }
 
 /* Slide-in animation for FAB on page load */
@@ -150,6 +151,7 @@
   visibility: visible !important;
   pointer-events: auto !important;
   transition: opacity 0.25s ease, visibility 0s ease !important;
+  box-shadow: 0 4px 20px var(--color-shadow-fab-group) !important;
 }
 
 /* Action button styles - Square with rounded corners, no border */

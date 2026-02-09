@@ -627,10 +627,15 @@ async function handleSummariseClick(): Promise<void> {
   const existingSummary = store.get(summaryAtom);
   const hasSummary = !!existingSummary && existingSummary.trim().length > 0;
   
-  // If summary exists, just open the side panel
+  // If summary exists, toggle the side panel (close if open, open if closed)
   if (hasSummary) {
-    console.log('[Content Script] Summary exists, opening side panel');
-    setSidePanelOpen(true, 'summary');
+    if (sidePanelOpen) {
+      console.log('[Content Script] Summary exists and side panel is open, closing side panel');
+      setSidePanelOpen(false);
+    } else {
+      console.log('[Content Script] Summary exists, opening side panel');
+      setSidePanelOpen(true, 'summary');
+    }
     return;
   }
   

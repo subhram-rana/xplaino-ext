@@ -29,7 +29,7 @@ export const DisableNotificationModal: React.FC<DisableNotificationModalProps> =
   return (
     <div className="disableNotificationModal">
       <div className="disableNotificationModalArrow">
-        <ArrowUp size={20} strokeWidth={2.5} />
+        <ArrowUp size={20} strokeWidth={3} />
       </div>
       <div className="disableNotificationModalContent">
         <p className="disableNotificationModalMessage">

@@ -42,18 +42,22 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 32px !important;
-  height: 32px !important;
+  width: 36px !important;
+  height: 36px !important;
   margin-bottom: 8px !important;
   color: var(--color-primary) !important;
+  background: var(--color-primary) !important;
+  border: 2.5px solid var(--color-white, #FFFFFF) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px var(--color-shadow-black-20, rgba(0, 0, 0, 0.2)) !important;
   animation: arrowBounce 2s ease-in-out infinite !important;
 }
 
 .disableNotificationModalArrow svg {
   width: 20px !important;
   height: 20px !important;
-  stroke: var(--color-primary) !important;
-  stroke-width: 2.5 !important;
+  stroke: var(--color-white, #FFFFFF) !important;
+  stroke-width: 3 !important;
   fill: none !important;
 }
 

@@ -125,6 +125,7 @@
   opacity: 1 !important;
   visibility: visible !important;
   transition: opacity 0.25s ease, visibility 0s ease !important;
+  box-shadow: 0 4px 20px var(--color-shadow-fab-group) !important;
 }
 
 /* Action button styles - Square with 13px border radius, smaller size */

@@ -386,7 +386,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                   </ul>
                 </div>
                 <div className={getClassName('settingsUpgradeButtonGroup')}>
-                  <span className={getClassName('settingsLimitedTimeOffer')}>Limited time: 30% off</span>
+                  <span className={getClassName('settingsLimitedTimeOffer')}>Limited time offer: 30% off</span>
                   <button
                     className={getClassName('settingsUpgradeButton')}
                     onClick={handleUpgradeClick}
@@ -415,7 +415,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
                   </ul>
                 </div>
                 <div className={getClassName('settingsUpgradeButtonGroup')}>
-                  <span className={getClassName('settingsLimitedTimeOffer')}>Limited time: 30% off</span>
+                  <span className={getClassName('settingsLimitedTimeOffer')}>Limited time offer: 30% off</span>
                   <button
                     className={getClassName('settingsUpgradeButton')}
                     onClick={handleUpgradeClick}

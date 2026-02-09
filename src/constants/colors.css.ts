@@ -229,6 +229,7 @@ export async function getAllColorVariables(theme?: 'light' | 'dark', useHost: bo
       --color-shadow-black-15: ${COLORS.SHADOW_BLACK_15} !important;
       --color-shadow-black-20: ${COLORS.SHADOW_BLACK_20} !important;
       --color-shadow-black-30: ${COLORS.SHADOW_BLACK_30} !important;
+      --color-shadow-fab-group: ${activeTheme === 'dark' ? 'rgba(77, 212, 191, 0.4)' : 'rgba(20, 160, 138, 0.35)'} !important;
       
       /* ============================================
          DARK THEME SPECIFIC COLORS
@@ -480,6 +481,7 @@ function getAllColorVariablesSync(theme: 'light' | 'dark', useHost: boolean = tr
       --color-shadow-black-15: ${COLORS.SHADOW_BLACK_15} !important;
       --color-shadow-black-20: ${COLORS.SHADOW_BLACK_20} !important;
       --color-shadow-black-30: ${COLORS.SHADOW_BLACK_30} !important;
+      --color-shadow-fab-group: ${activeTheme === 'dark' ? 'rgba(77, 212, 191, 0.4)' : 'rgba(20, 160, 138, 0.35)'} !important;
       
       /* ============================================
          DARK THEME SPECIFIC COLORS
