@@ -22,6 +22,7 @@ import {
   messageQuestionsAtom,
   summaryErrorAtom,
   hasContentAtom,
+  focusAskInputAtom,
 } from '@/store/summaryAtoms';
 import { findMatchingElement } from '@/content/utils/referenceMatcher';
 import { COLORS, colorWithOpacity } from '@/constants/colors';
@@ -44,6 +45,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   isOpen = true,
 }) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const askInputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   
@@ -58,6 +60,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   const [messageQuestions, setMessageQuestions] = useAtom(messageQuestionsAtom);
   const [errorMessage, setErrorMessage] = useAtom(summaryErrorAtom);
   const [hasContent] = useAtom(hasContentAtom);
+  const [focusAskInput, setFocusAskInput] = useAtom(focusAskInputAtom);
   
   const abortControllerRef = useRef<AbortController | null>(null);
   
@@ -100,6 +103,18 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     }
     return styles[baseClass as keyof typeof styles] || baseClass;
   }, [useShadowDom]);
+
+  // Focus the ask input when signalled via focusAskInputAtom
+  useEffect(() => {
+    if (focusAskInput) {
+      // Small delay to ensure the panel is rendered and visible
+      const timer = setTimeout(() => {
+        askInputRef.current?.focus();
+        setFocusAskInput(false);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [focusAskInput, setFocusAskInput]);
 
   // Handle tooltip hover
   useEffect(() => {
@@ -1111,6 +1126,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       <div className={getClassName('inputBar')}>
         <div className={getClassName('inputWrapper')}>
           <input
+            ref={askInputRef}
             type="text"
             className={getClassName('input')}
             placeholder="Ask AI about the page"

@@ -50,6 +50,9 @@ export const suggestedQuestionsAtom = atom<string[]>([]);
 /** Error message */
 export const summaryErrorAtom = atom<string>('');
 
+/** Signal to focus the ask input bar in SummaryView */
+export const focusAskInputAtom = atom<boolean>(false);
+
 // ============================================
 // DERIVED ATOMS
 // ============================================

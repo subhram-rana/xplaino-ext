@@ -93,6 +93,7 @@ import {
   summaryErrorAtom,
   messageQuestionsAtom,
   pageReadingStateAtom,
+  focusAskInputAtom,
 } from '../store/summaryAtoms';
 import { showLoginModalAtom, showSubscriptionModalAtom, showFeatureRequestModalAtom, userAuthInfoAtom, currentThemeAtom, subscriptionStatusAtom, isUserLoggedInAtom } from '../store/uiAtoms';
 import {
@@ -618,6 +619,15 @@ function filterReferenceLinks(summary: string): string {
 // =============================================================================
 
 /**
+ * Handle "Ask about page" button click - opens side panel and focuses the input bar
+ */
+function handleAskAboutPageClick(): void {
+  console.log('[Content Script] Ask about page clicked from FAB');
+  store.set(focusAskInputAtom, true);
+  setSidePanelOpen(true, 'summary');
+}
+
+/**
  * Handle summarise button click
  */
 async function handleSummariseClick(): Promise<void> {
@@ -974,6 +984,7 @@ function updateFAB(): void {
         React.createElement(FAB, {
           useShadowDom: true,
           onSummarise: handleSummariseClick,
+          onAskAboutPage: handleAskAboutPageClick,
           onTranslate: handleTranslateClick,
           onStopTranslation: handleStopTranslation,
           onToggleView: handleToggleView,
@@ -11826,6 +11837,7 @@ setupGlobalAuthListener();
 /**
  * Setup global keyboard shortcuts:
  * - Ctrl/Cmd + M → Summarise page
+ * - Ctrl/Cmd + B → Ask about page
  * - Ctrl/Cmd + K → Translate page
  */
 function setupKeyboardShortcuts(): void {
@@ -11851,6 +11863,11 @@ function setupKeyboardShortcuts(): void {
       e.stopPropagation();
       e.stopImmediatePropagation();
       handleSummariseClick();
+    } else if (e.key === 'b' || e.key === 'B') {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      handleAskAboutPageClick();
     } else if (e.key === 'k' || e.key === 'K') {
       e.preventDefault();
       e.stopPropagation();

@@ -26,6 +26,8 @@ export interface FABProps {
   onSaveUrl?: () => void;
   /** Callback when Feature Request is clicked */
   onFeatureRequest?: () => void;
+  /** Callback when Ask About Page is clicked */
+  onAskAboutPage?: () => void;
   /** Whether component is rendered in Shadow DOM (uses plain class names) */
   useShadowDom?: boolean;
   /** Whether summarise button is loading */
@@ -57,6 +59,7 @@ export const FAB: React.FC<FABProps> = ({
   onOptions,
   onSaveUrl,
   onFeatureRequest,
+  onAskAboutPage,
   useShadowDom = false,
   isSummarising = false,
   hasSummary = false,
@@ -82,6 +85,7 @@ export const FAB: React.FC<FABProps> = ({
   // Detect Mac vs Windows/Linux for keyboard shortcut labels
   const isMac = useMemo(() => /Mac|iPod|iPhone|iPad/.test(navigator.platform), []);
   const summariseShortcut = isMac ? '⌘M' : 'Ctrl+M';
+  const askAboutPageShortcut = isMac ? '⌘b' : 'Ctrl+b';
   const translateShortcut = isMac ? '⌘K' : 'Ctrl+K';
 
   // Get class names based on context
@@ -243,6 +247,11 @@ export const FAB: React.FC<FABProps> = ({
     onSummarise?.();
   }, [onSummarise]);
 
+  const handleAskAboutPage = useCallback(() => {
+    console.log('[FAB] Ask about page clicked');
+    onAskAboutPage?.();
+  }, [onAskAboutPage]);
+
   const handleTranslate = useCallback(() => {
     if (translationState === 'translating') {
       // Stop translation
@@ -381,6 +390,13 @@ export const FAB: React.FC<FABProps> = ({
           onClick={handleSummarise}
           className={actionButtonClass}
           isLoading={isSummarising}
+        />
+        <ActionButton
+          icon="askAboutPage"
+          tooltip="Ask about page"
+          shortcut={askAboutPageShortcut}
+          onClick={handleAskAboutPage}
+          className={actionButtonClass}
         />
         <div style={{ position: 'relative' }}>
           <ActionButton
