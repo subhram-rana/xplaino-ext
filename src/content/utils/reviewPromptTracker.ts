@@ -4,10 +4,10 @@
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 
 /** Number of API calls before the first review prompt is shown */
-const REVIEW_PROMPT_FIRST_TRIGGER = 1;
+const REVIEW_PROMPT_FIRST_TRIGGER = 20;
 
 /** Number of API calls between subsequent review prompts */
-const REVIEW_PROMPT_RECURRING_INTERVAL = 1;
+const REVIEW_PROMPT_RECURRING_INTERVAL = 15;
 
 /**
  * Increment the API counter and return whether the review prompt modal should be shown.

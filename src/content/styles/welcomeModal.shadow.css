@@ -16,28 +16,65 @@
 
 /* Color variables are injected via getAllColorVariables() from src/constants/colors.css.ts */
 
-/* Welcome Modal Container */
+/* Fade-in animation for welcome modal */
+@keyframes fadeInModal {
+  from {
+    opacity: 0 !important;
+    transform: translateX(10px) !important;
+  }
+  to {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+  }
+}
+
+/* Welcome Modal Container - positioned near FAB (top: 120px, right: 0) */
+/* fill-mode 'both' applies from-keyframe (opacity:0) during delay, keeps to-keyframe (opacity:1) after */
 .welcomeModalContainer {
   position: fixed !important;
-  top: 20px !important;
-  right: 20px !important;
+  top: 90px !important;
+  right: 40px !important;
   z-index: 2147483647 !important;
   pointer-events: auto !important;
+  animation: fadeInModal 0.4s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+  animation-delay: 1.2s !important; /* Wait for FAB slide-in (0.5s) + bounce delay (0.5s) + partial bounce */
 }
 
 /* Welcome Modal Content */
 .welcomeModalContent {
   background: var(--color-bg-primary-theme) !important;
-  border-radius: 30px !important;
+  border-radius: 20px !important;
   border: 1.5px solid var(--color-primary-light, #14a08a) !important;
-  padding: 32px 24px !important;
-  box-shadow: 0 0 20px var(--color-shadow-black-20) !important;
-  min-width: 320px !important;
-  max-width: 400px !important;
+  padding: 24px 20px !important;
+  box-shadow: 0 4px 24px var(--color-shadow-black-20) !important;
+  min-width: 280px !important;
+  max-width: 340px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  gap: 24px !important;
+  gap: 18px !important;
+  position: relative !important;
+}
+
+/* Arrow pointing right toward the FAB button */
+.welcomeModalContent::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 45px !important;
+  right: -14px !important;
+  border: 7px solid transparent !important;
+  border-left-color: var(--color-primary-light, #14a08a) !important;
+}
+
+/* Arrow background fill (matches modal background, sits on top of border arrow) */
+.welcomeModalContent::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 45px !important;
+  right: -12px !important;
+  border: 7px solid transparent !important;
+  border-left-color: var(--color-bg-primary-theme) !important;
+  z-index: 1 !important;
 }
 
 /* Brand Image Container */

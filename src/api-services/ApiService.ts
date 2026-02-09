@@ -4,6 +4,7 @@ import type { GetAllDomainsResponseDTO } from './dto/DomainDTO';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { TokenRefreshService } from './TokenRefreshService';
 import { ApiErrorHandler } from './ApiErrorHandler';
+import { ENV } from '@/config/env';
 
 /**
  * Central class for all API calls
@@ -14,10 +15,7 @@ export class ApiService {
   // CONFIGURATION
   // ============================================
 
-  // TODO: Update this to your actual API URL
-  // For local development: 'http://localhost:8000'
-  // For production: 'https://api.xplaino.com'
-  private static readonly BASE_URL = 'http://localhost:8000';
+  private static readonly BASE_URL = ENV.API_BASE_URL;
 
   // ============================================
   // GENERIC REQUEST METHODS

@@ -264,6 +264,7 @@ let isSummarising = false;
 let summariseAbortController: AbortController | null = null;
 let firstChunkReceived = false;
 let canHideFABActions = true;
+let forceShowFABActions = false; // Force-show FAB actions (e.g. from keyboard shortcut)
 
 // Text explanation view mode (not stored in atoms as it's UI state)
 let textExplanationViewMode: 'contextual' | 'translation' = 'contextual';
@@ -640,6 +641,7 @@ async function handleSummariseClick(): Promise<void> {
     isSummarising = false;
     firstChunkReceived = false;
     canHideFABActions = true;
+    forceShowFABActions = false;
     store.set(summariseStateAtom, 'idle');
     updateFAB();
     return;
@@ -649,6 +651,7 @@ async function handleSummariseClick(): Promise<void> {
   isSummarising = true;
   firstChunkReceived = false;
   canHideFABActions = false; // Prevent hiding actions during loading
+  forceShowFABActions = true; // Force-show FAB actions so user sees the spinner
   store.set(summariseStateAtom, 'summarising');
   store.set(streamingTextAtom, '');
   store.set(summaryAtom, '');
@@ -696,6 +699,7 @@ async function handleSummariseClick(): Promise<void> {
             firstChunkReceived = true;
             canHideFABActions = true; // Allow actions to hide after first event
             isSummarising = false; // Stop showing spinner, revert to icon
+            forceShowFABActions = false; // Stop force-showing actions
             console.log('[Content Script] First chunk received, opening side panel');
             setSidePanelOpen(true, 'summary');
             // Update FAB after setting streaming text so hasSummary will be true
@@ -722,6 +726,7 @@ async function handleSummariseClick(): Promise<void> {
           summariseAbortController = null;
           firstChunkReceived = false;
           canHideFABActions = true;
+          forceShowFABActions = false;
           updateFAB();
         },
         onError: (errorCode, errorMsg) => {
@@ -734,6 +739,7 @@ async function handleSummariseClick(): Promise<void> {
           summariseAbortController = null;
           firstChunkReceived = false;
           canHideFABActions = true;
+          forceShowFABActions = false;
           updateFAB();
         },
         onLoginRequired: () => {
@@ -746,6 +752,7 @@ async function handleSummariseClick(): Promise<void> {
           summariseAbortController = null;
           firstChunkReceived = false;
           canHideFABActions = true;
+          forceShowFABActions = false;
           updateFAB();
         },
         onSubscriptionRequired: () => {
@@ -758,6 +765,7 @@ async function handleSummariseClick(): Promise<void> {
           summariseAbortController = null;
           firstChunkReceived = false;
           canHideFABActions = true;
+          forceShowFABActions = false;
           updateFAB();
         },
       },
@@ -773,6 +781,7 @@ async function handleSummariseClick(): Promise<void> {
     summariseAbortController = null;
     firstChunkReceived = false;
     canHideFABActions = true;
+    forceShowFABActions = false;
     updateFAB();
   }
 }
@@ -975,6 +984,7 @@ function updateFAB(): void {
           translationState: pageTranslationState,
           viewMode: pageViewMode,
           isBookmarked: isBookmarked,
+          forceShowActions: forceShowFABActions,
         })
       )
     );
@@ -11768,7 +11778,7 @@ async function initContentScript(): Promise<void> {
       // 2. Domain status is ENABLED or not set (null = default enabled)
       if (!dontShowWelcomeModal && 
           (domainStatus === null || domainStatus === DomainStatus.ENABLED)) {
-        // Show modal after a short delay to ensure page is loaded
+        // Inject modal early; CSS animation-delay handles visual timing after FAB animations
         setTimeout(async () => {
           welcomeModalVisible = true;
           await injectWelcomeModal();

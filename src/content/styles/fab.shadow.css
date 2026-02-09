@@ -34,6 +34,18 @@
   --color-shadow-black-20: rgba(0, 0, 0, 0.2) !important;
 }
 
+/* Slide-in animation for FAB on page load */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
+  }
+  to {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Parent container - positioned at top-right */
 .fabParent {
   position: fixed !important;
@@ -43,6 +55,7 @@
   flex-direction: row !important;
   align-items: center !important;
   z-index: 2147483640 !important;
+  animation: slideInFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
 }
 
 .fabParent.slideOut {
@@ -74,7 +87,7 @@
   height: 24px !important;
   border-radius: 12px 0 0 12px !important;
   background: var(--color-bg-primary-theme, #FFFFFF) !important;
-  border: 1.5px solid var(--color-border-default-theme) !important;
+  border: 2.5px solid var(--color-primary-light, #14a08a) !important;
   border-right: none !important;
   cursor: pointer !important;
   display: flex !important;
@@ -127,6 +140,7 @@
   padding: 6px !important;
   opacity: 0 !important;
   visibility: hidden !important;
+  pointer-events: none !important;
   white-space: nowrap !important;
   transition: opacity 0.25s ease, visibility 0s ease 0.25s !important;
 }
@@ -134,12 +148,8 @@
 .actionsContainer.visible {
   opacity: 1 !important;
   visibility: visible !important;
+  pointer-events: auto !important;
   transition: opacity 0.25s ease, visibility 0s ease !important;
-}
-
-/* Ensure wrapper divs with popovers stay visible even when container is hidden */
-.actionsContainer > div {
-  visibility: visible !important;
 }
 
 /* Action button styles - Square with rounded corners, no border */
@@ -245,21 +255,19 @@
   transition: none !important;
 }
 
-/* Pulse animation for FAB when first loaded - using CSS variable */
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 var(--color-primary-light) !important;
-  }
-  70% {
-    box-shadow: 0 0 0 12px transparent !important;
-  }
-  100% {
-    box-shadow: 0 0 0 0 transparent !important;
-  }
+/* Scale bounce animation for FAB when first loaded - scales up to 1.2x twice */
+/* IMPORTANT: Do NOT use !important inside @keyframes - Chrome drops those declarations entirely */
+@keyframes scaleBounceTwice {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .fabButton.pulse {
-  animation: pulse 2s ease-in-out 3 !important;
+  animation: scaleBounceTwice 1s ease-in-out 0.5s 1 both !important;
+  transition: none !important;
 }
 
 /* Loading Spinner for ActionButton - Loader2 icon */

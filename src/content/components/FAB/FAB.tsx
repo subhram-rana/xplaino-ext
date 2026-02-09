@@ -44,6 +44,8 @@ export interface FABProps {
   viewMode?: 'original' | 'translated';
   /** Whether the current page is bookmarked/saved */
   isBookmarked?: boolean;
+  /** Whether to force-show the action buttons (e.g. from keyboard shortcut) */
+  forceShowActions?: boolean;
 }
 
 export const FAB: React.FC<FABProps> = ({
@@ -64,6 +66,7 @@ export const FAB: React.FC<FABProps> = ({
   translationState = 'idle',
   viewMode = 'translated',
   isBookmarked = false,
+  forceShowActions = false,
 }) => {
   const [actionsVisible, setActionsVisible] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
@@ -97,11 +100,11 @@ export const FAB: React.FC<FABProps> = ({
     }
   }, [useShadowDom, currentTheme]);
 
-  // Clear pulse animation after it plays
+  // Clear pulse animation after it plays (0.5s delay + 1s bounce animation + buffer)
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowPulse(false);
-    }, 6000); // 3 pulses * 2s each
+    }, 2000); // 0.5s slide-in delay + 1s scale bounce + 0.5s buffer
     return () => clearTimeout(timer);
   }, []);
 
@@ -143,6 +146,13 @@ export const FAB: React.FC<FABProps> = ({
       }
     }, 300); // Small delay before hiding
   }, [clearHideTimeout, isSummarising, canHideActions, showDisablePopover, showTranslationPopover]);
+
+  // Force-show actions when triggered externally (e.g. keyboard shortcut)
+  useEffect(() => {
+    if (forceShowActions) {
+      setActionsVisible(true);
+    }
+  }, [forceShowActions]);
 
   // Hide actions immediately when any panel opens
   useEffect(() => {
