@@ -312,10 +312,10 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
         const naturalWidth = element.scrollWidth;
         lastMeasuredWidth.current = naturalWidth; // Store for closing animation
         
-        const firstButtonWidth = 30;
+        const firstButtonWidth = 38;
         
         // Restore max-width
-        element.style.maxWidth = savedMaxWidth || '500px';
+        element.style.maxWidth = savedMaxWidth || '600px';
         element.style.width = '';
         
         // If initial appearance, start from first button width

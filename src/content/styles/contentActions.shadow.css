@@ -98,7 +98,7 @@
   visibility: hidden !important;
   transform: translateX(-19px) translateY(-9px) !important;
   width: var(--button-group-width, 0px) !important;
-  max-width: 500px !important;
+  max-width: 600px !important;
   overflow: hidden !important; /* Clip icons during width animation */
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease 0.35s, visibility 0s ease 0.4s !important;
   position: absolute !important;
@@ -114,7 +114,7 @@
   visibility: visible !important;
   transform: translateX(-19px) translateY(-9px) !important;
   /* Width will be set via CSS variable by JavaScript */
-  max-width: 500px !important;
+  max-width: 600px !important;
   overflow: hidden !important; /* Keep hidden during expansion for progressive reveal */
   will-change: width !important;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease, visibility 0s ease !important;
@@ -171,8 +171,8 @@
 
 /* Individual Action Button - Square shape with rounded corners */
 .contentActionButton {
-  width: 26px !important;
-  height: 26px !important;
+  width: 34px !important;
+  height: 29px !important;
   border-radius: 3px !important;
   background: transparent !important;
   border: none !important;
@@ -196,8 +196,8 @@
   pointer-events: auto !important;
   visibility: visible !important;
   display: flex !important;
-  min-width: 26px !important;
-  min-height: 26px !important;
+  min-width: 34px !important;
+  min-height: 29px !important;
   /* Visible state - transition will animate these */
   opacity: 1 !important;
   transform: translateX(0) scale(1) !important;
@@ -219,8 +219,8 @@
 
 /* Action Button Icons */
 .contentActionButton svg {
-  width: 15px !important;
-  height: 15px !important;
+  width: 18px !important;
+  height: 17px !important;
   color: var(--color-primary-light) !important;
   stroke: var(--color-primary-light) !important;
   stroke-width: 2.5 !important;
