@@ -100,7 +100,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
       setGlobalDisabled(gDisabled);
       if (dStatus) setDomainStatus(dStatus);
 
-      // Load account settings and languages (only when logged in)
+      // Load account settings (logged-in) or guest language (non-logged-in)
       if (isLoggedIn) {
         try {
           // Fetch user account settings from storage (already synced on page load)
@@ -110,23 +110,37 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
             setPageTranslationView(accountSettings.settings.pageTranslationView || 'REPLACE');
             setBackendTheme(accountSettings.settings.theme || 'LIGHT');
           }
-
-          // Fetch languages list (public endpoint)
-          const langResponse = await UserSettingsService.getAllLanguages();
-          const sortedLanguages = [...langResponse.languages].sort((a, b) =>
-            a.languageNameInEnglish.localeCompare(b.languageNameInEnglish)
-          );
-          const dropdownOptions: DropdownOption[] = [
-            { value: '', label: 'None' },
-            ...sortedLanguages.map((lang) => ({
-              value: lang.languageCode,
-              label: `${lang.languageNameInEnglish} (${lang.languageNameInNative})`,
-            })),
-          ];
-          setLanguageOptions(dropdownOptions);
         } catch (accountError) {
-          console.error('[SettingsView] Error loading account settings / languages:', accountError);
+          console.error('[SettingsView] Error loading account settings:', accountError);
         }
+      } else {
+        // Non-logged-in: load guest native language and sync to the flat key
+        try {
+          const guestLang = await ChromeStorage.getGuestNativeLanguage();
+          setNativeLanguage(guestLang ?? null);
+          // Sync to the flat key so all feature consumers pick it up
+          await ChromeStorage.setUserSettingNativeLanguage(guestLang || '');
+        } catch (guestError) {
+          console.error('[SettingsView] Error loading guest language:', guestError);
+        }
+      }
+
+      // Fetch languages list for all users (public endpoint, no auth required)
+      try {
+        const langResponse = await UserSettingsService.getAllLanguages();
+        const sortedLanguages = [...langResponse.languages].sort((a, b) =>
+          a.languageNameInEnglish.localeCompare(b.languageNameInEnglish)
+        );
+        const dropdownOptions: DropdownOption[] = [
+          { value: '', label: 'None' },
+          ...sortedLanguages.map((lang) => ({
+            value: lang.languageCode,
+            label: `${lang.languageNameInEnglish} (${lang.languageNameInNative})`,
+          })),
+        ];
+        setLanguageOptions(dropdownOptions);
+      } catch (langError) {
+        console.error('[SettingsView] Error loading languages:', langError);
       }
     } catch (error) {
       console.error('[SettingsView] Error loading settings:', error);
@@ -199,7 +213,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
   const handleNativeLanguageChange = async (value: string) => {
     const newValue = value || null; // empty string => null (i.e. "None")
     setNativeLanguage(newValue);
-    await saveAccountSettings({ nativeLanguage: newValue, pageTranslationView });
+
+    if (isLoggedIn) {
+      // Logged-in: persist via backend API (which syncs to Chrome storage)
+      await saveAccountSettings({ nativeLanguage: newValue, pageTranslationView });
+    } else {
+      // Non-logged-in: persist to guest key and sync to the flat key
+      await ChromeStorage.setGuestNativeLanguage(newValue || '');
+      await ChromeStorage.setUserSettingNativeLanguage(newValue || '');
+    }
   };
 
   const handlePageTranslationViewChange = async (tabId: string) => {
@@ -450,8 +472,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
       {/* Extension Settings Section */}
       <div className={getClassName('section')}>
         <div className={getClassName('sectionContent')}>
-          {/* Native Language Dropdown (logged-in only) */}
-          {isLoggedIn && languageOptions.length > 0 && (
+          {/* Native Language Dropdown (all users) */}
+          {languageOptions.length > 0 && (
             <div className={getClassName('settingItem')}>
               <div className={getClassName('languageSettingRow')}>
                 <label className={getClassName('settingLabel')}>Native Language</label>
