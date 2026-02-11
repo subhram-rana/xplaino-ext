@@ -81,11 +81,12 @@
 .fabButton.actionsVisible {
   background: var(--color-bg-primary-theme, #FFFFFF) !important;
   box-shadow: none !important;
-  transform: translateX(30px) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .fabButton:active {
-  transform: translateX(30px) scale(0.98) !important;
+  transform: scale(0.98) !important;
 }
 
 .fabButton img,
@@ -98,21 +99,21 @@
   flex-shrink: 0 !important;
 }
 
-/* Actions container - positioned absolutely to the left of FAB */
+/* Actions container - single vertical column, flush to right edge */
 /* Simple fade in/out animation */
 .actionsContainer {
   position: absolute !important;
-  right: calc(100% - 12px) !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  transform-origin: center center !important;
+  right: 0 !important;
+  top: 0 !important;
+  transform-origin: top right !important;
   display: grid !important;
-  grid-template-columns: repeat(3, auto) !important;
+  grid-template-columns: 1fr !important;
   gap: var(--action-gap) !important;
   place-items: center !important;
   background: var(--color-bg-primary-theme) !important;
-  border-radius: 16px !important;
+  border-radius: 16px 0 0 16px !important;
   border: 1.5px solid var(--color-primary) !important;
+  border-right: none !important;
   padding: 4px !important;
   opacity: 0 !important;
   visibility: hidden !important;
@@ -127,11 +128,11 @@
   box-shadow: 0 4px 20px var(--color-shadow-fab-group) !important;
 }
 
-/* Action button styles - Square with 13px border radius, smaller size */
+/* Action button styles - right side flush (0 radius), left side rounded */
 .actionButton {
   width: var(--action-size) !important;
   height: var(--action-size) !important;
-  border-radius: 13px !important;
+  border-radius: 13px 0 0 13px !important;
   background: var(--color-bg-primary-theme) !important;
   border: 2.5px solid var(--color-primary-light) !important;
   cursor: pointer !important;
@@ -223,26 +224,21 @@
   stroke: var(--color-primary) !important;
 }
 
-/* Corner button border-radius - match container's 16px radius minus 4px padding = 12px outer corner */
-/* 3x3 grid: corners are children 1, 3, 7, 9 */
-/* Top-left corner: Summarise (child 1) */
-.actionsContainer > :nth-child(1) .actionButton {
-  border-radius: 12px 13px 13px 13px !important;
+/* Corner button border-radius for vertical single-column layout */
+/* Container has border-radius: 16px 0 0 16px (flush right), padding 4px → inner corner = 12px */
+/* All buttons: right-side corners = 0 (flush with container right edge) */
+.actionsContainer .actionButton {
+  border-radius: 13px 0 0 13px !important;
 }
 
-/* Top-right corner: Translate wrapper (child 3) */
-.actionsContainer > :nth-child(3) .actionButton {
-  border-radius: 13px 12px 13px 13px !important;
+/* First child (top): top-left corner matches container curve */
+.actionsContainer > :first-child .actionButton {
+  border-radius: 12px 0 0 13px !important;
 }
 
-/* Bottom-left corner: Feature Request (child 7) */
-.actionsContainer > :nth-child(7) .actionButton {
-  border-radius: 13px 13px 13px 12px !important;
-}
-
-/* Bottom-right corner: Disable wrapper (child 9) */
-.actionsContainer > :nth-child(9) .actionButton {
-  border-radius: 13px 13px 12px 13px !important;
+/* Last child (bottom): bottom-left corner matches container curve */
+.actionsContainer > :last-child .actionButton {
+  border-radius: 13px 0 0 12px !important;
 }
 
 /* Hover state - scale up */

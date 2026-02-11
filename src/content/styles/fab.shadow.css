@@ -104,11 +104,12 @@
 .fabButton.actionsVisible {
   background: var(--color-bg-primary-theme, #FFFFFF) !important;
   box-shadow: none !important;
-  transform: translateX(30px) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .fabButton:active {
-  transform: translateX(30px) scale(0.98) !important;
+  transform: scale(0.98) !important;
 }
 
 .fabButton svg,
@@ -121,21 +122,21 @@
   flex-shrink: 0 !important;
 }
 
-/* Actions container - positioned absolutely to the left of FAB */
+/* Actions container - single vertical column, flush to right edge */
 /* Simple fade in/out animation */
 .actionsContainer {
   position: absolute !important;
-  right: calc(100% - 12px) !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  transform-origin: center center !important;
+  right: 0 !important;
+  top: 0 !important;
+  transform-origin: top right !important;
   display: grid !important;
-  grid-template-columns: repeat(3, auto) !important;
+  grid-template-columns: 1fr !important;
   gap: 4px !important;
   place-items: center !important;
   background: var(--color-bg-primary-theme) !important;
-  border-radius: 18px !important;
+  border-radius: 18px 0 0 18px !important;
   border: 1.5px solid var(--color-border-default-theme) !important;
+  border-right: none !important;
   padding: 6px !important;
   opacity: 0 !important;
   visibility: hidden !important;
@@ -152,11 +153,11 @@
   box-shadow: 0 4px 20px var(--color-shadow-fab-group) !important;
 }
 
-/* Action button styles - Square with rounded corners, no border */
+/* Action button styles - right side flush (0 radius), left side rounded */
 .actionButton {
   width: 32px !important;
   height: 32px !important;
-  border-radius: 7px !important;
+  border-radius: 7px 0 0 7px !important;
   background: transparent !important;
   border: none !important;
   cursor: pointer !important;
@@ -172,26 +173,21 @@
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Corner button border-radius - match container's 18px radius minus 6px padding = 12px outer corner */
-/* 3x3 grid: corners are children 1, 3, 7, 9 */
-/* Top-left corner: Summarise (child 1) */
-.actionsContainer > :nth-child(1) .actionButton {
-  border-radius: 12px 7px 7px 7px !important;
+/* Corner button border-radius for vertical single-column layout */
+/* Container has border-radius: 18px 0 0 18px (flush right), padding 6px -> inner corner = 12px */
+/* All buttons: right-side corners = 0 (flush with container right edge) */
+.actionsContainer .actionButton {
+  border-radius: 7px 0 0 7px !important;
 }
 
-/* Top-right corner: Translate wrapper (child 3) */
-.actionsContainer > :nth-child(3) .actionButton {
-  border-radius: 7px 12px 7px 7px !important;
+/* First child (top): top-left corner matches container curve */
+.actionsContainer > :first-child .actionButton {
+  border-radius: 12px 0 0 7px !important;
 }
 
-/* Bottom-left corner: Feature Request (child 7) */
-.actionsContainer > :nth-child(7) .actionButton {
-  border-radius: 7px 7px 7px 12px !important;
-}
-
-/* Bottom-right corner: Disable wrapper (child 9) */
-.actionsContainer > :nth-child(9) .actionButton {
-  border-radius: 7px 7px 12px 7px !important;
+/* Last child (bottom): bottom-left corner matches container curve */
+.actionsContainer > :last-child .actionButton {
+  border-radius: 7px 0 0 12px !important;
 }
 
 /* Hover state - scale up */
@@ -414,6 +410,116 @@
 
 .fabDisablePopoverOption span {
   flex: 1 !important;
+}
+
+/* =============================================================================
+ * FAB MORE POPOVER
+ * Popover for More button (Feature Request, Report Issue, Disable Extension)
+ * ============================================================================= */
+
+.fabMorePopover {
+  position: absolute !important;
+  right: calc(100% + 8px) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  background: var(--color-bg-primary-theme) !important;
+  border-radius: 15px !important;
+  padding: 4px !important;
+  border: 1.5px solid var(--color-border-default-theme) !important;
+  z-index: 20 !important;
+  width: fit-content !important;
+  /* Override parent container visibility */
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Arrow pointing to the right (toward the button) */
+.fabMorePopover::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 100% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border: 6px solid transparent !important;
+  border-left-color: var(--color-bg-primary-theme) !important;
+}
+
+/* Arrow border (creates the border effect on the arrow) */
+.fabMorePopover::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 100% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border: 6px solid transparent !important;
+  border-left-color: var(--color-border-default-theme) !important;
+  margin-left: 1px !important;
+}
+
+/* FAB More Popover Option Button */
+.fabMorePopoverOption {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--color-primary-light) !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+  text-align: left !important;
+  width: auto !important;
+}
+
+.fabMorePopoverOption:hover {
+  background: var(--color-hover-bg-action-theme) !important;
+  color: var(--color-primary) !important;
+}
+
+.fabMorePopoverOption:active {
+  transform: scale(0.98) !important;
+}
+
+.fabMorePopoverOption svg {
+  width: 14px !important;
+  height: 14px !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5 !important;
+  fill: none !important;
+  flex-shrink: 0 !important;
+}
+
+.fabMorePopoverOption span {
+  flex: 1 !important;
+}
+
+/* Divider between menu items */
+.fabMorePopoverDivider {
+  height: 1px !important;
+  background: var(--color-border-default-theme) !important;
+  margin: 2px 8px !important;
+}
+
+/* Sub-options container for disable extension */
+.fabMorePopoverSubOptions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  padding-left: 8px !important;
+}
+
+.fabMorePopoverSubOptions .fabMorePopoverOption {
+  font-size: 12px !important;
+  padding: 6px 12px !important;
 }
 
 /* =============================================================================
