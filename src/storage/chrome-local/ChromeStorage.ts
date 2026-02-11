@@ -31,6 +31,7 @@ export class ChromeStorage {
     USER_SETTING_PAGE_TRANSLATION_VIEW: 'user_setting_page_translation_view',
     USER_SETTING_THEME_ON_SITE: 'user_setting_theme_on_site',
     USER_SETTING_NATIVE_LANGUAGE: 'user_setting_native_language',
+    GUEST_NATIVE_LANGUAGE: 'guest_native_language',
     UNAUTHENTICATED_USER_ID: 'x_unauthenticated_user_id',
     PARAGRAPH_BOOKMARK_PREFERENCE_FOLDER_ID: 'paragraph_bookmark_preference_folder_id',
     LINK_BOOKMARK_PREFERENCE_FOLDER_ID: 'link_bookmark_preference_folder_id',
@@ -508,6 +509,15 @@ export class ChromeStorage {
 
   static async setUserSettingNativeLanguage(language: string): Promise<void> {
     return this.set(this.KEYS.USER_SETTING_NATIVE_LANGUAGE, language);
+  }
+
+  // --- Guest (non-logged-in) Native Language ---
+  static async getGuestNativeLanguage(): Promise<string | null> {
+    return this.get<string>(this.KEYS.GUEST_NATIVE_LANGUAGE);
+  }
+
+  static async setGuestNativeLanguage(language: string): Promise<void> {
+    return this.set(this.KEYS.GUEST_NATIVE_LANGUAGE, language);
   }
 
   // --- Unauthenticated User ID ---

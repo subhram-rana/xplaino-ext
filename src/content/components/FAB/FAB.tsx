@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ActionButton } from './ActionButton';
-import { FABDisablePopover } from './FABDisablePopover';
+import { FABMorePopover } from './FABMorePopover';
 import { TranslationControlPopover } from './TranslationControlPopover';
 import styles from './FAB.module.css';
 import { ENV } from '@/config/env';
@@ -73,14 +73,14 @@ export const FAB: React.FC<FABProps> = ({
 }) => {
   const [actionsVisible, setActionsVisible] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
-  const [showDisablePopover, setShowDisablePopover] = useState(false);
+  const [showMorePopover, setShowMorePopover] = useState(false);
   const [showTranslationPopover, setShowTranslationPopover] = useState(false);
   const [iconUrl, setIconUrl] = useState<string>('');
   const parentRef = useRef<HTMLDivElement>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isHoveringRef = useRef(false);
   const isDisablingRef = useRef(false);
-  const disableButtonClickedRef = useRef(false); // Track if disable button was just clicked
+  const moreButtonClickedRef = useRef(false); // Track if more button was just clicked
 
   // Detect Mac vs Windows/Linux for keyboard shortcut labels
   const isMac = useMemo(() => /Mac|iPod|iPhone|iPad/.test(navigator.platform), []);
@@ -145,7 +145,7 @@ export const FAB: React.FC<FABProps> = ({
   const handleParentMouseLeave = useCallback(() => {
     isHoveringRef.current = false;
     // Don't hide if summarising, if actions shouldn't be hidden yet, if any popover is open, or if disable action is in progress
-    if (isSummarising || !canHideActions || showDisablePopover || showTranslationPopover || isDisablingRef.current) {
+    if (isSummarising || !canHideActions || showMorePopover || showTranslationPopover || isDisablingRef.current) {
       return;
     }
     clearHideTimeout();
@@ -154,7 +154,7 @@ export const FAB: React.FC<FABProps> = ({
         setActionsVisible(false);
       }
     }, 300); // Small delay before hiding
-  }, [clearHideTimeout, isSummarising, canHideActions, showDisablePopover, showTranslationPopover]);
+  }, [clearHideTimeout, isSummarising, canHideActions, showMorePopover, showTranslationPopover]);
 
   // Force-show actions when triggered externally (e.g. keyboard shortcut)
   useEffect(() => {
@@ -179,7 +179,7 @@ export const FAB: React.FC<FABProps> = ({
 
   // Don't hide actions if any popover is visible
   useEffect(() => {
-    if (showDisablePopover || showTranslationPopover) {
+    if (showMorePopover || showTranslationPopover) {
       // Keep actions visible when popover is open
       clearHideTimeout();
       isHoveringRef.current = true;
@@ -187,7 +187,7 @@ export const FAB: React.FC<FABProps> = ({
         setActionsVisible(true);
       }
     }
-  }, [showDisablePopover, showTranslationPopover, clearHideTimeout, actionsVisible]);
+  }, [showMorePopover, showTranslationPopover, clearHideTimeout, actionsVisible]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -201,7 +201,7 @@ export const FAB: React.FC<FABProps> = ({
   // Close popovers when actions become hidden
   useEffect(() => {
     if (!actionsVisible) {
-      setShowDisablePopover(false);
+      setShowMorePopover(false);
       setShowTranslationPopover(false);
     }
   }, [actionsVisible]);
@@ -218,8 +218,8 @@ export const FAB: React.FC<FABProps> = ({
       
       if (!isClickInside) {
         // Click was outside - close popover and hide actions
-        if (showDisablePopover) {
-          setShowDisablePopover(false);
+        if (showMorePopover) {
+          setShowMorePopover(false);
         }
         if (showTranslationPopover) {
           setShowTranslationPopover(false);
@@ -232,14 +232,14 @@ export const FAB: React.FC<FABProps> = ({
     };
 
     // Only add listener if actions are visible or a popover is open
-    if (actionsVisible || showDisablePopover || showTranslationPopover) {
+    if (actionsVisible || showMorePopover || showTranslationPopover) {
       // Use window to capture all clicks, including those in Shadow DOM
       window.addEventListener('mousedown', handleClickOutside, true);
       return () => {
         window.removeEventListener('mousedown', handleClickOutside, true);
       };
     }
-  }, [actionsVisible, showDisablePopover, showTranslationPopover, canHideActions, isSummarising, translationState]);
+  }, [actionsVisible, showMorePopover, showTranslationPopover, canHideActions, isSummarising, translationState]);
 
   // Action handlers
   const handleSummarise = useCallback(() => {
@@ -294,14 +294,14 @@ export const FAB: React.FC<FABProps> = ({
     onSaveUrl?.();
   }, [onSaveUrl]);
 
-  const handleDisableExtensionButtonClick = useCallback(() => {
+  const handleMoreButtonClick = useCallback(() => {
     // Set flag to prevent mouse leave from immediately closing the popover
-    disableButtonClickedRef.current = true;
+    moreButtonClickedRef.current = true;
     setTimeout(() => {
-      disableButtonClickedRef.current = false;
+      moreButtonClickedRef.current = false;
     }, 100); // Reset flag after a short delay
     
-    setShowDisablePopover((prev) => {
+    setShowMorePopover((prev) => {
       const newValue = !prev;
       if (newValue) {
         // Popover is opening - ensure actions stay visible
@@ -321,7 +321,7 @@ export const FAB: React.FC<FABProps> = ({
     isHoveringRef.current = true;
     setActionsVisible(true);
     // Close the popover
-    setShowDisablePopover(false);
+    setShowMorePopover(false);
     // Clear the disable flag after a delay to allow storage listener to process
     // The FAB will be removed by the storage listener, so this is just a safety measure
     setTimeout(() => {
@@ -329,17 +329,17 @@ export const FAB: React.FC<FABProps> = ({
     }, 500);
   }, [clearHideTimeout]);
 
-  const handleDisablePopoverMouseLeave = useCallback(() => {
+  const handleMorePopoverMouseLeave = useCallback(() => {
     // Don't close popover if disable action is in progress
     if (isDisablingRef.current) {
       return;
     }
-    // Don't close popover if the disable button was just clicked (toggle action)
-    if (disableButtonClickedRef.current) {
+    // Don't close popover if the more button was just clicked (toggle action)
+    if (moreButtonClickedRef.current) {
       return;
     }
     // Hide popover when mouse leaves
-    setShowDisablePopover(false);
+    setShowMorePopover(false);
   }, []);
 
   const handleGoToWebsite = useCallback(() => {
@@ -440,31 +440,21 @@ export const FAB: React.FC<FABProps> = ({
           onClick={handleGoToWebsite}
           className={actionButtonClass}
         />
-        <ActionButton
-          icon="featureRequest"
-          tooltip="Request a feature"
-          onClick={handleFeatureRequest}
-          className={actionButtonClass}
-        />
-        <ActionButton
-          icon="reportIssue"
-          tooltip="Report issue"
-          onClick={handleReportIssue}
-          className={actionButtonClass}
-        />
         <div style={{ position: 'relative' }}>
           <ActionButton
-            icon="disable"
-            tooltip="Disable extension"
-            onClick={handleDisableExtensionButtonClick}
+            icon="options"
+            tooltip="More"
+            onClick={handleMoreButtonClick}
             className={actionButtonClass}
-            hideTooltip={showDisablePopover}
+            hideTooltip={showMorePopover}
           />
-          <FABDisablePopover
-            visible={showDisablePopover}
+          <FABMorePopover
+            visible={showMorePopover}
+            onFeatureRequest={handleFeatureRequest}
+            onReportIssue={handleReportIssue}
             onDisabled={handleDisabled}
             onMouseEnter={handleParentMouseEnter}
-            onMouseLeave={handleDisablePopoverMouseLeave}
+            onMouseLeave={handleMorePopoverMouseLeave}
             onShowModal={onShowModal}
           />
         </div>
