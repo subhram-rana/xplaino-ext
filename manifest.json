@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Xplaino AI",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Learn faster with AI while browsing and save your learning at a single place",
   "icons": {
     "16": "public/icons/chrome-extension-logo.png",
@@ -35,7 +35,7 @@
     "scripting"
   ],
   "oauth2": {
-    "client_id": "355884005048-4bn6e6rbq9mfdrb2q43sthsejc88sbcc.apps.googleusercontent.com",
+    "client_id": "355884005048-haqbeokpobimcafks356ovc371glnglo.apps.googleusercontent.com",
     "scopes": ["openid", "email", "profile"]
   },
   "host_permissions": [
