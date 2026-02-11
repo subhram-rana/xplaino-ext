@@ -3131,7 +3131,7 @@ async function handleTextAskAIAction(
     // Call AskService directly - panel opens on first chunk
     await AskService.ask(
       {
-        question: question.trim(),
+        question: `For the given initial_context, I want you to help me with my question. Here is my question: ${question.trim()}`,
         chat_history: [userMessage],
         initial_context: selectedText,
         context_type: 'TEXT',
@@ -5651,7 +5651,7 @@ async function handleAskAISendMessage(wordId: string, question: string): Promise
   try {
     await WordAskService.ask(
       {
-        question: question.trim(),
+        question: `The word of interest in the given initial_context is "${wordAtomState.word}", and I want you to help me with my following question. Here is my question: ${question.trim()}`,
         chat_history: wordAtomState.askAI.chatHistory, // Send old history (without new user message)
         initial_context: initialContext,
         context_type: 'TEXT',
@@ -5680,8 +5680,17 @@ async function handleAskAISendMessage(wordId: string, question: string): Promise
           const currentState = store.get(wordExplanationsAtom).get(wordId);
           if (!currentState) return;
 
+          // Fix the user message in the API-returned chat history to show the original question
+          // (not the prefixed version sent to the API) for display in the side panel
+          const displayChatHistory = updatedChatHistory.map((msg, idx) => {
+            if (idx === updatedChatHistory.length - 2 && msg.role === 'user') {
+              return { ...msg, content: question.trim() };
+            }
+            return msg;
+          });
+
           // Calculate the index of the assistant message (last message in the updated history)
-          const assistantMessageIndex = updatedChatHistory.length - 1;
+          const assistantMessageIndex = displayChatHistory.length - 1;
           
           // Update messageQuestions with the new questions for this message
           const updatedMessageQuestions = {
@@ -5695,7 +5704,7 @@ async function handleAskAISendMessage(wordId: string, question: string): Promise
             ...currentState,
             askAI: {
               ...currentState.askAI,
-              chatHistory: updatedChatHistory,
+              chatHistory: displayChatHistory,
               streamingText: '',
               messageQuestions: updatedMessageQuestions,
               isRequesting: false,
@@ -6199,7 +6208,7 @@ function updateTextExplanationPanel(): void {
       try {
         await AskService.ask(
           {
-            question: question.trim(),
+            question: `For the given initial_context, I want you to help me with my question. Here is my question: ${question.trim()}`,
             chat_history: chatHistoryForAPI,
             initial_context: selectedText,
             context_type: 'TEXT',
@@ -6573,7 +6582,7 @@ function updateTextExplanationPanel(): void {
       try {
         await AskService.ask(
           {
-            question: inputText.trim(),
+            question: `For the given initial_context, I want you to help me with my question. Here is my question: ${inputText.trim()}`,
             chat_history: chatHistoryForAPI,
             initial_context: selectedText,
             context_type: 'TEXT',
