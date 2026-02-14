@@ -29,6 +29,8 @@ export interface ImageExplanationIconProps {
   onBookmarkClick?: () => void;
   /** Whether the icon is hiding (for disappear animation) */
   isHiding?: boolean;
+  /** Whether to show the feature discovery tooltip ("Explain this image") on initial hover */
+  shouldShowFeatureTooltip?: boolean;
 }
 
 /**
@@ -68,10 +70,32 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
   isBookmarked = false,
   onBookmarkClick,
   isHiding = false,
+  shouldShowFeatureTooltip = true,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const scrollableParentsRef = useRef<HTMLElement[]>([]);
   const rafIdRef = useRef<number | null>(null);
+  const animStyleInjectedRef = useRef(false);
+
+  // Inject grow-in animation keyframes into document.head
+  useEffect(() => {
+    if (animStyleInjectedRef.current) return;
+    const existingStyle = document.getElementById('xplaino-icon-grow-keyframes');
+    if (existingStyle) {
+      animStyleInjectedRef.current = true;
+      return;
+    }
+    const style = document.createElement('style');
+    style.id = 'xplaino-icon-grow-keyframes';
+    style.textContent = `
+      @keyframes xplainoIconGrow {
+        0% { opacity: 0; transform: scale(0); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
+    animStyleInjectedRef.current = true;
+  }, []);
 
   // Update position function based on image element
   const updatePosition = useCallback(() => {
@@ -183,12 +207,13 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
     };
   }, [imageElement, handleScroll, handleResize, updatePosition]);
 
-  // Wrapper style for fixed positioning
+  // Wrapper style for fixed positioning with grow-in animation
   const wrapperStyle: React.CSSProperties = {
     position: 'fixed',
     left: `${position.x}px`,
     top: `${position.y}px`,
     zIndex: 2147483647,
+    animation: 'xplainoIconGrow 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards',
   };
 
   return (
@@ -211,6 +236,8 @@ export const ImageExplanationIcon: React.FC<ImageExplanationIconProps> = ({
         hoverMessage={firstChunkReceived ? "View explanation" : "Explain this image"}
         bookmarkHoverMessage="Remove bookmark"
         imageMode={true}
+        forceShowHoverMessage={shouldShowFeatureTooltip && !firstChunkReceived && !isSpinning}
+        hoverMessageVariant={shouldShowFeatureTooltip && !firstChunkReceived ? 'featureDiscovery' : 'default'}
       />
     </div>
   );

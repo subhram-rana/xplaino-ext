@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ContentActionsButtonGroup } from './ContentActionsButtonGroup';
 import { isRangeOverlappingUnderlinedText } from '../../utils/textSelectionUnderline';
-import { useAtomValue } from 'jotai';
-import { currentThemeAtom } from '@/store/uiAtoms';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { currentThemeAtom, shouldShowTextFeatureAtom, shouldShowWordFeatureAtom } from '@/store/uiAtoms';
+import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 
 export interface ContentActionsTriggerProps {
   /** Whether component is rendered in Shadow DOM */
@@ -136,6 +137,12 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   // Subscribe to theme changes
   const currentTheme = useAtomValue(currentThemeAtom);
 
+  // Feature discovery flags
+  const shouldShowTextFeature = useAtomValue(shouldShowTextFeatureAtom);
+  const setShouldShowTextFeature = useSetAtom(shouldShowTextFeatureAtom);
+  const shouldShowWordFeature = useAtomValue(shouldShowWordFeatureAtom);
+  const setShouldShowWordFeature = useSetAtom(shouldShowWordFeatureAtom);
+
   // Load icon URL based on theme
   useEffect(() => {
     const iconName = currentTheme === 'dark' 
@@ -235,7 +242,13 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     setTimeout(() => {
       wordSelectionJustMadeRef.current = false;
     }, 500); // Allow 500ms grace period for word selections
-  }, [getSelectionPosition]);
+
+    // Dismiss word feature discovery tooltip on first double-click
+    if (shouldShowWordFeature) {
+      setShouldShowWordFeature(false);
+      ChromeStorage.setShouldShowWordFeature(false);
+    }
+  }, [getSelectionPosition, shouldShowWordFeature, setShouldShowWordFeature]);
 
   // Handle mouse up (text selection)
   const handleMouseUp = useCallback((e: MouseEvent) => {
@@ -319,17 +332,24 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
         range = windowSelection.getRangeAt(0).cloneRange();
       }
 
+      const isWordSel = isWordSelection(text);
       setSelection({
         text,
-        isWord: isWordSelection(text),
+        isWord: isWordSel,
         position,
         range, // Store the range so it persists
       });
       // Only reset UI state if this is a NEW selection (not clicking on existing UI)
       setIsHovering(false);
       setShowButtonGroup(false);
+
+      // Dismiss text feature discovery tooltip on first text selection (non-word drag selection)
+      if (!isWordSel && shouldShowTextFeature) {
+        setShouldShowTextFeature(false);
+        ChromeStorage.setShouldShowTextFeature(false);
+      }
     }, 10);
-  }, [getSelectionPosition, isWordSelection, selection, onShowToast]);
+  }, [getSelectionPosition, isWordSelection, selection, onShowToast, shouldShowTextFeature, setShouldShowTextFeature]);
 
   // Handle selection change (to hide component when selection is cleared)
   const handleSelectionChange = useCallback(() => {

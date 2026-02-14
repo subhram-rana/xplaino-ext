@@ -128,3 +128,16 @@ export const isFreeTrialAtom = atom<boolean>((get) => {
 /** Current theme atom - 'light' or 'dark' */
 export const currentThemeAtom = atom<'light' | 'dark'>('light');
 
+// ============================================
+// FEATURE DISCOVERY STATE
+// ============================================
+
+/** Whether to show "Explain this image" hover tooltip on image icon (one-time onboarding) */
+export const shouldShowImageFeatureAtom = atom<boolean>(true);
+
+/** Whether to show "Select text to explain" cursor-following tooltip (one-time onboarding) */
+export const shouldShowTextFeatureAtom = atom<boolean>(true);
+
+/** Whether to show "Double-click a word to explain" cursor-following tooltip (one-time onboarding) */
+export const shouldShowWordFeatureAtom = atom<boolean>(true);
+

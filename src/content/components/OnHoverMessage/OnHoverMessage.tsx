@@ -1,6 +1,8 @@
 // src/content/components/OnHoverMessage/OnHoverMessage.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useAtomValue } from 'jotai';
+import { currentThemeAtom } from '@/store/uiAtoms';
 import onHoverMessageStyles from '../../styles/onHoverMessage.shadow.css?inline';
 import { FAB_COLOR_VARIABLES } from '../../../constants/colors.css';
 
@@ -17,6 +19,10 @@ export interface OnHoverMessageProps {
   offset?: number;
   /** Additional CSS class name */
   className?: string;
+  /** When true, show the tooltip immediately on mount without waiting for mouseenter */
+  forceShow?: boolean;
+  /** Visual variant. 'featureDiscovery' uses white/dark bg with neutral shadow instead of teal */
+  variant?: 'default' | 'featureDiscovery';
 }
 
 export const OnHoverMessage: React.FC<OnHoverMessageProps> = ({
@@ -26,7 +32,10 @@ export const OnHoverMessage: React.FC<OnHoverMessageProps> = ({
   position = 'top',
   offset = 8,
   className = '',
+  forceShow = false,
+  variant = 'default',
 }) => {
+  const currentTheme = useAtomValue(currentThemeAtom);
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -116,6 +125,17 @@ export const OnHoverMessage: React.FC<OnHoverMessageProps> = ({
     });
   }, [targetRef, position, offset]);
 
+  // Auto-show tooltip when forceShow is true
+  useEffect(() => {
+    if (forceShow) {
+      setIsVisible(true);
+      // Small delay to ensure tooltip is rendered before calculating position
+      setTimeout(() => {
+        updatePosition();
+      }, 50);
+    }
+  }, [forceShow, updatePosition]);
+
   // Handle mouse enter/leave on target element
   useEffect(() => {
     const targetElement = targetRef.current;
@@ -134,7 +154,10 @@ export const OnHoverMessage: React.FC<OnHoverMessageProps> = ({
     };
 
     const handleMouseLeave = () => {
-      setIsVisible(false);
+      // When forceShow is active, don't hide on mouse leave
+      if (!forceShow) {
+        setIsVisible(false);
+      }
     };
 
     targetElement.addEventListener('mouseenter', handleMouseEnter);
@@ -144,7 +167,7 @@ export const OnHoverMessage: React.FC<OnHoverMessageProps> = ({
       targetElement.removeEventListener('mouseenter', handleMouseEnter);
       targetElement.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [targetRef, position, offset, updatePosition]);
+  }, [targetRef, position, offset, updatePosition, forceShow]);
 
   // Update position on scroll and resize
   useEffect(() => {
@@ -179,7 +202,7 @@ export const OnHoverMessage: React.FC<OnHoverMessageProps> = ({
   const tooltipContent = (
     <div
       ref={tooltipRef}
-      className={`onHoverMessage ${isVisible ? 'visible' : ''} ${position} ${shortcut ? 'hasShortcut' : ''} ${className}`}
+      className={`onHoverMessage ${isVisible ? 'visible' : ''} ${position} ${shortcut ? 'hasShortcut' : ''} ${variant === 'featureDiscovery' ? 'featureDiscovery' : ''} ${variant === 'featureDiscovery' && currentTheme === 'dark' ? 'dark' : ''} ${className}`}
       style={tooltipStyle}
       role="tooltip"
       aria-live="polite"

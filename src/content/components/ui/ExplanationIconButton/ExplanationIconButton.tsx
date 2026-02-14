@@ -44,6 +44,10 @@ export interface ExplanationIconButtonProps {
   bookmarkHoverMessage?: string;
   /** Whether this is for an image icon (circular border, white bg in light theme) */
   imageMode?: boolean;
+  /** When true, auto-show the hover message tooltip without requiring mouseenter */
+  forceShowHoverMessage?: boolean;
+  /** Visual variant for the hover message tooltip */
+  hoverMessageVariant?: 'default' | 'featureDiscovery';
 }
 
 /**
@@ -108,6 +112,8 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
   hoverMessage = 'View explanation',
   bookmarkHoverMessage = 'Remove bookmark',
   imageMode = false,
+  forceShowHoverMessage = false,
+  hoverMessageVariant = 'default',
 }) => {
   const internalContainerRef = useRef<HTMLDivElement | null>(null);
   const iconElementRef = useRef<HTMLButtonElement | null>(null);
@@ -272,6 +278,8 @@ export const ExplanationIconButton: React.FC<ExplanationIconButtonProps> = ({
           targetRef={iconElementRef}
           position="left"
           offset={8}
+          forceShow={forceShowHoverMessage}
+          variant={hoverMessageVariant}
         />
       )}
       {isBookmarked && onBookmarkClick && (

@@ -88,3 +88,43 @@
   border-top-color: var(--color-primary, #0d8070) !important;
 }
 
+/* ============================================
+   FEATURE DISCOVERY VARIANT
+   Light mode (default): white bg, dark text
+   ============================================ */
+.onHoverMessage.featureDiscovery {
+  background: #FFFFFF !important;
+  color: #0d8070 !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(13, 128, 112, 0.2),
+              0 1px 4px rgba(13, 128, 112, 0.12) !important;
+}
+
+/* Override arrow color for feature discovery (top position) */
+.onHoverMessage.featureDiscovery.top::after {
+  border-top-color: #FFFFFF !important;
+}
+
+/* Override arrow color for feature discovery (left position) */
+.onHoverMessage.featureDiscovery.left::after {
+  border-left-color: #FFFFFF !important;
+}
+
+/* Dark mode variant */
+.onHoverMessage.featureDiscovery.dark {
+  background: #303030 !important;
+  color: #e0e0e0 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4),
+              0 1px 4px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Override arrow color for feature discovery dark (top position) */
+.onHoverMessage.featureDiscovery.dark.top::after {
+  border-top-color: #303030 !important;
+}
+
+/* Override arrow color for feature discovery dark (left position) */
+.onHoverMessage.featureDiscovery.dark.left::after {
+  border-left-color: #303030 !important;
+}
+

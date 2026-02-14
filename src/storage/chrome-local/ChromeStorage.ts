@@ -48,6 +48,9 @@ export class ChromeStorage {
     SUBSCRIPTION_STATUS: 'xplaino-subscription-status',
     HAS_USER_REVIEW_SUBMISSION_ATTEMPTED: 'has_user_review_submission_attempted',
     USER_TOTAL_API_COUNTER: 'user_total_api_counter',
+    SHOULD_SHOW_IMAGE_FEATURE: 'should-show-image-feature',
+    SHOULD_SHOW_TEXT_FEATURE: 'should-text-image-feature',
+    SHOULD_SHOW_WORD_FEATURE: 'should-word-image-feature',
   } as const;
 
   // ============================================
@@ -959,6 +962,89 @@ export class ChromeStorage {
     }
     if (hasCounter === null || hasCounter === undefined) {
       updates[this.KEYS.USER_TOTAL_API_COUNTER] = 0;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      return new Promise((resolve) => {
+        chrome.storage.local.set(updates, () => {
+          resolve();
+        });
+      });
+    }
+  }
+
+  // ============================================
+  // FEATURE DISCOVERY FLAGS
+  // ============================================
+
+  /**
+   * Get whether to show the image feature discovery tooltip
+   * Returns true if not yet set (default for new users)
+   */
+  static async getShouldShowImageFeature(): Promise<boolean> {
+    const value = await this.get<boolean>(this.KEYS.SHOULD_SHOW_IMAGE_FEATURE);
+    return value ?? true;
+  }
+
+  /**
+   * Set whether to show the image feature discovery tooltip
+   */
+  static async setShouldShowImageFeature(show: boolean): Promise<void> {
+    return this.set(this.KEYS.SHOULD_SHOW_IMAGE_FEATURE, show);
+  }
+
+  /**
+   * Get whether to show the text selection feature discovery tooltip
+   * Returns true if not yet set (default for new users)
+   */
+  static async getShouldShowTextFeature(): Promise<boolean> {
+    const value = await this.get<boolean>(this.KEYS.SHOULD_SHOW_TEXT_FEATURE);
+    return value ?? true;
+  }
+
+  /**
+   * Set whether to show the text selection feature discovery tooltip
+   */
+  static async setShouldShowTextFeature(show: boolean): Promise<void> {
+    return this.set(this.KEYS.SHOULD_SHOW_TEXT_FEATURE, show);
+  }
+
+  /**
+   * Get whether to show the word double-click feature discovery tooltip
+   * Returns true if not yet set (default for new users)
+   */
+  static async getShouldShowWordFeature(): Promise<boolean> {
+    const value = await this.get<boolean>(this.KEYS.SHOULD_SHOW_WORD_FEATURE);
+    return value ?? true;
+  }
+
+  /**
+   * Set whether to show the word double-click feature discovery tooltip
+   */
+  static async setShouldShowWordFeature(show: boolean): Promise<void> {
+    return this.set(this.KEYS.SHOULD_SHOW_WORD_FEATURE, show);
+  }
+
+  /**
+   * Ensure feature discovery flags exist in storage with default values (true).
+   * Called on page load to initialize if needed.
+   */
+  static async ensureFeatureDiscoveryFlags(): Promise<void> {
+    const [hasImage, hasText, hasWord] = await Promise.all([
+      this.get<boolean>(this.KEYS.SHOULD_SHOW_IMAGE_FEATURE),
+      this.get<boolean>(this.KEYS.SHOULD_SHOW_TEXT_FEATURE),
+      this.get<boolean>(this.KEYS.SHOULD_SHOW_WORD_FEATURE),
+    ]);
+
+    const updates: Record<string, unknown> = {};
+    if (hasImage === null || hasImage === undefined) {
+      updates[this.KEYS.SHOULD_SHOW_IMAGE_FEATURE] = true;
+    }
+    if (hasText === null || hasText === undefined) {
+      updates[this.KEYS.SHOULD_SHOW_TEXT_FEATURE] = true;
+    }
+    if (hasWord === null || hasWord === undefined) {
+      updates[this.KEYS.SHOULD_SHOW_WORD_FEATURE] = true;
     }
 
     if (Object.keys(updates).length > 0) {
