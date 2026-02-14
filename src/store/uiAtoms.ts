@@ -141,3 +141,13 @@ export const shouldShowTextFeatureAtom = atom<boolean>(true);
 /** Whether to show "Double-click a word to explain" cursor-following tooltip (one-time onboarding) */
 export const shouldShowWordFeatureAtom = atom<boolean>(true);
 
+// ============================================
+// PANEL STATE (shared with FAB for positioning)
+// ============================================
+
+/** Whether the currently-open side panel is vertically expanded (full height) */
+export const isPanelVerticallyExpandedAtom = atom<boolean>(false);
+
+/** Width (px) of the currently-open side panel */
+export const activePanelWidthAtom = atom<number>(560);
+

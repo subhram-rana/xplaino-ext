@@ -2,12 +2,12 @@
 // Unified base side panel component that all panels can use
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { RefObject } from 'react';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import styles from './BaseSidePanel.module.css';
 import { UpgradeFooter } from './UpgradeFooter';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
-import { isFreeTrialAtom } from '@/store/uiAtoms';
+import { isFreeTrialAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 
 const MIN_WIDTH = 300;
 const MAX_WIDTH = 800;
@@ -65,6 +65,10 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
 }) => {
   // Subscription status for conditional upgrade footer
   const isFreeTrial = useAtomValue(isFreeTrialAtom);
+  
+  // Sync expansion state & width to global atoms so FAB can reposition
+  const setGlobalExpanded = useSetAtom(isPanelVerticallyExpandedAtom);
+  const setGlobalWidth = useSetAtom(activePanelWidthAtom);
   
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [internalExpanded, setInternalExpanded] = useState(false);
@@ -156,6 +160,16 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
     const domain = window.location.hostname;
     ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
   }, [isVerticallyExpanded, expandedLoaded]);
+
+  // Sync expansion & width to global atoms for FAB positioning
+  useEffect(() => {
+    if (isOpen) {
+      setGlobalExpanded(isVerticallyExpanded);
+      setGlobalWidth(width);
+    } else {
+      setGlobalExpanded(false);
+    }
+  }, [isOpen, isVerticallyExpanded, width, setGlobalExpanded, setGlobalWidth]);
 
   // Trigger emerge animation when panel opens (only when useAnimation is true)
   useEffect(() => {

@@ -572,7 +572,7 @@ async function injectFAB(): Promise<void> {
   // Create Shadow DOM host
   const { host, shadow, mountPoint } = createShadowHost({
     id: FAB_HOST_ID,
-    zIndex: 2147483640,
+    zIndex: 2147483646,
   });
 
   // Inject color CSS variables first - get theme-aware variables
@@ -977,7 +977,7 @@ function updateFAB(): void {
     const hasSummary = (!!summary && summary.trim().length > 0) || (!!streamingText && streamingText.trim().length > 0);
     
     // Check if any panel is open
-    const isAnyPanelOpen = sidePanelOpen || store.get(textExplanationPanelOpenAtom);
+    const isAnyPanelOpen = sidePanelOpen || store.get(textExplanationPanelOpenAtom) || store.get(wordAskAISidePanelOpenAtom) || store.get(imageExplanationPanelOpenAtom);
     
     // Check if current page is bookmarked
     const isBookmarked = fabSavedLinkId !== null;

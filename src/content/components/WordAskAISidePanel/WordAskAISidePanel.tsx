@@ -6,11 +6,11 @@ import ReactMarkdown from 'react-markdown';
 import { MinimizeIcon } from '../ui/MinimizeIcon';
 import styles from './WordAskAISidePanel.module.css';
 import { ChatMessage } from '@/store/wordExplanationAtoms';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
 import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
-import { isFreeTrialAtom } from '@/store/uiAtoms';
+import { isFreeTrialAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 
 // Custom expand icon - arrows pointing away from center (up and down)
 const ExpandVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
@@ -112,6 +112,10 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
 }) => {
   // Subscription status for conditional upgrade footer
   const isFreeTrial = useAtomValue(isFreeTrialAtom);
+  
+  // Sync expansion state & width to global atoms so FAB can reposition
+  const setGlobalExpanded = useSetAtom(isPanelVerticallyExpandedAtom);
+  const setGlobalWidth = useSetAtom(activePanelWidthAtom);
   
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
@@ -266,6 +270,16 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
     const domain = window.location.hostname;
     ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
   }, [isVerticallyExpanded, expandedLoaded]);
+
+  // Sync expansion & width to global atoms for FAB positioning
+  useEffect(() => {
+    if (isOpen) {
+      setGlobalExpanded(isVerticallyExpanded);
+      setGlobalWidth(width);
+    } else {
+      setGlobalExpanded(false);
+    }
+  }, [isOpen, isVerticallyExpanded, width, setGlobalExpanded, setGlobalWidth]);
 
   // Animate loading dots (1-3 dots)
   useEffect(() => {

@@ -8,7 +8,7 @@ import { SummaryView } from './SummaryView';
 import { SettingsView } from './SettingsView';
 import { SaveLinkModal } from '../SaveLinkModal/SaveLinkModal';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
-import { showLoginModalAtom, currentThemeAtom, isFreeTrialAtom } from '@/store/uiAtoms';
+import { showLoginModalAtom, currentThemeAtom, isFreeTrialAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 import { summaryAtom, summariseStateAtom } from '@/store/summaryAtoms';
 import { SavedLinkService } from '@/api-services/SavedLinkService';
 
@@ -93,6 +93,10 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   // Jotai setter for login modal
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
   
+  // Sync expansion state & width to global atoms so FAB can reposition
+  const setGlobalExpanded = useSetAtom(isPanelVerticallyExpandedAtom);
+  const setGlobalWidth = useSetAtom(activePanelWidthAtom);
+  
   // Subscription status for conditional upgrade footer
   const isFreeTrial = useAtomValue(isFreeTrialAtom);
   
@@ -167,6 +171,16 @@ export const SidePanel: React.FC<SidePanelProps> = ({
     const domain = window.location.hostname;
     ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
   }, [isVerticallyExpanded, expandedLoaded]);
+
+  // Sync expansion & width to global atoms for FAB positioning
+  useEffect(() => {
+    if (isOpen) {
+      setGlobalExpanded(isVerticallyExpanded);
+      setGlobalWidth(width);
+    } else {
+      setGlobalExpanded(false);
+    }
+  }, [isOpen, isVerticallyExpanded, width, setGlobalExpanded, setGlobalWidth]);
 
   // Reset tab and sliding state when panel closes (but keep expanded state)
   useEffect(() => {

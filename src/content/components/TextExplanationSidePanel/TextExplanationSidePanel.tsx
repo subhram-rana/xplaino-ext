@@ -8,7 +8,7 @@ import { TextExplanationFooter } from './TextExplanationFooter';
 import { TextExplanationView } from './TextExplanationView';
 import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
-import { showLoginModalAtom, isFreeTrialAtom } from '@/store/uiAtoms';
+import { showLoginModalAtom, isFreeTrialAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
 
 export interface TextExplanationSidePanelProps {
@@ -132,6 +132,10 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   // Jotai setter for login modal
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
   
+  // Sync expansion state & width to global atoms so FAB can reposition
+  const setGlobalExpanded = useSetAtom(isPanelVerticallyExpandedAtom);
+  const setGlobalWidth = useSetAtom(activePanelWidthAtom);
+  
   // Subscription status for conditional upgrade footer
   const isFreeTrial = useAtomValue(isFreeTrialAtom);
 
@@ -218,6 +222,16 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
     const domain = window.location.hostname;
     ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
   }, [isVerticallyExpanded, expandedLoaded]);
+
+  // Sync expansion & width to global atoms for FAB positioning
+  useEffect(() => {
+    if (isOpen) {
+      setGlobalExpanded(isVerticallyExpanded);
+      setGlobalWidth(width);
+    } else {
+      setGlobalExpanded(false);
+    }
+  }, [isOpen, isVerticallyExpanded, width, setGlobalExpanded, setGlobalWidth]);
 
   // Trigger emerge animation when panel opens (only once)
   // Track previous isOpen state to detect actual state changes

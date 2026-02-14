@@ -7,7 +7,7 @@ import { TranslationControlPopover } from './TranslationControlPopover';
 import styles from './FAB.module.css';
 import { ENV } from '@/config/env';
 import { useAtomValue } from 'jotai';
-import { currentThemeAtom } from '@/store/uiAtoms';
+import { currentThemeAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 
 export interface FABProps {
   /** Callback when Summarise is clicked */
@@ -96,6 +96,11 @@ export const FAB: React.FC<FABProps> = ({
   // Subscribe to theme changes
   const currentTheme = useAtomValue(currentThemeAtom);
 
+  // Read panel expansion state for FAB positioning
+  const isPanelVerticallyExpanded = useAtomValue(isPanelVerticallyExpandedAtom);
+  const activePanelWidth = useAtomValue(activePanelWidthAtom);
+  const isPanelMaximized = isPanelOpen && isPanelVerticallyExpanded;
+
   // Load icon URL based on theme
   useEffect(() => {
     if (useShadowDom) {
@@ -122,15 +127,12 @@ export const FAB: React.FC<FABProps> = ({
     }
   }, []);
 
-  // Handle FAB button hover - shows actions (unless a panel is open)
+  // Handle FAB button hover - shows actions
   const handleFabMouseEnter = useCallback(() => {
     clearHideTimeout();
     isHoveringRef.current = true;
-    // Don't show actions if any panel is open
-    if (!isPanelOpen) {
-      setActionsVisible(true);
-    }
-  }, [clearHideTimeout, isPanelOpen]);
+    setActionsVisible(true);
+  }, [clearHideTimeout]);
 
   // Handle parent container mouse enter - keeps actions visible
   const handleParentMouseEnter = useCallback(() => {
@@ -356,9 +358,13 @@ export const FAB: React.FC<FABProps> = ({
 
   // Class names for Shadow DOM vs CSS Modules
   const fabParentClass = getClassName(
-    'fabParent',
-    styles.fabParent
+    `fabParent${isPanelOpen ? ' panelOpen' : ''}${isPanelMaximized ? ' panelMaximized' : ''}`,
+    `${styles.fabParent}${isPanelOpen ? ` ${styles.panelOpen}` : ''}${isPanelMaximized ? ` ${styles.panelMaximized}` : ''}`
   );
+  // Dynamic CSS variable for panel width when panel is vertically maximized
+  const fabParentStyle: React.CSSProperties | undefined = isPanelMaximized
+    ? { '--active-panel-width': `${activePanelWidth}px` } as React.CSSProperties
+    : undefined;
   const actionsContainerClass = getClassName(
     `actionsContainer ${actionsVisible ? 'visible' : ''}`,
     `${styles.actionsContainer} ${actionsVisible ? styles.visible : ''}`
@@ -378,6 +384,7 @@ export const FAB: React.FC<FABProps> = ({
     <div
       ref={parentRef}
       className={fabParentClass}
+      style={fabParentStyle}
       onMouseEnter={handleParentMouseEnter}
       onMouseLeave={handleParentMouseLeave}
     >

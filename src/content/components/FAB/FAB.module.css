@@ -33,6 +33,19 @@
   flex-direction: row !important;
   align-items: center !important;
   z-index: 2147483640 !important;
+  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              right 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Shift FAB above sidebar when a panel is open */
+.fabParent.panelOpen {
+  top: 40px !important;
+}
+
+/* Position FAB at left edge of panel when vertically maximized */
+.fabParent.panelMaximized {
+  top: 80px !important;
+  right: var(--active-panel-width, 560px) !important;
 }
 
 .fabParent.slideOut {
