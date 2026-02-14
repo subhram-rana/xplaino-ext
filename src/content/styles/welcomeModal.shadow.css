@@ -28,11 +28,11 @@
   }
 }
 
-/* Welcome Modal Container - positioned near FAB (top: 120px, right: 0) */
+/* Welcome Modal Container - positioned to align with FAB (top: 80px, right: 0) */
 /* fill-mode 'both' applies from-keyframe (opacity:0) during delay, keeps to-keyframe (opacity:1) after */
 .welcomeModalContainer {
   position: fixed !important;
-  top: 90px !important;
+  top: 80px !important;
   right: 40px !important;
   z-index: 2147483647 !important;
   pointer-events: auto !important;
@@ -44,9 +44,9 @@
 .welcomeModalContent {
   background: var(--color-bg-primary-theme) !important;
   border-radius: 20px !important;
-  border: 1.5px solid var(--color-primary-light, #14a08a) !important;
+  border: none !important;
   padding: 24px 20px !important;
-  box-shadow: 0 4px 24px var(--color-shadow-black-20) !important;
+  box-shadow: 0 2px 16px var(--color-shadow-fab-group) !important;
   min-width: 280px !important;
   max-width: 340px !important;
   display: flex !important;
@@ -56,25 +56,14 @@
   position: relative !important;
 }
 
-/* Arrow pointing right toward the FAB button */
+/* Arrow pointing right toward the FAB button - aligned with FAB center (15px from top) */
 .welcomeModalContent::after {
   content: '' !important;
   position: absolute !important;
-  top: 45px !important;
+  top: 15px !important;
   right: -14px !important;
   border: 7px solid transparent !important;
   border-left-color: var(--color-primary-light, #14a08a) !important;
-}
-
-/* Arrow background fill (matches modal background, sits on top of border arrow) */
-.welcomeModalContent::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 45px !important;
-  right: -12px !important;
-  border: 7px solid transparent !important;
-  border-left-color: var(--color-bg-primary-theme) !important;
-  z-index: 1 !important;
 }
 
 /* Brand Image Container */
@@ -86,9 +75,19 @@
 }
 
 .welcomeModalImage {
-  max-width: 200px !important;
+  max-width: 140px !important;
   height: auto !important;
   display: block !important;
+}
+
+/* Instruction Text + Button Row */
+.welcomeModalRow {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  width: 100% !important;
 }
 
 /* Instruction Text */
@@ -103,22 +102,11 @@
   line-height: 1.5 !important;
 }
 
-/* Buttons Container */
-.welcomeModalButtons {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  gap: 16px !important;
-  width: 100% !important;
-}
-
-/* Button Base Styles - Matching Save text / Add folder button style */
+/* Button Base Styles - Light teal background, no border */
 .welcomeModalButton {
-  padding: 10px 16px !important;
-  /* Transparent background with teal border */
-  border: 1.5px solid var(--color-primary-light, #14a08a) !important;
-  background: transparent !important;
+  padding: 8px 16px !important;
+  border: none !important;
+  background: var(--color-primary-lightest, rgba(20, 160, 138, 0.1)) !important;
   border-radius: 8px !important;
   font-family: var(--font-family-primary) !important;
   font-size: 14px !important;
@@ -131,7 +119,7 @@
   white-space: nowrap !important;
 }
 
-/* Button Hover States - Teal background on hover */
+/* Button Hover States - Slightly stronger teal background on hover */
 .welcomeModalButton:hover {
   background: var(--color-primary-light, #14a08a) !important;
   color: var(--color-white, #FFFFFF) !important;

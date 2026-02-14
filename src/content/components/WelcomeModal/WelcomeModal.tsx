@@ -13,7 +13,6 @@ export interface WelcomeModalProps {
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({
   visible,
-  onOk,
   onDontShowAgain,
 }) => {
   const [brandImageUrl, setBrandImageUrl] = useState<string>('');
@@ -31,10 +30,6 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
     loadBrandImage();
   }, []);
-
-  const handleOk = useCallback(() => {
-    onOk?.();
-  }, [onOk]);
 
   const handleDontShowAgain = useCallback(() => {
     onDontShowAgain?.();
@@ -54,26 +49,17 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
           />
         </div>
 
-        {/* Instruction Text */}
-        <p className="welcomeModalText">
-          Double click a word or select a content to understand the contextual meaning
-        </p>
-
-        {/* Buttons */}
-        <div className="welcomeModalButtons">
-          <button
-            className="welcomeModalButton okButton"
-            onClick={handleOk}
-            type="button"
-          >
-            Ok
-          </button>
+        {/* Instruction Text + Button in a single row */}
+        <div className="welcomeModalRow">
+          <p className="welcomeModalText">
+            Your Control Panel
+          </p>
           <button
             className="welcomeModalButton dontShowButton"
             onClick={handleDontShowAgain}
             type="button"
           >
-            Don't show me again
+            Got it
           </button>
         </div>
       </div>
