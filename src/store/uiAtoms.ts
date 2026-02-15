@@ -145,9 +145,9 @@ export const shouldShowWordFeatureAtom = atom<boolean>(true);
 // PANEL STATE (shared with FAB for positioning)
 // ============================================
 
-/** Whether the currently-open side panel is vertically expanded (full height) */
-export const isPanelVerticallyExpandedAtom = atom<boolean>(false);
+/** @deprecated Panels are now always full-height. Kept for compatibility but always true. */
+export const isPanelVerticallyExpandedAtom = atom<boolean>(true);
 
-/** Width (px) of the currently-open side panel */
-export const activePanelWidthAtom = atom<number>(560);
+/** Width (px) of the currently-open side panel. Default kept narrow so page content isn’t pushed too far left. */
+export const activePanelWidthAtom = atom<number>(400);
 

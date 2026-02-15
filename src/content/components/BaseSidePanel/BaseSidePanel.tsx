@@ -5,13 +5,12 @@ import type { RefObject } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import styles from './BaseSidePanel.module.css';
 import { UpgradeFooter } from './UpgradeFooter';
-import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
-import { isFreeTrialAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
+import { isFreeTrialAtom, activePanelWidthAtom } from '@/store/uiAtoms';
+import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 
 const MIN_WIDTH = 300;
-const MAX_WIDTH = 800;
-const DEFAULT_WIDTH = 560;
+const MAX_WIDTH = 650;
 
 export interface BaseSidePanelProps {
   /** Whether panel is open */
@@ -36,10 +35,6 @@ export interface BaseSidePanelProps {
   onCloseHandlerReady?: (handler: () => void) => void;
   /** Additional class name for the panel */
   className?: string;
-  /** Whether the panel is vertically expanded (controlled externally) */
-  isVerticallyExpanded?: boolean;
-  /** Callback when vertical expand state changes */
-  onVerticalExpandChange?: (expanded: boolean) => void;
   /** Whether panel uses slide animation (like SidePanel) instead of emerge animation */
   useSlideAnimation?: boolean;
   /** Whether panel is sliding out (for slide animation) */
@@ -58,29 +53,28 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
   animationSourceRef,
   onCloseHandlerReady,
   className = '',
-  isVerticallyExpanded: externalExpanded,
-  onVerticalExpandChange: _onVerticalExpandChange,
   useSlideAnimation = false,
   isSlidingOut = false,
 }) => {
   // Subscription status for conditional upgrade footer
   const isFreeTrial = useAtomValue(isFreeTrialAtom);
   
-  // Sync expansion state & width to global atoms so FAB can reposition
-  const setGlobalExpanded = useSetAtom(isPanelVerticallyExpandedAtom);
   const setGlobalWidth = useSetAtom(activePanelWidthAtom);
-  
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-  const [internalExpanded, setInternalExpanded] = useState(false);
-  const [expandedLoaded, setExpandedLoaded] = useState(false);
+  const globalWidth = useAtomValue(activePanelWidthAtom);
+  const [width, setWidth] = useState(globalWidth);
+  const latestWidthRef = useRef(width);
+  latestWidthRef.current = width;
+
+  // Sync local width from atom (e.g. when loaded from storage or another panel resized)
+  useEffect(() => {
+    if (width !== globalWidth) setWidth(globalWidth);
+  }, [globalWidth, width]);
+
   const hasEmergedRef = useRef(false);
   const isUnmountingRef = useRef(false);
   const isAnimatingRef = useRef(false);
   const previousIsOpenRef = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  // Use external expanded state if provided, otherwise internal
-  const isVerticallyExpanded = externalExpanded !== undefined ? externalExpanded : internalExpanded;
 
   // Reset isUnmountingRef when component is open (handles reopening after close)
   if (isOpen) {
@@ -127,6 +121,7 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
       const handleMouseMove = (moveEvent: MouseEvent) => {
         const deltaX = startX - moveEvent.clientX;
         const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth + deltaX));
+        latestWidthRef.current = newWidth;
         setWidth(newWidth);
       };
 
@@ -135,6 +130,8 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
         window.removeEventListener('mouseup', handleMouseUp);
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
+        ChromeStorage.setPanelWidth(latestWidthRef.current);
+        setGlobalWidth(latestWidthRef.current);
       };
 
       window.addEventListener('mousemove', handleMouseMove);
@@ -143,33 +140,16 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
     [width]
   );
 
-  // Load expanded state from storage on mount
+  // Sync width to global atom for FAB positioning - only on open, not during resize
+  const prevIsOpenRef = useRef(isOpen);
   useEffect(() => {
-    const loadExpandedState = async () => {
-      const domain = window.location.hostname;
-      const expanded = await ChromeStorage.getSidePanelExpanded(domain);
-      setInternalExpanded(expanded);
-      setExpandedLoaded(true);
-    };
-    loadExpandedState();
-  }, []);
-
-  // Save expanded state when it changes (after initial load)
-  useEffect(() => {
-    if (!expandedLoaded) return;
-    const domain = window.location.hostname;
-    ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
-  }, [isVerticallyExpanded, expandedLoaded]);
-
-  // Sync expansion & width to global atoms for FAB positioning
-  useEffect(() => {
-    if (isOpen) {
-      setGlobalExpanded(isVerticallyExpanded);
+    const wasOpen = prevIsOpenRef.current;
+    prevIsOpenRef.current = isOpen;
+    // Only update atom when panel opens (false -> true), not during resize
+    if (isOpen && !wasOpen) {
       setGlobalWidth(width);
-    } else {
-      setGlobalExpanded(false);
     }
-  }, [isOpen, isVerticallyExpanded, width, setGlobalExpanded, setGlobalWidth]);
+  }, [isOpen, setGlobalWidth]);
 
   // Trigger emerge animation when panel opens (only when useAnimation is true)
   useEffect(() => {
@@ -245,8 +225,6 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
     }
   }, [handleClose, onCloseHandlerReady, useAnimation]);
 
-  // Note: handleVerticalExpand is defined in the useVerticalExpand hook below
-
   // Don't render if not open
   if (!isOpen) {
     return null;
@@ -255,7 +233,6 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
   // Build class names
   const panelClasses = [
     getClassName('baseSidePanel', styles.baseSidePanel),
-    isVerticallyExpanded ? getClassName('verticallyExpanded', styles.verticallyExpanded) : '',
     useSlideAnimation && isOpen ? getClassName('open', styles.open) : '',
     useSlideAnimation && isSlidingOut ? getClassName('slidingOut', styles.slidingOut) : '',
     className,
@@ -306,12 +283,3 @@ export const BaseSidePanel: React.FC<BaseSidePanelProps> = ({
 };
 
 BaseSidePanel.displayName = 'BaseSidePanel';
-
-// Export helper for vertical expand handler
-export const useVerticalExpand = () => {
-  const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
-  const handleVerticalExpand = useCallback(() => {
-    setIsVerticallyExpanded((prev) => !prev);
-  }, []);
-  return { isVerticallyExpanded, handleVerticalExpand, setIsVerticallyExpanded };
-};

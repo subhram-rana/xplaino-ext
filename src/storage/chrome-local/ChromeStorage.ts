@@ -51,7 +51,12 @@ export class ChromeStorage {
     SHOULD_SHOW_IMAGE_FEATURE: 'should-show-image-feature',
     SHOULD_SHOW_TEXT_FEATURE: 'should-text-image-feature',
     SHOULD_SHOW_WORD_FEATURE: 'should-word-image-feature',
+    SIDE_PANEL_WIDTH: 'side_panel_width',
   } as const;
+
+  /** Panel width min/max (px) - must match panel components. Max kept lower so panel doesn’t push page content too far left. */
+  static readonly PANEL_WIDTH_MIN = 300;
+  static readonly PANEL_WIDTH_MAX = 650;
 
   // ============================================
   // GENERIC METHODS
@@ -144,6 +149,18 @@ export class ChromeStorage {
 
   static async setLastSync(timestamp: number = Date.now()): Promise<void> {
     return this.set(this.KEYS.LAST_SYNC, timestamp);
+  }
+
+  // --- Side panel width (persisted across tabs) ---
+  static async getPanelWidth(): Promise<number | null> {
+    const value = await this.get<number>(this.KEYS.SIDE_PANEL_WIDTH);
+    if (value == null || typeof value !== 'number') return null;
+    if (value < this.PANEL_WIDTH_MIN || value > this.PANEL_WIDTH_MAX) return null;
+    return value;
+  }
+
+  static async setPanelWidth(width: number): Promise<void> {
+    return this.set(this.KEYS.SIDE_PANEL_WIDTH, width);
   }
 
   // --- Extension Settings ---

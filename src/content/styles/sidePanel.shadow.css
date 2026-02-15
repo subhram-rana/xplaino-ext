@@ -11,28 +11,25 @@
   box-sizing: border-box !important;
 }
 
-/* Side Panel Container */
+/* Side Panel Container - always full height, side-by-side with page */
 .sidePanel {
   position: fixed !important;
-  top: 80px !important;
+  top: 0 !important;
   right: 0 !important;
-  bottom: 80px !important;
-  width: var(--panel-width, 560px) !important;
+  bottom: 0 !important;
+  width: var(--panel-width, 400px) !important;
   min-width: 300px !important;
   max-width: 800px !important;
   background: var(--color-bg-primary-theme) !important;
-  border-radius: 30px 0 0 30px !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
-  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
-  border-right: none !important;
+  border: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
   z-index: 2147483641 !important;
   display: flex !important;
   flex-direction: column !important;
   transform: translateX(100%) !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease 0.3s,
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               box-shadow 0.3s ease,
               border 0.3s ease !important;
   overflow: hidden !important;
@@ -40,30 +37,11 @@
 
 .sidePanel.open {
   transform: translateX(0) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 .sidePanel.slidingOut {
   transform: translateX(100%) !important;
   box-shadow: none !important;
-}
-
-.sidePanel.verticallyExpanded {
-  top: 0 !important;
-  bottom: 0 !important;
-  border-radius: 0 !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease,
-              box-shadow 0.3s ease,
-              border 0.3s ease !important;
-}
-
-/* When vertically expanded and open - teal border, no shadow */
-.sidePanel.verticallyExpanded.open {
-  box-shadow: none !important;
-  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
 }
 
 /* Resize Handle - Small Centered Strip */

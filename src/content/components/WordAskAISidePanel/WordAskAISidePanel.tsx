@@ -7,54 +7,10 @@ import { MinimizeIcon } from '../ui/MinimizeIcon';
 import styles from './WordAskAISidePanel.module.css';
 import { ChatMessage } from '@/store/wordExplanationAtoms';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
 import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
-import { isFreeTrialAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
-
-// Custom expand icon - arrows pointing away from center (up and down)
-const ExpandVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {/* Arrow pointing up */}
-    <polyline points="8 5 12 1 16 5" />
-    {/* Arrow pointing down */}
-    <polyline points="8 19 12 23 16 19" />
-    {/* Center line */}
-    <line x1="12" y1="1" x2="12" y2="23" />
-  </svg>
-);
-
-// Custom contract icon - arrows pointing toward center
-const ContractVerticalIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {/* Arrow pointing down (from top) */}
-    <polyline points="8 8 12 12 16 8" />
-    {/* Arrow pointing up (from bottom) */}
-    <polyline points="8 16 12 12 16 16" />
-    {/* Top line */}
-    <line x1="12" y1="1" x2="12" y2="12" />
-    {/* Bottom line */}
-    <line x1="12" y1="12" x2="12" y2="23" />
-  </svg>
-);
+import { isFreeTrialAtom, activePanelWidthAtom } from '@/store/uiAtoms';
+import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 
 export interface WordAskAISidePanelProps {
   /** Whether panel is open */
@@ -90,8 +46,7 @@ export interface WordAskAISidePanelProps {
 }
 
 const MIN_WIDTH = 300;
-const MAX_WIDTH = 800;
-const DEFAULT_WIDTH = 560;
+const MAX_WIDTH = 650;
 
 export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
   isOpen,
@@ -113,13 +68,17 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
   // Subscription status for conditional upgrade footer
   const isFreeTrial = useAtomValue(isFreeTrialAtom);
   
-  // Sync expansion state & width to global atoms so FAB can reposition
-  const setGlobalExpanded = useSetAtom(isPanelVerticallyExpandedAtom);
   const setGlobalWidth = useSetAtom(activePanelWidthAtom);
-  
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-  const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
-  const [expandedLoaded, setExpandedLoaded] = useState(false);
+  const globalWidth = useAtomValue(activePanelWidthAtom);
+  const [width, setWidth] = useState(globalWidth);
+  const latestWidthRef = useRef(width);
+  latestWidthRef.current = width;
+
+  // Sync local width from atom (e.g. when loaded from storage or another panel resized)
+  useEffect(() => {
+    if (width !== globalWidth) setWidth(globalWidth);
+  }, [globalWidth, width]);
+
   const [inputValue, setInputValue] = useState('');
   const [loadingDotCount, setLoadingDotCount] = useState(1);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
@@ -237,6 +196,7 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
       const handleMouseMove = (moveEvent: MouseEvent) => {
         const deltaX = startX - moveEvent.clientX;
         const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth + deltaX));
+        latestWidthRef.current = newWidth;
         setWidth(newWidth);
       };
       
@@ -245,6 +205,8 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
         window.removeEventListener('mouseup', handleMouseUp);
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
+        ChromeStorage.setPanelWidth(latestWidthRef.current);
+        setGlobalWidth(latestWidthRef.current);
       };
       
       window.addEventListener('mousemove', handleMouseMove);
@@ -253,33 +215,16 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
     [width]
   );
 
-  // Load expanded state from storage
+  // Sync width to global atom for FAB positioning - only on open, not during resize
+  const prevIsOpenRef = useRef(isOpen);
   useEffect(() => {
-    const loadExpandedState = async () => {
-      const domain = window.location.hostname;
-      const expanded = await ChromeStorage.getSidePanelExpanded(domain);
-      setIsVerticallyExpanded(expanded);
-      setExpandedLoaded(true);
-    };
-    loadExpandedState();
-  }, []);
-
-  // Save expanded state when it changes
-  useEffect(() => {
-    if (!expandedLoaded) return;
-    const domain = window.location.hostname;
-    ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
-  }, [isVerticallyExpanded, expandedLoaded]);
-
-  // Sync expansion & width to global atoms for FAB positioning
-  useEffect(() => {
-    if (isOpen) {
-      setGlobalExpanded(isVerticallyExpanded);
+    const wasOpen = prevIsOpenRef.current;
+    prevIsOpenRef.current = isOpen;
+    // Only update atom when panel opens (false -> true), not during resize
+    if (isOpen && !wasOpen) {
       setGlobalWidth(width);
-    } else {
-      setGlobalExpanded(false);
     }
-  }, [isOpen, isVerticallyExpanded, width, setGlobalExpanded, setGlobalWidth]);
+  }, [isOpen, setGlobalWidth]);
 
   // Animate loading dots (1-3 dots)
   useEffect(() => {
@@ -292,9 +237,6 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
     return () => clearInterval(interval);
   }, [isRequesting, streamingText]);
 
-  const handleVerticalExpand = useCallback(() => {
-    setIsVerticallyExpanded((prev) => !prev);
-  }, []);
 
   const handleClose = useCallback(async () => {
     if (isUnmountingRef.current || isAnimatingRef.current) {
@@ -511,8 +453,8 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
 
   // Class names
   const sidePanelClass = getClassName(
-    `wordAskAISidePanel ${isOpen ? 'open' : ''} ${isVerticallyExpanded ? 'verticallyExpanded' : ''}`,
-    `${styles.wordAskAISidePanel} ${isOpen ? styles.open : ''} ${isVerticallyExpanded ? styles.verticallyExpanded : ''}`
+    `wordAskAISidePanel ${isOpen ? 'open' : ''}`,
+    `${styles.wordAskAISidePanel} ${isOpen ? styles.open : ''}`
   );
   const resizeHandleClass = getClassName('resizeHandle', styles.resizeHandle);
   const headerClass = getClassName('header', styles.header);
@@ -520,7 +462,6 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
   const headerCenterClass = getClassName('headerCenter', styles.headerCenter);
   const headerRightClass = getClassName('headerRight', styles.headerRight);
   const headerTitleClass = getClassName('headerTitle', styles.headerTitle);
-  const iconButtonClass = getClassName('iconButton', styles.iconButton);
   const contentClass = getClassName('content', styles.content);
   const chatContainerClass = getClassName('chatContainer', styles.chatContainer);
   const messageClass = getClassName('message', styles.message);
@@ -572,13 +513,6 @@ export const WordAskAISidePanel: React.FC<WordAskAISidePanelProps> = ({
             size={18}
             useShadowDom={useShadowDom}
           />
-          <button
-            className={iconButtonClass}
-            onClick={handleVerticalExpand}
-            aria-label={isVerticallyExpanded ? 'Collapse' : 'Expand'}
-          >
-            {isVerticallyExpanded ? <ContractVerticalIcon size={18} /> : <ExpandVerticalIcon size={18} />}
-          </button>
         </div>
         
         {/* Center: Title */}

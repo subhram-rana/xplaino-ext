@@ -12,52 +12,31 @@
   font-family: var(--font-family-primary, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
 }
 
-/* Text Explanation Side Panel Container */
+/* Text Explanation Side Panel Container - always full height, side-by-side with page */
 .textExplanationSidePanel {
   position: fixed !important;
-  top: 80px !important;
+  top: 0 !important;
   right: 0 !important;
-  bottom: 80px !important;
-  width: var(--panel-width, 560px) !important;
+  bottom: 0 !important;
+  width: var(--panel-width, 400px) !important;
   min-width: 300px !important;
   max-width: 800px !important;
   background: var(--color-bg-primary-theme) !important;
-  border-radius: 30px 0 0 30px !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
-  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
-  border-right: none !important;
+  border: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
   z-index: 2147483643 !important;
   display: flex !important;
   flex-direction: column !important;
   /* Transform is handled by animation hook - don't set it here */
-  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease 0.3s,
-              box-shadow 0.3s ease,
+  transition: box-shadow 0.3s ease,
               border 0.3s ease !important;
   overflow: hidden !important;
 }
 
 .textExplanationSidePanel.open {
-  box-shadow: 0 4px 12px var(--color-shadow-black-20) !important;
-}
-
-.textExplanationSidePanel.verticallyExpanded {
-  top: 0 !important;
-  bottom: 0 !important;
-  border-radius: 0 !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease,
-              box-shadow 0.3s ease,
-              border 0.3s ease !important;
-}
-
-/* When vertically expanded and open - teal border, no shadow */
-.textExplanationSidePanel.verticallyExpanded.open {
-  box-shadow: none !important;
-  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
+  /* No shadow needed for side-by-side layout */
 }
 
 /* Resize Handle */

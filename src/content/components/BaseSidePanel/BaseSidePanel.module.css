@@ -1,16 +1,19 @@
 /* src/content/components/BaseSidePanel/BaseSidePanel.module.css */
 /* Base side panel styles - unified across all panel types */
 
+/* Base Side Panel Container - always full height, side-by-side with page */
 .baseSidePanel {
   position: fixed !important;
-  top: 10px !important;
-  right: 10px !important;
-  bottom: 10px !important;
-  width: var(--panel-width, 560px) !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: var(--panel-width, 400px) !important;
   max-width: calc(100vw - 20px) !important;
   background: var(--color-white, #FFFFFF) !important;
-  border-radius: 12px !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
+  border: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
   display: flex !important;
   flex-direction: column !important;
   z-index: 2147483640 !important;
@@ -18,28 +21,14 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
-/* Vertically expanded state - full height */
-.baseSidePanel.verticallyExpanded {
-  top: 10px !important;
-  bottom: 10px !important;
-  height: auto !important;
-}
-
 /* Slide animation for SidePanel (Summary/Settings) */
 .baseSidePanel.open {
   animation: slideIn 0.3s ease forwards !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
 }
 
 .baseSidePanel.slidingOut {
   animation: slideOut 0.3s ease forwards !important;
   box-shadow: none !important;
-}
-
-/* When vertically expanded and open - teal border, no shadow */
-.baseSidePanel.verticallyExpanded.open {
-  box-shadow: none !important;
-  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
 }
 
 @keyframes slideIn {

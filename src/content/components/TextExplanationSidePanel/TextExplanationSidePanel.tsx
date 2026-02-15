@@ -7,9 +7,9 @@ import { TextExplanationHeader } from './TextExplanationHeader';
 import { TextExplanationFooter } from './TextExplanationFooter';
 import { TextExplanationView } from './TextExplanationView';
 import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
-import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
-import { showLoginModalAtom, isFreeTrialAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
+import { showLoginModalAtom, isFreeTrialAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 import { useEmergeAnimation } from '@/hooks/useEmergeAnimation';
+import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 
 export interface TextExplanationSidePanelProps {
   /** Whether panel is open */
@@ -79,8 +79,7 @@ export interface TextExplanationSidePanelProps {
 }
 
 const MIN_WIDTH = 300;
-const MAX_WIDTH = 800;
-const DEFAULT_WIDTH = 560;
+const MAX_WIDTH = 650;
 
 export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> = ({
   isOpen,
@@ -116,9 +115,11 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   isBookmarked = false,
   hideFooter = false,
 }) => {
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-  const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
-  const [expandedLoaded, setExpandedLoaded] = useState(false);
+  const setGlobalWidth = useSetAtom(activePanelWidthAtom);
+  const globalWidth = useAtomValue(activePanelWidthAtom);
+  const [width, setWidth] = useState(globalWidth);
+  const latestWidthRef = useRef(width);
+  latestWidthRef.current = width;
   const hasEmergedRef = useRef(false);
   const isUnmountingRef = useRef(false);
   const isAnimatingRef = useRef(false); // Prevent double animations
@@ -131,11 +132,12 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
   
   // Jotai setter for login modal
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
-  
-  // Sync expansion state & width to global atoms so FAB can reposition
-  const setGlobalExpanded = useSetAtom(isPanelVerticallyExpandedAtom);
-  const setGlobalWidth = useSetAtom(activePanelWidthAtom);
-  
+
+  // Sync local width from atom (e.g. when loaded from storage or another panel resized)
+  useEffect(() => {
+    if (width !== globalWidth) setWidth(globalWidth);
+  }, [globalWidth, width]);
+
   // Subscription status for conditional upgrade footer
   const isFreeTrial = useAtomValue(isFreeTrialAtom);
 
@@ -189,6 +191,7 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         // Since panel is on the right, dragging left increases width
         const deltaX = startX - moveEvent.clientX;
         const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth + deltaX));
+        latestWidthRef.current = newWidth;
         setWidth(newWidth);
       };
       
@@ -197,6 +200,8 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
         window.removeEventListener('mouseup', handleMouseUp);
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
+        ChromeStorage.setPanelWidth(latestWidthRef.current);
+        setGlobalWidth(latestWidthRef.current);
       };
       
       window.addEventListener('mousemove', handleMouseMove);
@@ -205,33 +210,16 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
     [width]
   );
 
-  // Load expanded state from storage on mount
+  // Sync width to global atom for FAB positioning - only on open, not during resize
+  const prevIsOpenRef = useRef(isOpen);
   useEffect(() => {
-    const loadExpandedState = async () => {
-      const domain = window.location.hostname;
-      const expanded = await ChromeStorage.getSidePanelExpanded(domain);
-      setIsVerticallyExpanded(expanded);
-      setExpandedLoaded(true);
-    };
-    loadExpandedState();
-  }, []);
-
-  // Save expanded state when it changes (after initial load)
-  useEffect(() => {
-    if (!expandedLoaded) return;
-    const domain = window.location.hostname;
-    ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
-  }, [isVerticallyExpanded, expandedLoaded]);
-
-  // Sync expansion & width to global atoms for FAB positioning
-  useEffect(() => {
-    if (isOpen) {
-      setGlobalExpanded(isVerticallyExpanded);
+    const wasOpen = prevIsOpenRef.current;
+    prevIsOpenRef.current = isOpen;
+    // Only update atom when panel opens (false -> true), not during resize
+    if (isOpen && !wasOpen) {
       setGlobalWidth(width);
-    } else {
-      setGlobalExpanded(false);
     }
-  }, [isOpen, isVerticallyExpanded, width, setGlobalExpanded, setGlobalWidth]);
+  }, [isOpen, setGlobalWidth]);
 
   // Trigger emerge animation when panel opens (only once)
   // Track previous isOpen state to detect actual state changes
@@ -370,10 +358,6 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
     }
   }, [handleClose, onCloseHandlerReady]);
 
-  const handleVerticalExpand = useCallback(() => {
-    setIsVerticallyExpanded((prev) => !prev);
-  }, []);
-
   // Don't render if not open
   // Note: We render when isOpen is true, and let the animation hook handle visibility
   // The element needs to be in the DOM for the animation to work
@@ -383,8 +367,8 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
 
   // Class names for Shadow DOM vs CSS Modules
   const sidePanelClass = getClassName(
-    `textExplanationSidePanel open ${isVerticallyExpanded ? 'verticallyExpanded' : ''}`,
-    `${styles.textExplanationSidePanel} ${styles.open} ${isVerticallyExpanded ? styles.verticallyExpanded : ''}`
+    `textExplanationSidePanel open`,
+    `${styles.textExplanationSidePanel} ${styles.open}`
   );
   const resizeHandleClass = getClassName('resizeHandle', styles.resizeHandle);
   const contentClass = getClassName('content', styles.content);
@@ -412,12 +396,10 @@ export const TextExplanationSidePanel: React.FC<TextExplanationSidePanelProps> =
       {/* Header */}
       <TextExplanationHeader
         onClose={handleClose}
-        onVerticalExpand={handleVerticalExpand}
         onBookmark={onBookmark}
         onRemove={onRemove}
         onViewOriginal={onViewOriginal}
         useShadowDom={useShadowDom}
-        isExpanded={isVerticallyExpanded}
         showRightIcons={showHeaderIcons}
         isBookmarked={isBookmarked}
         showDeleteIcon={showDeleteIcon}

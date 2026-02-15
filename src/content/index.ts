@@ -96,7 +96,7 @@ import {
   pageReadingStateAtom,
   focusAskInputAtom,
 } from '../store/summaryAtoms';
-import { showLoginModalAtom, showSubscriptionModalAtom, showFeatureRequestModalAtom, userAuthInfoAtom, currentThemeAtom, subscriptionStatusAtom, isUserLoggedInAtom, shouldShowImageFeatureAtom, shouldShowTextFeatureAtom, shouldShowWordFeatureAtom } from '../store/uiAtoms';
+import { showLoginModalAtom, showSubscriptionModalAtom, showFeatureRequestModalAtom, userAuthInfoAtom, currentThemeAtom, subscriptionStatusAtom, isUserLoggedInAtom, shouldShowImageFeatureAtom, shouldShowTextFeatureAtom, shouldShowWordFeatureAtom, activePanelWidthAtom } from '../store/uiAtoms';
 import {
   textExplanationsAtom,
   activeTextExplanationIdAtom,
@@ -263,6 +263,11 @@ const savedParagraphs = new Map<string, SavedParagraphState>();
 // Jotai store for managing atoms outside React
 const store = createStore();
 
+// Load persisted panel width so all panels use it before first mount
+ChromeStorage.getPanelWidth().then((w) => {
+  if (w != null) store.set(activePanelWidthAtom, w);
+});
+
 // FAB loading state
 let isSummarising = false;
 let summariseAbortController: AbortController | null = null;
@@ -394,6 +399,63 @@ function setupGlobalAuthListener(): void {
   console.log('[Content Script] Global auth storage listener setup complete');
 }
 
+// =============================================================================
+// PAGE MARGIN FOR SIDE-BY-SIDE PANEL LAYOUT
+// =============================================================================
+
+let lastAppliedPanelWidth: number | null = null;
+
+/**
+ * Push the webpage content to the left by setting margin-right on <html> only,
+ * so the side panel sits beside (not overlapping) the page.
+ * Pass the panel width in px to push, or null / 0 to reset.
+ */
+function setPageMarginForPanel(panelWidth: number | null): void {
+  const html = document.documentElement;
+  if (panelWidth && panelWidth > 0) {
+    const value = `${panelWidth}px`;
+    const isOpening = lastAppliedPanelWidth == null || lastAppliedPanelWidth === 0;
+    if (isOpening) {
+      html.style.setProperty('transition', 'margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1)');
+      requestAnimationFrame(() => {
+        updatePageMarginForPanels();
+      });
+    } else {
+      html.style.setProperty('transition', 'none', 'important');
+    }
+    html.style.setProperty('margin-right', value, 'important');
+    html.style.setProperty('overflow-x', 'hidden', 'important');
+    lastAppliedPanelWidth = panelWidth;
+  } else {
+    html.style.setProperty('margin-right', '0px', 'important');
+    setTimeout(() => {
+      html.style.removeProperty('margin-right');
+      html.style.removeProperty('overflow-x');
+      html.style.removeProperty('transition');
+      lastAppliedPanelWidth = null;
+    }, 300);
+  }
+}
+
+/**
+ * Check if any panel is open and update the page margin accordingly.
+ * Called whenever panel open/close state or panel width changes.
+ */
+function updatePageMarginForPanels(): void {
+  const isAnyOpen =
+    sidePanelOpen ||
+    store.get(textExplanationPanelOpenAtom) ||
+    store.get(wordAskAISidePanelOpenAtom) ||
+    store.get(imageExplanationPanelOpenAtom);
+
+  if (isAnyOpen) {
+    const width = store.get(activePanelWidthAtom) || 400;
+    setPageMarginForPanel(width);
+  } else {
+    setPageMarginForPanel(null);
+  }
+}
+
 /**
  * Close all open sidebars except the specified one (non-blocking, triggers animations in parallel)
  * @param except - The sidebar type to exclude from closing
@@ -446,6 +508,10 @@ function closeAllSidebars(except?: 'main' | 'text' | 'image' | 'wordAskAI'): voi
       updateWordAskAISidePanel();
     }
   }
+
+  // Update page margin after closing panels
+  updatePageMarginForPanels();
+  updateFAB();
 }
 
 /**
@@ -459,6 +525,11 @@ function setSidePanelOpen(open: boolean, initialTab?: 'summary' | 'settings'): v
   
   sidePanelOpen = open;
   updateSidePanel(initialTab);
+
+  // Update page margin for side-by-side layout
+  updatePageMarginForPanels();
+  requestAnimationFrame(() => updatePageMarginForPanels());
+  updateFAB();
 }
 
 // =============================================================================
@@ -506,6 +577,22 @@ function isYouTubeWatchPage(): boolean {
 }
 
 /**
+ * Check if current page is xplaino.com/getting-started (or www variant)
+ * Extension should remain enabled on this page even if xplaino.com is BANNED
+ */
+function isXplainoGettingStartedPage(url: string): boolean {
+  try {
+    const u = new URL(url);
+    const path = u.pathname.replace(/\/$/, '') || '/';
+    if (path !== '/getting-started') return false;
+    const host = u.hostname.toLowerCase();
+    return host === 'xplaino.com' || host === 'www.xplaino.com' || host === 'localhost';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Check if extension is allowed to run on current page
  */
 async function isExtensionAllowed(): Promise<boolean> {
@@ -535,6 +622,11 @@ async function isExtensionAllowed(): Promise<boolean> {
     if (settings.globalDisabled) {
       console.log('[Content Script] Extension is globally disabled');
       return false;
+    }
+
+    // Xplaino getting-started: allow extension even if domain is BANNED
+    if (isXplainoGettingStartedPage(window.location.href)) {
+      return true;
     }
 
     // Check domain status
@@ -572,8 +664,17 @@ async function injectFAB(): Promise<void> {
   // Create Shadow DOM host
   const { host, shadow, mountPoint } = createShadowHost({
     id: FAB_HOST_ID,
-    zIndex: 2147483646,
+    zIndex: 2147483639, // initial value, overridden below
   });
+
+  // Neutralize stacking context: position:fixed always creates one,
+  // so switch to relative + z-index:auto. The fixed-positioned children
+  // inside will participate at the root stacking context level, allowing
+  // the FAB button and actions wrapper to have independent z-indexes.
+  host.style.position = 'relative';
+  host.style.zIndex = 'auto';
+  host.style.top = '';
+  host.style.left = '';
 
   // Inject color CSS variables first - get theme-aware variables
   const colorVariables = await getAllColorVariables();
@@ -12286,6 +12387,31 @@ store.sub(showSubscriptionModalAtom, () => {
 
 store.sub(showFeatureRequestModalAtom, () => {
   updateBackgroundBlur();
+});
+
+// Subscribe to panel-open atoms so page margin updates for side-by-side layout
+store.sub(textExplanationPanelOpenAtom, () => {
+  updatePageMarginForPanels();
+  requestAnimationFrame(() => updatePageMarginForPanels());
+});
+store.sub(wordAskAISidePanelOpenAtom, () => {
+  updatePageMarginForPanels();
+  requestAnimationFrame(() => updatePageMarginForPanels());
+});
+store.sub(imageExplanationPanelOpenAtom, () => {
+  updatePageMarginForPanels();
+  requestAnimationFrame(() => updatePageMarginForPanels());
+});
+
+// Subscribe to panel width changes so margin stays in sync during resize (throttled to once per frame)
+let marginUpdateScheduled = false;
+store.sub(activePanelWidthAtom, () => {
+  if (marginUpdateScheduled) return;
+  marginUpdateScheduled = true;
+  requestAnimationFrame(() => {
+    marginUpdateScheduled = false;
+    updatePageMarginForPanels();
+  });
 });
 
 // Debounce timer for theme refresh to prevent duplicate calls

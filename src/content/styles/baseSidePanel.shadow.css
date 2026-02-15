@@ -11,19 +11,19 @@
   box-sizing: border-box !important;
 }
 
-/* Base Side Panel Container */
+/* Base Side Panel Container - always full height, side-by-side with page */
 .baseSidePanel {
   position: fixed !important;
-  top: 10px !important;
-  right: 10px !important;
-  bottom: 10px !important;
-  width: var(--panel-width, 560px) !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: var(--panel-width, 400px) !important;
   max-width: calc(100vw - 20px) !important;
   background: var(--color-bg-primary-theme, #FFFFFF) !important;
-  border-radius: 12px !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
-  border: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
-  border-right: none !important;
+  border: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
   display: flex !important;
   flex-direction: column !important;
   z-index: 2147483640 !important;
@@ -32,28 +32,14 @@
   transition: box-shadow 0.3s ease, border 0.3s ease !important;
 }
 
-/* Vertically expanded state */
-.baseSidePanel.verticallyExpanded {
-  top: 10px !important;
-  bottom: 10px !important;
-  height: auto !important;
-}
-
 /* Slide animation states */
 .baseSidePanel.open {
   animation: slideIn 0.3s ease forwards !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 .baseSidePanel.slidingOut {
   animation: slideOut 0.3s ease forwards !important;
   box-shadow: none !important;
-}
-
-/* When vertically expanded and open - teal border, no shadow */
-.baseSidePanel.verticallyExpanded.open {
-  box-shadow: none !important;
-  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
 }
 
 @keyframes slideIn {

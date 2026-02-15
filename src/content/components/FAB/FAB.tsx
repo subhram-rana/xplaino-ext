@@ -7,7 +7,7 @@ import { TranslationControlPopover } from './TranslationControlPopover';
 import styles from './FAB.module.css';
 import { ENV } from '@/config/env';
 import { useAtomValue } from 'jotai';
-import { currentThemeAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
+import { currentThemeAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 import { textExplanationPanelOpenAtom } from '@/store/textExplanationAtoms';
 import { wordAskAISidePanelOpenAtom } from '@/store/wordExplanationAtoms';
 import { imageExplanationPanelOpenAtom } from '@/store/imageExplanationAtoms';
@@ -80,6 +80,7 @@ export const FAB: React.FC<FABProps> = ({
   const [showTranslationPopover, setShowTranslationPopover] = useState(false);
   const [iconUrl, setIconUrl] = useState<string>('');
   const parentRef = useRef<HTMLDivElement>(null);
+  const actionsWrapperRef = useRef<HTMLDivElement>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isHoveringRef = useRef(false);
   const isDisablingRef = useRef(false);
@@ -107,10 +108,8 @@ export const FAB: React.FC<FABProps> = ({
   // isPanelOpen prop covers the main side panel; combine with atoms for others
   const isAnyPanelOpen = isPanelOpen || textPanelOpen || wordPanelOpen || imagePanelOpen;
 
-  // Read panel expansion state for FAB positioning
-  const isPanelVerticallyExpanded = useAtomValue(isPanelVerticallyExpandedAtom);
+  // Read panel width for FAB positioning at the separator
   const activePanelWidth = useAtomValue(activePanelWidthAtom);
-  const isPanelMaximized = isAnyPanelOpen && isPanelVerticallyExpanded;
 
   // Load icon URL based on theme
   useEffect(() => {
@@ -223,8 +222,10 @@ export const FAB: React.FC<FABProps> = ({
       // Use composedPath() to get all elements in the event path, including through Shadow DOM
       const path = event.composedPath();
       
-      // Check if any element in the path is our FAB parent container
-      const isClickInside = path.some((element) => element === parentRef.current);
+      // Check if any element in the path is our FAB parent or actions wrapper
+      const isClickInside = path.some(
+        (element) => element === parentRef.current || element === actionsWrapperRef.current
+      );
       
       if (!isClickInside) {
         // Click was outside - close popover and hide actions
@@ -369,11 +370,15 @@ export const FAB: React.FC<FABProps> = ({
 
   // Class names for Shadow DOM vs CSS Modules
   const fabParentClass = getClassName(
-    `fabParent${isAnyPanelOpen ? ' panelOpen' : ''}${isPanelMaximized ? ' panelMaximized' : ''}`,
-    `${styles.fabParent}${isAnyPanelOpen ? ` ${styles.panelOpen}` : ''}${isPanelMaximized ? ` ${styles.panelMaximized}` : ''}`
+    `fabParent${isAnyPanelOpen ? ' panelOpen' : ''}`,
+    `${styles.fabParent}${isAnyPanelOpen ? ` ${styles.panelOpen}` : ''}`
   );
-  // Dynamic CSS variable for panel width when panel is vertically maximized
-  const fabParentStyle: React.CSSProperties | undefined = isPanelMaximized
+  const fabActionsWrapperClass = getClassName(
+    `fabActionsWrapper${isAnyPanelOpen ? ' panelOpen' : ''}`,
+    `${styles.fabActionsWrapper}${isAnyPanelOpen ? ` ${styles.panelOpen}` : ''}`
+  );
+  // Dynamic CSS variable for panel width so FAB sits at the separator line
+  const fabParentStyle: React.CSSProperties | undefined = isAnyPanelOpen
     ? { '--active-panel-width': `${activePanelWidth}px` } as React.CSSProperties
     : undefined;
   const actionsContainerClass = getClassName(
@@ -392,118 +397,129 @@ export const FAB: React.FC<FABProps> = ({
   const translationSpinnerClass = getClassName('translationSpinner', styles.translationSpinner);
 
   return (
-    <div
-      ref={parentRef}
-      className={fabParentClass}
-      style={fabParentStyle}
-      onMouseEnter={handleParentMouseEnter}
-      onMouseLeave={handleParentMouseLeave}
-    >
-      {/* Actions Container - on the left */}
-      <div className={actionsContainerClass}>
-        <ActionButton
-          icon="summarise"
-          tooltip={hasSummary ? 'View summary' : 'Summarise page'}
-          shortcut={summariseShortcut}
-          onClick={handleSummarise}
-          className={actionButtonClass}
-          isLoading={isSummarising}
-        />
-        <ActionButton
-          icon="askAboutPage"
-          tooltip="Ask about page"
-          shortcut={askAboutPageShortcut}
-          onClick={handleAskAboutPage}
-          className={actionButtonClass}
-        />
-        <div style={{ position: 'relative' }}>
+    <>
+      {/* Actions Wrapper - independent stacking context, z-index ABOVE side panels */}
+      <div
+        ref={actionsWrapperRef}
+        className={fabActionsWrapperClass}
+        style={fabParentStyle}
+        onMouseEnter={handleParentMouseEnter}
+        onMouseLeave={handleParentMouseLeave}
+      >
+        <div className={actionsContainerClass}>
           <ActionButton
-            icon={translationState === 'translating' ? 'stop' : 'translate'}
-            tooltip={
-              translationState === 'idle' ? 'Translate Page' :
-              translationState === 'translating' ? 'Stop Translation' :
-              'Translation Controls'
-            }
-            shortcut={translateShortcut}
-            onClick={handleTranslate}
-            className={`${actionButtonClass} ${translationState === 'translating' ? 'stopTranslating' : ''}`}
-            disabled={false}
-            hideTooltip={showTranslationPopover}
-          />
-          <TranslationControlPopover
-            viewMode={viewMode}
-            onToggleView={handleToggleView}
-            onClear={handleClearTranslations}
-            visible={showTranslationPopover}
-            useShadowDom={useShadowDom}
-            onMouseLeave={handleTranslatePopoverMouseLeave}
-          />
-        </div>
-        <ActionButton
-          icon="bookmark"
-          tooltip={isBookmarked ? "Remove saved link" : "Save page link"}
-          onClick={handleSaveUrl}
-          className={actionButtonClass}
-          isBookmarked={isBookmarked}
-        />
-        <ActionButton
-          icon="settings"
-          tooltip="Settings"
-          onClick={handleOptions}
-          className={actionButtonClass}
-        />
-        <ActionButton
-          icon="dashboard"
-          tooltip="My dashboard"
-          onClick={handleGoToWebsite}
-          className={actionButtonClass}
-        />
-        <div style={{ position: 'relative' }}>
-          <ActionButton
-            icon="options"
-            tooltip="More"
-            onClick={handleMoreButtonClick}
+            icon="summarise"
+            tooltip={hasSummary ? 'View summary' : 'Summarise page'}
+            shortcut={summariseShortcut}
+            onClick={handleSummarise}
             className={actionButtonClass}
-            hideTooltip={showMorePopover}
+            isLoading={isSummarising}
           />
-          <FABMorePopover
-            visible={showMorePopover}
-            onFeatureRequest={handleFeatureRequest}
-            onReportIssue={handleReportIssue}
-            onDisabled={handleDisabled}
-            onMouseEnter={handleParentMouseEnter}
-            onMouseLeave={handleMorePopoverMouseLeave}
-            onShowModal={onShowModal}
+          <ActionButton
+            icon="askAboutPage"
+            tooltip="Ask about page"
+            shortcut={askAboutPageShortcut}
+            onClick={handleAskAboutPage}
+            className={actionButtonClass}
           />
+          <div style={{ position: 'relative' }}>
+            <ActionButton
+              icon={translationState === 'translating' ? 'stop' : 'translate'}
+              tooltip={
+                translationState === 'idle' ? 'Translate Page' :
+                translationState === 'translating' ? 'Stop Translation' :
+                'Translation Controls'
+              }
+              shortcut={translateShortcut}
+              onClick={handleTranslate}
+              className={`${actionButtonClass} ${translationState === 'translating' ? 'stopTranslating' : ''}`}
+              disabled={false}
+              hideTooltip={showTranslationPopover}
+            />
+            <TranslationControlPopover
+              viewMode={viewMode}
+              onToggleView={handleToggleView}
+              onClear={handleClearTranslations}
+              visible={showTranslationPopover}
+              useShadowDom={useShadowDom}
+              onMouseLeave={handleTranslatePopoverMouseLeave}
+            />
+          </div>
+          <ActionButton
+            icon="bookmark"
+            tooltip={isBookmarked ? "Remove saved link" : "Save page link"}
+            onClick={handleSaveUrl}
+            className={actionButtonClass}
+            isBookmarked={isBookmarked}
+          />
+          <ActionButton
+            icon="settings"
+            tooltip="Settings"
+            onClick={handleOptions}
+            className={actionButtonClass}
+          />
+          <ActionButton
+            icon="dashboard"
+            tooltip="My dashboard"
+            onClick={handleGoToWebsite}
+            className={actionButtonClass}
+          />
+          <div style={{ position: 'relative' }}>
+            <ActionButton
+              icon="options"
+              tooltip="More"
+              onClick={handleMoreButtonClick}
+              className={actionButtonClass}
+              hideTooltip={showMorePopover}
+            />
+            <FABMorePopover
+              visible={showMorePopover}
+              onFeatureRequest={handleFeatureRequest}
+              onReportIssue={handleReportIssue}
+              onDisabled={handleDisabled}
+              onMouseEnter={handleParentMouseEnter}
+              onMouseLeave={handleMorePopoverMouseLeave}
+              onShowModal={onShowModal}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Translation Spinner - shown to the left of FAB when translating (hidden when actions are visible) */}
-      {translationState === 'translating' && !actionsVisible && (
-        <div className={translationSpinnerClass}>
-          <Loader2 size={16} strokeWidth={2.5} />
-        </div>
-      )}
+      {/* FAB Button Wrapper - independent stacking context, z-index BELOW side panels */}
+      <div
+        ref={parentRef}
+        className={fabParentClass}
+        style={fabParentStyle}
+        onMouseEnter={handleParentMouseEnter}
+        onMouseLeave={handleParentMouseLeave}
+      >
+        {/* Translation Spinner - shown to the left of FAB when translating (hidden when actions are visible) */}
+        {translationState === 'translating' && !actionsVisible && (
+          <div className={translationSpinnerClass}>
+            <Loader2 size={16} strokeWidth={2.5} />
+          </div>
+        )}
 
-      {/* FAB Container - on the right */}
-      <div className={fabContainerClass}>
-        <button
-          className={fabButtonClass}
-          onMouseEnter={handleFabMouseEnter}
-          aria-label="Xplaino Actions"
-        >
-          <img
-            src={iconUrl}
-            alt="Xplaino"
-            style={{ 
-              width: '24px', 
-              height: '24px',
-              objectFit: 'contain'
-            }}
-          />
-        </button>
+        {/* FAB Container - on the right */}
+        <div className={fabContainerClass}>
+          <button
+            className={fabButtonClass}
+            onMouseEnter={handleFabMouseEnter}
+            aria-label="Xplaino Actions"
+          >
+            <img
+              src={iconUrl}
+              alt="Xplaino"
+              style={{ 
+                width: '24px', 
+                height: '24px',
+                objectFit: 'contain'
+              }}
+            />
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

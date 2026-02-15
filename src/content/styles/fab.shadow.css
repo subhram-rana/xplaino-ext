@@ -55,21 +55,36 @@
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  z-index: 2147483646 !important;
+  z-index: 2147483635 !important;
   animation: slideInFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
   transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               right 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Shift FAB above sidebar when a panel is open */
+/* Position FAB at the separator (left edge of panel) when a panel is open */
 .fabParent.panelOpen {
-  top: 40px !important;
+  right: var(--active-panel-width, 400px) !important;
 }
 
-/* Position FAB at left edge of panel when vertically maximized */
-.fabParent.panelMaximized {
+/* Actions wrapper - independent stacking context BELOW side panels */
+/* Mirrors fabParent positioning but with a slightly higher z-index than
+   fabParent. Both sit below all side panel hosts so panels render on top. */
+.fabActionsWrapper {
+  position: fixed !important;
   top: 80px !important;
-  right: var(--active-panel-width, 560px) !important;
+  right: 0px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  z-index: 2147483636 !important;
+  pointer-events: none !important;
+  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              right 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Position actions wrapper at the separator (left edge of panel) when a panel is open */
+.fabActionsWrapper.panelOpen {
+  right: var(--active-panel-width, 400px) !important;
 }
 
 .fabParent.slideOut {

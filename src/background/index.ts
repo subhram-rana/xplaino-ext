@@ -18,6 +18,15 @@ chrome.runtime.setUninstallURL(
   `${ENV.XPLAINO_WEBSITE_BASE_URL}/uninstall-extension-feedback?version=${version}`
 );
 
+// Redirect to website when user installs the extension
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') {
+    chrome.tabs.create({
+      url: `${ENV.XPLAINO_WEBSITE_BASE_URL}/getting-started`,
+    });
+  }
+});
+
 /**
  * Sync domain status with API
  * Checks current tab domain against API and updates Chrome storage accordingly

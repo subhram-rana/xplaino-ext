@@ -4,62 +4,43 @@
 /* CSS Variables */
 :host {
   --panel-white: #FFFFFF !important;
-  --panel-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-  --panel-border-radius: 30px !important;
   --panel-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   --panel-min-width: 300px !important;
   --panel-max-width: 800px !important;
-  --panel-default-width: 560px !important;
+  --panel-default-width: 400px !important;
 }
 
-/* Side Panel Container */
+/* Side Panel Container - always full height, side-by-side with page */
 .sidePanel {
   position: fixed !important;
-  top: 80px !important;
+  top: 0 !important;
   right: 0 !important;
-  bottom: 80px !important;
+  bottom: 0 !important;
   width: var(--panel-width, var(--panel-default-width)) !important;
   min-width: var(--panel-min-width) !important;
   max-width: var(--panel-max-width) !important;
   background: var(--color-bg-primary-theme, #FFFFFF) !important;
-  border-radius: var(--panel-border-radius) 0 0 var(--panel-border-radius) !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
-  border-left: 1.5px solid var(--color-border-default-theme, rgba(0, 0, 0, 0.1)) !important;
+  border: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
   z-index: 2147483641 !important;
   display: flex !important;
   flex-direction: column !important;
   transform: translateX(100%) !important;
-  transition: transform var(--panel-transition), 
-              top var(--panel-transition), 
-              bottom var(--panel-transition),
-              border-radius 0.2s ease 0.3s !important;
+  transition: transform var(--panel-transition),
+              box-shadow var(--panel-transition),
+              border var(--panel-transition) !important;
   overflow: hidden !important;
 }
 
 .sidePanel.open {
   transform: translateX(0) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 .sidePanel.slidingOut {
   transform: translateX(100%) !important;
   box-shadow: none !important;
-}
-
-.sidePanel.verticallyExpanded {
-  top: 0 !important;
-  bottom: 0 !important;
-  border-radius: 0 !important;
-  transition: transform var(--panel-transition), 
-              top var(--panel-transition), 
-              bottom var(--panel-transition),
-              border-radius 0.2s ease !important;
-}
-
-/* When vertically expanded and open - teal border, no shadow */
-.sidePanel.verticallyExpanded.open {
-  box-shadow: none !important;
-  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
 }
 
 /* Resize Handle - Small Centered Strip */

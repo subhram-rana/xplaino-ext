@@ -49,11 +49,15 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
           />
         </div>
 
-        {/* Instruction Text + Button in a single row */}
+        {/* Instruction Text */}
+        <p className="welcomeModalText">
+          Your Control Panel
+        </p>
+        <p className="welcomeModalInstructionRed">
+          Hover over this to get started
+        </p>
+        {/* Button row */}
         <div className="welcomeModalRow">
-          <p className="welcomeModalText">
-            Your Control Panel
-          </p>
           <button
             className="welcomeModalButton dontShowButton"
             onClick={handleDontShowAgain}

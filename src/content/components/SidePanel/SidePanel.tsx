@@ -7,10 +7,10 @@ import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
 import { SummaryView } from './SummaryView';
 import { SettingsView } from './SettingsView';
 import { SaveLinkModal } from '../SaveLinkModal/SaveLinkModal';
-import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
-import { showLoginModalAtom, currentThemeAtom, isFreeTrialAtom, isPanelVerticallyExpandedAtom, activePanelWidthAtom } from '@/store/uiAtoms';
+import { showLoginModalAtom, currentThemeAtom, isFreeTrialAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 import { summaryAtom, summariseStateAtom } from '@/store/summaryAtoms';
 import { SavedLinkService } from '@/api-services/SavedLinkService';
+import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 
 // Reference link pattern: [[[ ref text ]]]
 const REF_LINK_PATTERN = /\[\[\[\s*(.+?)\s*\]\]\]/g;
@@ -46,8 +46,7 @@ export interface SidePanelProps {
 type TabType = 'summary' | 'settings';
 
 const MIN_WIDTH = 300;
-const MAX_WIDTH = 800;
-const DEFAULT_WIDTH = 560;
+const MAX_WIDTH = 650;
 
 export const SidePanel: React.FC<SidePanelProps> = ({
   isOpen,
@@ -61,10 +60,12 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   initialSavedLinkId = null,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'summary');
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
-  const [isVerticallyExpanded, setIsVerticallyExpanded] = useState(false);
+  const setGlobalWidth = useSetAtom(activePanelWidthAtom);
+  const globalWidth = useAtomValue(activePanelWidthAtom);
+  const [width, setWidth] = useState(globalWidth);
+  const latestWidthRef = useRef(width);
+  latestWidthRef.current = width;
   const [isSlidingOut, setIsSlidingOut] = useState(false);
-  const [expandedLoaded, setExpandedLoaded] = useState(false);
   const [isSaveLinkModalOpen, setIsSaveLinkModalOpen] = useState(false);
   const [isSavingLink, setIsSavingLink] = useState(false);
   const [savedLinkId, setSavedLinkId] = useState<string | null>(initialSavedLinkId);
@@ -92,11 +93,12 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   
   // Jotai setter for login modal
   const setShowLoginModal = useSetAtom(showLoginModalAtom);
-  
-  // Sync expansion state & width to global atoms so FAB can reposition
-  const setGlobalExpanded = useSetAtom(isPanelVerticallyExpandedAtom);
-  const setGlobalWidth = useSetAtom(activePanelWidthAtom);
-  
+
+  // Sync local width from atom (e.g. when loaded from storage or another panel resized)
+  useEffect(() => {
+    if (width !== globalWidth) setWidth(globalWidth);
+  }, [globalWidth, width]);
+
   // Subscription status for conditional upgrade footer
   const isFreeTrial = useAtomValue(isFreeTrialAtom);
   
@@ -138,6 +140,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         // Since panel is on the right, dragging left increases width
         const deltaX = startX - moveEvent.clientX;
         const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth + deltaX));
+        latestWidthRef.current = newWidth;
         setWidth(newWidth);
       };
       
@@ -146,6 +149,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         window.removeEventListener('mouseup', handleMouseUp);
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
+        ChromeStorage.setPanelWidth(latestWidthRef.current);
+        setGlobalWidth(latestWidthRef.current);
       };
       
       window.addEventListener('mousemove', handleMouseMove);
@@ -154,33 +159,16 @@ export const SidePanel: React.FC<SidePanelProps> = ({
     [width]
   );
 
-  // Load expanded state from storage on mount
+  // Sync width to global atom for FAB positioning - only on open, not during resize
+  const prevIsOpenRef = useRef(isOpen);
   useEffect(() => {
-    const loadExpandedState = async () => {
-      const domain = window.location.hostname;
-      const expanded = await ChromeStorage.getSidePanelExpanded(domain);
-      setIsVerticallyExpanded(expanded);
-      setExpandedLoaded(true);
-    };
-    loadExpandedState();
-  }, []);
-
-  // Save expanded state when it changes (after initial load)
-  useEffect(() => {
-    if (!expandedLoaded) return;
-    const domain = window.location.hostname;
-    ChromeStorage.setSidePanelExpanded(domain, isVerticallyExpanded);
-  }, [isVerticallyExpanded, expandedLoaded]);
-
-  // Sync expansion & width to global atoms for FAB positioning
-  useEffect(() => {
-    if (isOpen) {
-      setGlobalExpanded(isVerticallyExpanded);
+    const wasOpen = prevIsOpenRef.current;
+    prevIsOpenRef.current = isOpen;
+    // Only update atom when panel opens (false -> true), not during resize
+    if (isOpen && !wasOpen) {
       setGlobalWidth(width);
-    } else {
-      setGlobalExpanded(false);
     }
-  }, [isOpen, isVerticallyExpanded, width, setGlobalExpanded, setGlobalWidth]);
+  }, [isOpen, setGlobalWidth]);
 
   // Reset tab and sliding state when panel closes (but keep expanded state)
   useEffect(() => {
@@ -199,10 +187,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       onClose?.();
     }, 300); // Match transition duration
   }, [onClose]);
-
-  const handleVerticalExpand = useCallback(() => {
-    setIsVerticallyExpanded((prev) => !prev);
-  }, []);
 
   // Handle remove link
   const handleRemoveLink = useCallback(async () => {
@@ -356,8 +340,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
 
   // Class names for Shadow DOM vs CSS Modules
   const sidePanelClass = getClassName(
-    `sidePanel ${isOpen ? 'open' : ''} ${isSlidingOut ? 'slidingOut' : ''} ${isVerticallyExpanded ? 'verticallyExpanded' : ''}`,
-    `${styles.sidePanel} ${isOpen ? styles.open : ''} ${isSlidingOut ? styles.slidingOut : ''} ${isVerticallyExpanded ? styles.verticallyExpanded : ''}`
+    `sidePanel ${isOpen ? 'open' : ''} ${isSlidingOut ? 'slidingOut' : ''}`,
+    `${styles.sidePanel} ${isOpen ? styles.open : ''} ${isSlidingOut ? styles.slidingOut : ''}`
   );
   const resizeHandleClass = getClassName('resizeHandle', styles.resizeHandle);
   const contentClass = getClassName('content', styles.content);
@@ -377,10 +361,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       {/* Header */}
       <Header
         onSlideOut={handleSlideOut}
-        onVerticalExpand={handleVerticalExpand}
         brandImageSrc={brandImageUrl}
         useShadowDom={useShadowDom}
-        isExpanded={isVerticallyExpanded}
         activeTab={activeTab}
         onBookmark={handleBookmark}
         showBookmark={showBookmark}

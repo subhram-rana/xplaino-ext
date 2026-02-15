@@ -2,18 +2,20 @@
 /* CSS Module styles for Word Ask AI Side Panel */
 /* ALL properties use !important for style isolation */
 
+/* Word Ask AI Side Panel - always full height, side-by-side with page */
 .wordAskAISidePanel {
-  /* Same as TextExplanationSidePanel base styles */
   position: fixed !important;
-  top: 80px !important;
+  top: 0 !important;
   right: 0 !important;
-  bottom: 80px !important;
-  width: var(--panel-width, 560px) !important;
+  bottom: 0 !important;
+  width: var(--panel-width, 400px) !important;
   min-width: 300px !important;
   max-width: 800px !important;
   background: var(--color-bg-primary-theme) !important;
-  border-radius: 30px 0 0 30px !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
+  border: none !important;
+  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
   z-index: 2147483646 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -21,30 +23,15 @@
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.2s ease !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s ease,
+              border 0.3s ease !important;
 }
 
 .wordAskAISidePanel.open {
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  box-shadow: 0 4px 12px var(--color-shadow-black-20) !important;
-}
-
-.wordAskAISidePanel.verticallyExpanded {
-  top: 0 !important;
-  bottom: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-/* When vertically expanded and open - teal border, no shadow */
-.wordAskAISidePanel.verticallyExpanded.open {
-  box-shadow: none !important;
-  border-left: 3px solid var(--color-primary-opacity-50, rgba(13, 128, 112, 0.5)) !important;
 }
 
 .resizeHandle {
