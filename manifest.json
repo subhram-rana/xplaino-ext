@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Xplaino AI – Research Assistant, Summarizer & Website Translator",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "AI research assistant to summarize webpages, translate content, simplify text, and save organized insights.",
   "icons": {
     "16": "public/icons/chrome-extension-logo.png",
