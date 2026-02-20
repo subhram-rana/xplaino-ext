@@ -22,7 +22,7 @@ chrome.runtime.setUninstallURL(
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     chrome.tabs.create({
-      url: `${ENV.XPLAINO_WEBSITE_BASE_URL}/getting-started`,
+      url: `${ENV.XPLAINO_WEBSITE_BASE_URL}/getting-started?source=cws`,
     });
   }
 });
