@@ -146,9 +146,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
 
     try {
       if (value === 'account') {
-        // Fetch fresh account settings from API only when user has Bearer token
+        // Fetch fresh account settings from API only when user is logged in
         const authInfo = await ChromeStorage.getAuthInfo();
-        if (authInfo?.accessToken) {
+        if (authInfo?.accessToken && authInfo?.isLoggedIn) {
           console.log('[SettingsView] Fetching fresh account settings for theme sync...');
           await UserSettingsService.syncUserAccountSettings();
           console.log('[SettingsView] Account settings synced, removing domain override');
@@ -190,9 +190,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
         setBackendTheme(updatedData.settings.theme);
       }
 
-      // Re-fetch settings from server only when user has Bearer token
+      // Re-fetch settings from server only when user is logged in
       const authInfo = await ChromeStorage.getAuthInfo();
-      if (authInfo?.accessToken) {
+      if (authInfo?.accessToken && authInfo?.isLoggedIn) {
         await UserSettingsService.syncUserAccountSettings();
       }
 

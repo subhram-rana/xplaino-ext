@@ -11963,9 +11963,9 @@ async function initContentScript(): Promise<void> {
   // Initialize auth state before any component injection
   await initializeAuthState();
 
-  // Sync user account settings from backend API only when user has Bearer token
+  // Sync user account settings from backend API only when user is logged in (has Bearer token and login status)
   const authInfo = await ChromeStorage.getAuthInfo();
-  if (authInfo?.accessToken) {
+  if (authInfo?.accessToken && authInfo?.isLoggedIn) {
     await UserSettingsService.syncUserAccountSettings();
   }
 

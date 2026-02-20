@@ -5,6 +5,7 @@ import { ENV } from '@/config/env';
 import { ApiHeaders } from './ApiHeaders';
 import { ApiResponseHandler } from './ApiResponseHandler';
 import { TokenRefreshRetry } from './TokenRefreshRetry';
+import { TokenRefreshService } from './TokenRefreshService';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 import type { SubscriptionStatusDTO } from './dto/SubscriptionDTO';
 
@@ -27,6 +28,13 @@ export class SubscriptionService {
       const accountSettings = await ChromeStorage.getUserAccountSettings();
       if (!accountSettings?.userId) {
         console.log('[SubscriptionService] No userId available, skipping subscription sync');
+        return;
+      }
+
+      // Do not call API when user is logged out (no token or login status false)
+      const authInfo = await ChromeStorage.getAuthInfo();
+      if (!authInfo?.accessToken || authInfo?.isLoggedIn === false) {
+        console.log('[SubscriptionService] User not logged in, skipping subscription sync');
         return;
       }
 
@@ -94,6 +102,7 @@ export class SubscriptionService {
               return;
             } catch (refreshError) {
               console.error('[SubscriptionService] Token refresh failed:', refreshError);
+              await TokenRefreshService.handleTokenRefreshFailure();
               return;
             }
           }
