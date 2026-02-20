@@ -146,11 +146,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
 
     try {
       if (value === 'account') {
-        // CRITICAL: Fetch fresh account settings from API first
-        console.log('[SettingsView] Fetching fresh account settings for theme sync...');
-        await UserSettingsService.syncUserAccountSettings();
-        console.log('[SettingsView] Account settings synced, removing domain override');
-        
+        // Fetch fresh account settings from API only when user has Bearer token
+        const authInfo = await ChromeStorage.getAuthInfo();
+        if (authInfo?.accessToken) {
+          console.log('[SettingsView] Fetching fresh account settings for theme sync...');
+          await UserSettingsService.syncUserAccountSettings();
+          console.log('[SettingsView] Account settings synced, removing domain override');
+        }
+
         // Remove domain override - will use fresh account settings
         await ChromeStorage.removeUserExtensionDomainTheme(currentDomain);
         setThemeSelection('account');
@@ -187,9 +190,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ useShadowDom = false
         setBackendTheme(updatedData.settings.theme);
       }
 
-      // Re-fetch settings from server to ensure Chrome storage has the
-      // authoritative state (refreshes all flat keys like pageTranslationView)
-      await UserSettingsService.syncUserAccountSettings();
+      // Re-fetch settings from server only when user has Bearer token
+      const authInfo = await ChromeStorage.getAuthInfo();
+      if (authInfo?.accessToken) {
+        await UserSettingsService.syncUserAccountSettings();
+      }
 
       console.log('[SettingsView] Account settings updated and re-synced successfully');
     } catch (error) {

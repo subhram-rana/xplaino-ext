@@ -7,5 +7,4 @@
 
 export type { DomainResponseDTO, GetAllDomainsResponseDTO } from './DomainDTO';
 export type { SaveLinkRequest, SavedLinkResponse } from './SavedLinkDTO';
-export type { GetActiveHighlightedCouponResponse } from './CouponDTO';
 

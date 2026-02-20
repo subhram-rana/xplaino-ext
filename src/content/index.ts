@@ -11962,10 +11962,13 @@ function removeUserSelectOverride(): void {
 async function initContentScript(): Promise<void> {
   // Initialize auth state before any component injection
   await initializeAuthState();
-  
-  // Sync user account settings from backend API (on each URL load)
-  // This also ensures extension settings exist with default value
-  await UserSettingsService.syncUserAccountSettings();
+
+  // Sync user account settings from backend API only when user has Bearer token
+  const authInfo = await ChromeStorage.getAuthInfo();
+  if (authInfo?.accessToken) {
+    await UserSettingsService.syncUserAccountSettings();
+  }
+
   await ChromeStorage.ensureUserExtensionSettings();
   await ChromeStorage.ensureReviewPromptFields();
   await ChromeStorage.ensureFeatureDiscoveryFlags();
