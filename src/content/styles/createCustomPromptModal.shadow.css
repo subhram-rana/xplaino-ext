@@ -1,0 +1,350 @@
+/* createCustomPromptModal.shadow.css — Shadow DOM styles for CreateCustomPromptModal */
+
+.cpmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483640;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.cpmPanel {
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmPanel {
+    background: #1e1e1e;
+    color: #e8e8e8;
+  }
+}
+
+/* ── Header ── */
+
+.cpmHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmHeader {
+    border-bottom-color: #333;
+  }
+}
+
+.cpmTitle {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmTitle { color: #e8e8e8; }
+}
+
+.cpmCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cpmCloseBtn:hover {
+  background: #f3f3f3;
+  color: #1a1a1a;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmCloseBtn:hover {
+    background: #2a2a2a;
+    color: #e8e8e8;
+  }
+}
+
+/* ── Form ── */
+
+.cpmForm {
+  padding: 1.25rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.cpmField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cpmLabel {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmLabel { color: #ccc; }
+}
+
+.cpmHint {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  color: #888;
+  margin: 0 0 0.3rem;
+  font-style: italic;
+}
+
+.cpmInput {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(13, 148, 136, 0.35);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #fff;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.cpmInput:focus {
+  border-color: #0d9488;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmInput {
+    background: #2a2a2a;
+    color: #e8e8e8;
+    border-color: #444;
+  }
+  .cpmInput:focus {
+    border-color: #0d9488;
+  }
+}
+
+/* ── Editor ── */
+
+.cpmEditorWrapper {
+  border: 1px solid rgba(13, 148, 136, 0.35);
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.cpmEditorWrapper:focus-within {
+  border-color: #0d9488;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmEditorWrapper {
+    background: #2a2a2a;
+    border-color: #444;
+  }
+}
+
+.cpmEditorToolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid #ebebeb;
+  background: #f9f9f9;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmEditorToolbar {
+    background: #222;
+    border-bottom-color: #333;
+  }
+}
+
+.cpmToolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.cpmToolbarBtn:hover {
+  background: #ebebeb;
+  color: #1a1a1a;
+}
+
+.cpmToolbarBtnActive {
+  background: rgba(13, 148, 136, 0.12);
+  color: #0d9488;
+}
+
+.cpmToolbarDivider {
+  width: 1px;
+  height: 16px;
+  background: #e0e0e0;
+  margin: 0 4px;
+}
+
+.cpmEditorContent {
+  padding: 0.6rem 0.9rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  min-height: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cpmEditorContent {
+    color: #e8e8e8;
+  }
+}
+
+.cpmEditorContent .ProseMirror {
+  outline: none;
+  min-height: 180px;
+}
+
+.cpmEditorContent .ProseMirror p {
+  margin: 0 0 0.4em;
+}
+
+.cpmEditorContent .ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+.cpmEditorContent .ProseMirror ul,
+.cpmEditorContent .ProseMirror ol {
+  padding-left: 1.4em;
+  margin: 0.25em 0;
+}
+
+.cpmEditorContent .ProseMirror li {
+  margin: 0.1em 0;
+}
+
+.cpmEditorContent .ProseMirror strong {
+  font-weight: 600;
+}
+
+.cpmEditorContent .ProseMirror em {
+  font-style: italic;
+}
+
+.cpmEditorContent .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #aaa;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* ── Actions ── */
+
+.cpmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.cpmCancelBtn {
+  padding: 7px 18px;
+  border: 1px solid #d0d0d0;
+  border-radius: 20px;
+  background: transparent;
+  color: #666;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.cpmCancelBtn:hover {
+  border-color: #9e9e9e;
+  color: #1a1a1a;
+}
+
+.cpmSaveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  border: none;
+  border-radius: 20px;
+  background: #0d9488;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.cpmSaveBtn:hover:not(:disabled) {
+  background: #0b7a70;
+}
+
+.cpmSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Spinner ── */
+
+.cpmSpin {
+  animation: cpmSpin 0.8s linear infinite;
+}
+
+@keyframes cpmSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .cpmOverlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .cpmPanel {
+    border-radius: 20px 20px 0 0;
+    max-height: 95vh;
+  }
+}

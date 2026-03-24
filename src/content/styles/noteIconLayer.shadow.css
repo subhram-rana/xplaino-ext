@@ -1,0 +1,66 @@
+/* =============================================================================
+   NOTE ICON LAYER
+   Fixed-position note icons anchored to saved note text ranges.
+   Mirrors the noteIcon/marginIconWrapper pattern from xplaino-web PdfHighlightLayer.
+   All rules use !important for Shadow DOM isolation.
+   ============================================================================= */
+
+/* Wrapper div — fixed position, pointer-events off so it doesn't block the page */
+.noteIconWrapper {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 2147483645 !important;
+  /* Offset: align the icon's top with the anchor span top */
+  transform: translateY(-2px) !important;
+}
+
+/* The note button itself */
+.noteIconBtn {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 4px !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: #0d8070 !important;
+  opacity: 0.7 !important;
+  pointer-events: auto !important;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
+  animation: noteIconAppear 0.3s ease !important;
+  outline: none !important;
+}
+
+.noteIconBtn:hover {
+  opacity: 1 !important;
+  transform: scale(1.1) !important;
+}
+
+/* Pinned / active state */
+.noteIconBtnPinned {
+  opacity: 1 !important;
+  color: #0d8070 !important;
+}
+
+@keyframes noteIconAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+/* Icon inside the button */
+.noteIconBtn svg {
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0 !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}

@@ -55,6 +55,8 @@ import welcomeModalStyles from './styles/welcomeModal.shadow.css?inline';
 import reviewPromptModalStyles from './styles/reviewPromptModal.shadow.css?inline';
 import baseSidePanelStyles from './styles/baseSidePanel.shadow.css?inline';
 import spinnerStyles from './styles/spinner.shadow.css?inline';
+import webpageChatStyles from './styles/webpageChat.shadow.css?inline';
+import createCustomPromptModalStyles from './styles/createCustomPromptModal.shadow.css?inline';
 
 // Import color CSS variables
 import { getAllColorVariables } from '../constants/colors.css.js';
@@ -95,7 +97,6 @@ import {
   messageQuestionsAtom,
   pageReadingStatusAtom,
   pageContentAtom,
-  focusAskInputAtom,
   summaryIdToElementMapAtom,
 } from '../store/summaryAtoms';
 import { showLoginModalAtom, showSubscriptionModalAtom, showFeatureRequestModalAtom, userAuthInfoAtom, currentThemeAtom, subscriptionStatusAtom, isUserLoggedInAtom, shouldShowImageFeatureAtom, shouldShowTextFeatureAtom, shouldShowWordFeatureAtom, activePanelWidthAtom } from '../store/uiAtoms';
@@ -123,6 +124,25 @@ import {
 } from '../store/wordExplanationAtoms';
 import { ChromeStorage } from '../storage/chrome-local/ChromeStorage';
 import { ENV } from '../config/env';
+import { WebHighlightService } from '../api-services/WebHighlightService';
+import { HighlightColourService } from '../api-services/HighlightColourService';
+import { webHighlightsAtom, highlightColoursAtom, selectedHighlightColourIdAtom, type WebHighlightState } from '../store/webHighlightAtoms';
+import { buildAnchor, resolveAnchor } from './utils/highlightAnchor';
+import { applyHighlight, removeHighlight, getHighlightIdFromElement, getLastMarkElement } from './utils/highlightRenderer';
+import { HighlightDotMenu } from './components/HighlightDotMenu/HighlightDotMenu';
+import highlightDotMenuStyles from './styles/highlightDotMenu.shadow.css?inline';
+import { WebNoteService } from '../api-services/WebNoteService';
+import { webNotesAtom, type WebNoteState } from '../store/webNoteAtoms';
+import { injectNoteAnchorSpan, removeNoteAnchorSpan } from './utils/noteAnchorSpan';
+import { NoteIconLayer } from './components/NoteIconLayer/NoteIconLayer';
+import { NoteEditor } from './components/NoteEditor/NoteEditor';
+import noteIconLayerStyles from './styles/noteIconLayer.shadow.css?inline';
+import noteEditorStyles from './styles/noteEditor.shadow.css?inline';
+import {
+  webpageChatPendingAnnotationAtom,
+  webpageChatHasConversationAtom,
+  webpageChatShowRefreshWarningAtom,
+} from '../store/webpageChatAtoms';
 
 console.log('[Content Script] Initialized');
 
@@ -252,6 +272,7 @@ let sidePanelSavedLinkId: string | null = null;
 // Saved Paragraph Icons state
 let savedParagraphIconRoot: ReactDOM.Root | null = null;
 const SAVED_PARAGRAPH_ICON_HOST_ID = 'xplaino-saved-paragraph-icon-host';
+const HIGHLIGHT_DOT_HOST_ID = 'xplaino-highlight-dot-host';
 interface SavedParagraphState {
   id: string;
   paragraphId: string;
@@ -262,6 +283,41 @@ interface SavedParagraphState {
   iconRef: React.MutableRefObject<HTMLElement | null>;
 }
 const savedParagraphs = new Map<string, SavedParagraphState>();
+
+// Highlight hover dot state
+let highlightDotRoot: ReactDOM.Root | null = null;
+let hoveredHighlightId: string | null = null;
+let menuOpenHighlightId: string | null = null;
+let hoverHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+// Note icon layer + editor state
+const NOTE_ICON_HOST_ID = 'xplaino-note-icon-host';
+const NOTE_EDITOR_HOST_ID = 'xplaino-note-editor-host';
+let noteIconRoot: ReactDOM.Root | null = null;
+let noteEditorRoot: ReactDOM.Root | null = null;
+/** Resolved DOM ranges for notes — stored outside atoms (Range is not serialisable) */
+const noteResolvedRanges = new Map<string, Range>();
+/** State of the currently open note editor, or null if closed */
+interface NoteEditorOpenState {
+  mode: 'create' | 'edit';
+  noteId?: string;
+  initialContent?: string;
+  position: { left: number; top: number };
+  /** Only in create mode: the range the note will be anchored to */
+  pendingRange?: Range;
+  /** Only in create mode: the selected text */
+  pendingSelectedText?: string;
+}
+let noteEditorOpenState: NoteEditorOpenState | null = null;
+/** ID of the note whose editor is pinned open */
+let notePinnedId: string | null = null;
+/** Timer to close the editor when the mouse leaves both the icon and editor */
+let noteLeaveTimeoutId: ReturnType<typeof setTimeout> | null = null;
+/** Temp highlight IDs applied on note icon hover (keyed by note id) */
+const noteTempHighlightIds = new Map<string, string>();
+/** Stores original background-color values of existing highlight marks that are temporarily
+ *  made transparent while a note's teal overlay is active, keyed by note ID. */
+const noteTempBgOverrides = new Map<string, Array<{ el: HTMLElement; originalBg: string }>>();
 
 // Jotai store for managing atoms outside React
 const store = createStore();
@@ -551,7 +607,7 @@ function closeAllSidebars(except?: 'main' | 'text' | 'image' | 'wordAskAI'): voi
 /**
  * Toggle side panel open/closed state
  */
-function setSidePanelOpen(open: boolean, initialTab?: 'summary' | 'settings'): void {
+function setSidePanelOpen(open: boolean, initialTab?: 'summary' | 'chat' | 'settings'): void {
   // If opening side panel, close all other sidebars (parallel animations)
   if (open) {
     closeAllSidebars('main');
@@ -776,8 +832,7 @@ function filterReferenceLinks(summary: string): string {
  */
 function handleAskAboutPageClick(): void {
   console.log('[Content Script] Ask about page clicked from FAB');
-  store.set(focusAskInputAtom, true);
-  setSidePanelOpen(true, 'summary');
+  setSidePanelOpen(true, 'chat');
 }
 
 /**
@@ -1158,7 +1213,7 @@ function updateFAB(): void {
 /**
  * Update side panel state
  */
-function updateSidePanel(initialTab?: 'summary' | 'settings'): void {
+function updateSidePanel(initialTab?: 'summary' | 'chat' | 'settings'): void {
   if (sidePanelRoot) {
     // Handler for bookmark click from SidePanel
     const handleSidePanelBookmark = async () => {
@@ -1294,6 +1349,10 @@ async function injectSidePanel(): Promise<void> {
   // Inject base side panel styles for upgrade footer (coupon and upgrade buttons)
   injectStyles(shadow, baseSidePanelStyles);
 
+  // Inject webpage chat styles
+  injectStyles(shadow, webpageChatStyles);
+  injectStyles(shadow, createCustomPromptModalStyles);
+
   // Append to document
   document.documentElement.appendChild(host);
 
@@ -1405,6 +1464,8 @@ async function injectContentActions(): Promise<void> {
         onConvertPresentation: handleTextConvertPresentation,
         onShowModal: showDisableModal,
         onShowToast: showToast,
+        onHighlight: handleHighlightClick,
+        onNote: handleNoteCreate,
       })
     )
   );
@@ -1595,371 +1656,10 @@ async function handleExplainClick(
     return;
   }
 
-  // Otherwise, handle text explanation with side panel (existing behavior)
-
-  // Get current explanations and active ID
-  const explanations = store.get(textExplanationsAtom);
-  const activeId = store.get(activeTextExplanationIdAtom);
-  
-  // If there's an active explanation, abort it and close its panel
-  if (activeId) {
-    const activeExplanation = explanations.get(activeId);
-    if (activeExplanation?.abortController) {
-      activeExplanation.abortController.abort();
-    }
-    // Close the panel for the previous active explanation
-    store.set(textExplanationPanelOpenAtom, false);
-  }
-
-  // Store reference to close image panel when text panel opens (for smooth transition)
-  const activeImageIdToClose = store.get(activeImageExplanationIdAtom);
-  const hasImagePanelToClose = activeImageIdToClose && store.get(imageExplanationPanelOpenAtom);
-
-  // Calculate textStartIndex and textLength
-  const textStartIndex = calculateTextStartIndex(range);
-  const textLength = selectedText.length;
-
-  // Create new explanation state
-  const explanationId = `explanation-${Date.now()}`;
-  const iconRef: React.MutableRefObject<HTMLElement | null> = { current: null };
-  
-  const newExplanation: TextExplanationState = {
-    id: explanationId,
-    selectedText,
-    range: range.cloneRange(), // Clone to avoid issues
-    iconPosition,
-    isSpinning: true,
-    streamingText: '',
-    underlineState: null,
-    abortController: new AbortController(),
-    firstChunkReceived: false,
-    iconRef,
-    possibleQuestions: [],
-    textStartIndex,
-    textLength,
-    shouldAllowSimplifyMore: false,
-    previousSimplifiedTexts: [],
-    simplifiedExplanationCount: 0, // Will be set to 1 after first explanation completes
-    isSimplifyRequest: true, // Initial explanation is a simplify request
-    translations: [], // Array of translations for this selected text
-  };
-
-  // Add to map
-  const newMap = new Map(explanations);
-  newMap.set(explanationId, newExplanation);
-  store.set(textExplanationsAtom, newMap);
-  
-  // Set as active
-  store.set(activeTextExplanationIdAtom, explanationId);
-
-  // Reset view mode to contextual
-  textExplanationViewMode = 'contextual';
-
-  // Inject icon container and panel if not already injected
-  injectTextExplanationIconContainer();
-  injectTextExplanationPanel();
-
-  // Update icon container to show spinner
-  updateTextExplanationIconContainer();
-
-  // Clear text selection immediately to hide action button
-  window.getSelection()?.removeAllRanges();
-
-  // Set up 30-second timeout - if no first chunk received, revert everything
-  const timeoutId = setTimeout(() => {
-    const currentState = store.get(textExplanationsAtom).get(explanationId);
-    
-    // Check if first chunk was received
-    if (currentState && !currentState.firstChunkReceived) {
-      console.log('[Content Script] No response after 30 seconds, canceling request and reverting...');
-      
-      // Abort the API request
-      if (currentState.abortController) {
-        currentState.abortController.abort();
-      }
-      
-      // Show timeout error toast
-      showToast('Request timed out after 30 seconds. Please try again.', 'error');
-      
-      // Remove the spinning icon
-      const newMap = new Map(store.get(textExplanationsAtom));
-      newMap.delete(explanationId);
-      store.set(textExplanationsAtom, newMap);
-      
-      // Clear active explanation
-      if (store.get(activeTextExplanationIdAtom) === explanationId) {
-        store.set(activeTextExplanationIdAtom, null);
-        store.set(textExplanationPanelOpenAtom, false);
-      }
-      
-      // Update icon container (will hide if no explanations left)
-      updateTextExplanationIconContainer();
-      
-      // Remove icon container if no explanations left
-      if (newMap.size === 0) {
-        removeTextExplanationIconContainer();
-      }
-      
-      // Restore text selection so action button shows again
-      if (range) {
-        try {
-          const selection = window.getSelection();
-          selection?.removeAllRanges();
-          selection?.addRange(range);
-        } catch (error) {
-          console.error('[Content Script] Error restoring selection:', error);
-        }
-      }
-    }
-  }, 30000); // 30 seconds
-
-  // Extract surrounding context for the text (15 words before + text + 15 words after)
-  const contextText = extractSurroundingContextForText(selectedText, range);
-  console.log('[Content Script] Extracted context for Simplify API:', contextText);
-
-  // Get language code from user settings
-  const nativeLanguage = await ChromeStorage.getUserSettingNativeLanguage();
-  const languageCode = nativeLanguage ? (getLanguageCode(nativeLanguage) || undefined) : undefined;
-
-  try {
-    // Increment API counter for review prompt tracking
-    incrementApiCounterAndCheckReview();
-
-    // Call v2/simplify API
-    await SimplifyService.simplify(
-      [
-        {
-          textStartIndex,
-          textLength,
-          text: contextText, // Pass surrounding context instead of just selected text
-          previousSimplifiedTexts: [],
-          languageCode,
-        },
-      ],
-      {
-        onChunk: async (_chunk, accumulated) => {
-          let isFirstChunk = false;
-          let rangeToUnderline: Range | null = null;
-          
-          updateExplanationInMap(explanationId, (state) => {
-            const updatedState = { ...state, streamingText: accumulated };
-            
-            // On first chunk: switch to green icon, add underline, open panel
-            if (!updatedState.firstChunkReceived) {
-              isFirstChunk = true;
-              updatedState.firstChunkReceived = true;
-              updatedState.isSpinning = false;
-              
-              // Clear the timeout since we received the first chunk
-              clearTimeout(timeoutId);
-              
-              // Store range for underline (will be added after updateExplanationInMap)
-              if (updatedState.range) {
-                rangeToUnderline = updatedState.range;
-              }
-            }
-            
-            return updatedState;
-          });
-          
-          // Add underline to selected text (after state update)
-          if (isFirstChunk && rangeToUnderline) {
-            const underlineState = await addTextUnderline(rangeToUnderline);
-            updateExplanationInMap(explanationId, (state) => ({
-              ...state,
-              underlineState,
-            }));
-          }
-          
-          // Update UI after state is committed to atom
-          if (isFirstChunk) {
-            // Close image panel first (if open) for smooth transition, then open text panel
-            if (hasImagePanelToClose && activeImageIdToClose) {
-              console.log('[Content Script] Switching from image to text explanation panel (new explanation)');
-              const imageExplanations = store.get(imageExplanationsAtom);
-              const activeImageExplanation = imageExplanations.get(activeImageIdToClose);
-              if (activeImageExplanation?.abortController) {
-                activeImageExplanation.abortController.abort();
-              }
-              store.set(imageExplanationPanelOpenAtom, false);
-              store.set(activeImageExplanationIdAtom, null);
-              updateImageExplanationPanel();
-              updateImageExplanationIconContainer();
-            }
-            
-            // Open panel
-            store.set(textExplanationPanelOpenAtom, true);
-            updateTextExplanationPanel();
-            
-            // Update icon container (now reads the updated state with isSpinning = false)
-            updateTextExplanationIconContainer();
-          } else {
-            // Update panel with new content
-            updateTextExplanationPanel();
-          }
-        },
-        onComplete: (simplifiedText, shouldAllowSimplifyMore, possibleQuestions) => {
-          console.log('[Content Script] Text explanation complete');
-          
-          // Clear the timeout since request completed
-          clearTimeout(timeoutId);
-          
-          // Add initial explanation to chat history if not already there
-          if (!textExplanationChatHistory.has(explanationId)) {
-            textExplanationChatHistory.set(explanationId, []);
-          }
-          const chatHistory = textExplanationChatHistory.get(explanationId)!;
-          
-          updateExplanationInMap(explanationId, (state) => {
-            // Only add if this is the first explanation (no messages yet)
-            if (chatHistory.length === 0) {
-              // Set count to 1 for the first explanation
-              state.simplifiedExplanationCount = 1;
-              const explanationNumber = state.simplifiedExplanationCount;
-              
-              // Create message with heading "Simplified explanation 1"
-              const messageWithHeading = `## Simplified explanation ${explanationNumber}\n\n${simplifiedText}`;
-              chatHistory.push({ role: 'assistant', content: messageWithHeading });
-              
-              // Only add questions if they don't already exist for this message
-              if (possibleQuestions && possibleQuestions.length > 0) {
-                if (!textExplanationMessageQuestions.has(explanationId)) {
-                  textExplanationMessageQuestions.set(explanationId, {});
-                }
-                const messageQuestions = textExplanationMessageQuestions.get(explanationId)!;
-                // Only set if not already set to prevent duplicates
-                if (!messageQuestions[0]) {
-                  messageQuestions[0] = possibleQuestions; // First message (index 0)
-                  textExplanationMessageQuestions.set(explanationId, messageQuestions);
-                }
-              }
-            }
-            
-            // Update state with simplify button visibility and previous simplified texts
-            state.shouldAllowSimplifyMore = shouldAllowSimplifyMore;
-            // Add current simplified text to previousSimplifiedTexts array
-            state.previousSimplifiedTexts = [...state.previousSimplifiedTexts, simplifiedText];
-            
-            // Clear streamingText after adding to chat history to prevent duplicate display
-            state.streamingText = '';
-            state.possibleQuestions = possibleQuestions || [];
-            
-            // Clear abort controller to indicate request is complete
-            state.abortController = null;
-            state.firstChunkReceived = false;
-            state.isSimplifyRequest = undefined; // Clear simplify request flag
-            
-            return state;
-          });
-          
-          updateTextExplanationPanel();
-        },
-        onError: (errorCode, errorMsg) => {
-          console.error('[Content Script] Text explanation error:', errorCode, errorMsg);
-          
-          // Clear the timeout on error
-          clearTimeout(timeoutId);
-          
-          // Show error toast
-          showToast(errorMsg || 'Failed to explain text. Please try again.', 'error');
-          
-          // Remove the explanation completely (don't show green icon)
-          const newMap = new Map(store.get(textExplanationsAtom));
-          newMap.delete(explanationId);
-          store.set(textExplanationsAtom, newMap);
-          
-          // Clear active explanation
-          if (store.get(activeTextExplanationIdAtom) === explanationId) {
-            store.set(activeTextExplanationIdAtom, null);
-            store.set(textExplanationPanelOpenAtom, false);
-          }
-          
-          // Update icon container (will hide if no explanations left)
-          updateTextExplanationIconContainer();
-          
-          // Remove icon container if no explanations left
-          if (newMap.size === 0) {
-            removeTextExplanationIconContainer();
-          }
-          
-          // Restore text selection so action button shows again
-          if (range) {
-            try {
-              const selection = window.getSelection();
-              selection?.removeAllRanges();
-              selection?.addRange(range);
-            } catch (error) {
-              console.error('[Content Script] Error restoring selection:', error);
-            }
-          }
-        },
-        onLoginRequired: () => {
-          console.log('[Content Script] Login required for text explanation');
-          
-          // Clear the timeout
-          clearTimeout(timeoutId);
-          
-          // Remove the text explanation completely (icon, underline, panel)
-          removeTextExplanation(explanationId);
-          // Show login modal
-          store.set(showLoginModalAtom, true);
-        },
-        onSubscriptionRequired: () => {
-          console.log('[Content Script] Subscription required for text explanation');
-          
-          // Clear the timeout
-          clearTimeout(timeoutId);
-          
-          // Remove the text explanation completely (icon, underline, panel)
-          removeTextExplanation(explanationId);
-          
-          // Show subscription modal
-          store.set(showSubscriptionModalAtom, true);
-        },
-      },
-      newExplanation.abortController || undefined
-    );
-  } catch (error) {
-    console.error('[Content Script] Text explanation exception:', error);
-    
-    // Clear the timeout on exception
-    clearTimeout(timeoutId);
-    
-    // Show error toast
-    const errorMessage = error instanceof Error ? error.message : 'Failed to explain text. Please try again.';
-    showToast(errorMessage, 'error');
-    
-    // Remove the explanation completely (don't show green icon)
-    const newMap = new Map(store.get(textExplanationsAtom));
-    newMap.delete(explanationId);
-    store.set(textExplanationsAtom, newMap);
-    
-    // Clear active explanation
-    if (store.get(activeTextExplanationIdAtom) === explanationId) {
-      store.set(activeTextExplanationIdAtom, null);
-      store.set(textExplanationPanelOpenAtom, false);
-    }
-    
-    // Update icon container (will hide if no explanations left)
-    updateTextExplanationIconContainer();
-    
-    // Remove icon container if no explanations left
-    if (newMap.size === 0) {
-      removeTextExplanationIconContainer();
-    }
-    
-    // Restore text selection so purple button shows again
-    if (range) {
-      try {
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      } catch (error) {
-        console.error('[Content Script] Error restoring selection:', error);
-      }
-    }
-  }
+  // Non-word text: redirect to WebpageChat with "Simplify" as the pre-populated question
+  dispatchAnnotatedChat(selectedText, 'Simplify this text concisely');
 }
+
 
 /**
  * Handle word explanation with popover
@@ -3091,477 +2791,60 @@ async function handleBetterAcademicClick(selectedText: string): Promise<void> {
 // TEXT SELECTION AI ACTIONS (from 3-dot menu)
 // =============================================================================
 
+// -----------------------------------------------------------------------------
+// dispatchAnnotatedChat — shared entry point for all text-selection AI actions
+// -----------------------------------------------------------------------------
+
 /**
- * Set up a Text Explanation state for Ask AI actions (without initial simplify).
- * Creates a TextExplanationState, adds underline, but does NOT open the panel.
- * When openPanel is true (default), the panel opens immediately (used for "Ask AI" button).
- * When openPanel is false, the caller controls when to open the panel (used for auto-send actions).
- * Returns the explanationId.
+ * Redirect a text-selection AI action to the WebpageChat panel.
+ * Sets the pending annotation atom (consumed by WebpageChatView) and opens the chat tab.
+ *
+ * @param selectedText - The text the user selected on the page
+ * @param question     - Optional pre-populated question (for preset actions like "Summarize").
+ *                       When provided, the view auto-submits it.
+ *                       When omitted, the user types their own question.
  */
-async function openTextExplanationPanelForAskAI(
-  selectedText: string,
-  range?: Range,
-  iconPosition?: { x: number; y: number },
-  openPanel: boolean = true
-): Promise<string | null> {
-  console.log('[Content Script] openTextExplanationPanelForAskAI:', selectedText.substring(0, 50), { openPanel });
-
-  // Try to get range from window selection if not provided
-  if (!range) {
-    const windowSelection = window.getSelection();
-    if (windowSelection && windowSelection.rangeCount > 0) {
-      range = windowSelection.getRangeAt(0).cloneRange();
-    }
-  }
-
-  if (!range) {
-    console.warn('[Content Script] No range available for text Ask AI');
-    return null;
-  }
-
-  // Calculate icon position if not provided
-  if (!iconPosition) {
-    let containingElement: HTMLElement | null = null;
-    let node: Node | null = range.startContainer;
-    while (node && node !== document.body) {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        containingElement = node as HTMLElement;
-        break;
-      }
-      node = node.parentNode;
-    }
-    if (!containingElement) containingElement = document.body;
-    const elementRect = containingElement.getBoundingClientRect();
-    const selectionRect = range.getBoundingClientRect();
-    iconPosition = {
-      x: elementRect.left - 30,
-      y: selectionRect.top,
-    };
-  }
-
-  // Get current explanations and active ID
-  const explanations = store.get(textExplanationsAtom);
-  const activeId = store.get(activeTextExplanationIdAtom);
-
-  // If there's an active explanation, abort it and close its panel
-  if (activeId) {
-    const activeExplanation = explanations.get(activeId);
-    if (activeExplanation?.abortController) {
-      activeExplanation.abortController.abort();
-    }
-    store.set(textExplanationPanelOpenAtom, false);
-  }
-
-  // Close image panel if open
-  const activeImageIdToClose = store.get(activeImageExplanationIdAtom);
-  const hasImagePanelToClose = activeImageIdToClose && store.get(imageExplanationPanelOpenAtom);
-  if (hasImagePanelToClose && activeImageIdToClose) {
-    const imageExplanations = store.get(imageExplanationsAtom);
-    const activeImageExplanation = imageExplanations.get(activeImageIdToClose);
-    if (activeImageExplanation?.abortController) {
-      activeImageExplanation.abortController.abort();
-    }
-    store.set(imageExplanationPanelOpenAtom, false);
-    store.set(activeImageExplanationIdAtom, null);
-    updateImageExplanationPanel();
-    updateImageExplanationIconContainer();
-  }
-
-  // Calculate textStartIndex and textLength
-  const textStartIndex = calculateTextStartIndex(range);
-  const textLength = selectedText.length;
-
-  // Create new explanation state
-  const explanationId = `explanation-${Date.now()}`;
-  const iconRef: React.MutableRefObject<HTMLElement | null> = { current: null };
-
-  const newExplanation: TextExplanationState = {
-    id: explanationId,
+function dispatchAnnotatedChat(selectedText: string, question?: string, focusInput = false): void {
+  store.set(webpageChatPendingAnnotationAtom, {
     selectedText,
-    range: range.cloneRange(),
-    iconPosition,
-    isSpinning: !openPanel, // Show spinner if panel deferred (waiting for API)
-    streamingText: '',
-    underlineState: null,
-    abortController: null, // Will be set by the caller if deferred
-    firstChunkReceived: openPanel, // If opening immediately, mark as ready
-    iconRef,
-    possibleQuestions: [],
-    textStartIndex,
-    textLength,
-    shouldAllowSimplifyMore: true,
-    previousSimplifiedTexts: [],
-    simplifiedExplanationCount: 0,
-    isSimplifyRequest: false,
-    translations: [],
-  };
-
-  // Add to map
-  const newMap = new Map(explanations);
-  newMap.set(explanationId, newExplanation);
-  store.set(textExplanationsAtom, newMap);
-
-  // Set as active
-  store.set(activeTextExplanationIdAtom, explanationId);
-
-  // Reset view mode to contextual
-  textExplanationViewMode = 'contextual';
-
-  // Initialize empty chat history
-  textExplanationChatHistory.set(explanationId, []);
-
-  // Inject icon container and panel if not already injected
-  injectTextExplanationIconContainer();
-  injectTextExplanationPanel();
-
-  // Update icon container to show spinner (for deferred) or green icon (for immediate)
-  updateTextExplanationIconContainer();
-
-  // Only add underline immediately if opening panel right away
-  // When deferred (openPanel=false), underline is added on first API chunk
-  if (openPanel) {
-    const underlineState = await addTextUnderline(range);
-    updateExplanationInMap(explanationId, (state) => ({
-      ...state,
-      underlineState,
-    }));
-  }
-
-  // Clear text selection to hide action buttons
-  window.getSelection()?.removeAllRanges();
-
-  // Only open the panel immediately if requested
-  if (openPanel) {
-    store.set(textExplanationPanelOpenAtom, true);
-    updateTextExplanationPanel(); // Also initializes handleQuestionClickCallback
-    updateTextExplanationIconContainer();
-  }
-
-  return explanationId;
+    textSnippetStart: selectedText.slice(0, 60),
+    textSnippetEnd: selectedText.slice(-60),
+    question,
+    focusInput,
+  });
+  setSidePanelOpen(true, 'chat');
 }
 
 /**
- * Generic handler for text Ask AI actions from the 3-dot menu.
- * Creates explanation state (panel stays closed), fires AskService API directly,
- * opens the panel only on first successful chunk. On error, cleans up without opening.
+ * Generic handler for text selection AI actions from the 3-dot menu.
+ * Redirects to the WebpageChat panel with the selected text as an annotation
+ * and the action question pre-populated (auto-submitted by the view).
  */
-async function handleTextAskAIAction(
+function handleTextAskAIAction(
   selectedText: string,
   question: string,
-  range?: Range,
-  iconPosition?: { x: number; y: number }
-): Promise<void> {
-  console.log('[Content Script] Text Ask AI action:', { selectedText: selectedText.substring(0, 50), question });
-
-  try {
-    // Create state but do NOT open the panel yet
-    const explanationId = await openTextExplanationPanelForAskAI(selectedText, range, iconPosition, false);
-    if (!explanationId) return;
-
-    try {
-    // Set up abort controller for the API call
-    const newAbortController = new AbortController();
-
-    // Add user message to chat history
-    const userMessage = { role: 'user' as const, content: question };
-    textExplanationChatHistory.set(explanationId, [userMessage]);
-
-    // Update state with abort controller and pending question
-    updateExplanationInMap(explanationId, (state) => {
-      state.abortController = newAbortController;
-      state.streamingText = '';
-      state.firstChunkReceived = false;
-      state.pendingQuestion = question;
-      state.isSpinning = true;
-      return state;
-    });
-    updateTextExplanationIconContainer();
-
-    // Get language code from user settings
-    const nativeLanguage = await ChromeStorage.getUserSettingNativeLanguage();
-    const languageCode = nativeLanguage ? (getLanguageCode(nativeLanguage) || undefined) : undefined;
-
-    // Increment API counter for review prompt tracking
-    incrementApiCounterAndCheckReview();
-
-    // Call AskService directly - panel opens on first chunk
-    await AskService.ask(
-      {
-        question: `For the given initial_context, I want you to help me with my question. Here is my question: ${question.trim()}`,
-        chat_history: [userMessage],
-        initial_context: selectedText,
-        context_type: 'TEXT',
-        languageCode,
-      },
-      {
-        onChunk: async (_chunk, accumulated) => {
-          let isFirstChunk = false;
-          let rangeToUnderline: Range | null = null;
-
-          updateExplanationInMap(explanationId, (state) => {
-            state.streamingText = accumulated;
-            if (!state.firstChunkReceived) {
-              isFirstChunk = true;
-              state.firstChunkReceived = true;
-              state.isSpinning = false;
-              // Store range for underline (will be added after state update)
-              if (state.range) {
-                rangeToUnderline = state.range;
-              }
-            }
-            return state;
-          });
-
-          // Add underline on first chunk (matching handleExplainClick behavior)
-          if (isFirstChunk && rangeToUnderline) {
-            const underlineState = await addTextUnderline(rangeToUnderline);
-            updateExplanationInMap(explanationId, (state) => ({
-              ...state,
-              underlineState,
-            }));
-          }
-
-          // On first chunk: open the panel
-          if (isFirstChunk) {
-            store.set(textExplanationPanelOpenAtom, true);
-            updateTextExplanationPanel(); // Initializes handleQuestionClickCallback too
-            updateTextExplanationIconContainer();
-          } else {
-            updateTextExplanationPanel();
-          }
-        },
-        onComplete: (updatedChatHistory, questions) => {
-          console.log('[Content Script] Text Ask AI action complete for:', explanationId);
-
-          // Extract assistant message from API response
-          const assistantMessage = updatedChatHistory[updatedChatHistory.length - 1];
-          if (assistantMessage && assistantMessage.role === 'assistant') {
-            const currentChatHistory = textExplanationChatHistory.get(explanationId) || [];
-            const updatedHistory = [...currentChatHistory, assistantMessage];
-            textExplanationChatHistory.set(explanationId, updatedHistory);
-
-            // Store questions for the assistant message
-            if (questions && questions.length > 0) {
-              if (!textExplanationMessageQuestions.has(explanationId)) {
-                textExplanationMessageQuestions.set(explanationId, {});
-              }
-              const messageQuestions = textExplanationMessageQuestions.get(explanationId)!;
-              messageQuestions[updatedHistory.length - 1] = questions;
-              textExplanationMessageQuestions.set(explanationId, messageQuestions);
-            }
-          }
-
-          // Clear streaming state
-          updateExplanationInMap(explanationId, (state) => {
-            state.streamingText = '';
-            state.possibleQuestions = questions || [];
-            state.pendingQuestion = undefined;
-            state.abortController = null;
-            state.firstChunkReceived = false;
-            state.isSimplifyRequest = undefined;
-            state.isSpinning = false;
-            return state;
-          });
-
-          updateTextExplanationPanel();
-          updateTextExplanationIconContainer();
-        },
-        onError: (errorCode, errorMsg) => {
-          console.error('[Content Script] Text Ask AI action error:', errorCode, errorMsg);
-
-          // Show error toast
-          showToast(errorMsg || 'Failed to process. Please try again.', 'error');
-
-          // Check if the panel was already opened (first chunk received)
-          const currentState = store.get(textExplanationsAtom).get(explanationId);
-          const panelWasOpened = store.get(textExplanationPanelOpenAtom);
-
-          if (!panelWasOpened) {
-            // Panel was never opened - clean up the explanation entirely
-            const newMap = new Map(store.get(textExplanationsAtom));
-
-            // Remove underline
-            if (currentState?.underlineState) {
-              removeTextUnderline(currentState.underlineState);
-            }
-
-            newMap.delete(explanationId);
-            store.set(textExplanationsAtom, newMap);
-            textExplanationChatHistory.delete(explanationId);
-            textExplanationMessageQuestions.delete(explanationId);
-
-            // Clear active if this was active
-            if (store.get(activeTextExplanationIdAtom) === explanationId) {
-              store.set(activeTextExplanationIdAtom, null);
-            }
-
-            updateTextExplanationIconContainer();
-
-            // Remove icon container if no explanations left
-            if (newMap.size === 0) {
-              removeTextExplanationIconContainer();
-            }
-          } else {
-            // Panel was opened, just clear the error state
-            updateExplanationInMap(explanationId, (state) => {
-              state.abortController = null;
-              state.firstChunkReceived = false;
-              state.isSpinning = false;
-              state.isSimplifyRequest = undefined;
-              return state;
-            });
-            updateTextExplanationPanel();
-          }
-        },
-        onLoginRequired: () => {
-          console.log('[Content Script] Login required for text Ask AI action');
-
-          // Clean up explanation (same as onError when panel was never opened)
-          const currentState = store.get(textExplanationsAtom).get(explanationId);
-          const panelWasOpened = store.get(textExplanationPanelOpenAtom);
-
-          if (!panelWasOpened) {
-            const newMap = new Map(store.get(textExplanationsAtom));
-            if (currentState?.underlineState) {
-              removeTextUnderline(currentState.underlineState);
-            }
-            newMap.delete(explanationId);
-            store.set(textExplanationsAtom, newMap);
-            textExplanationChatHistory.delete(explanationId);
-            textExplanationMessageQuestions.delete(explanationId);
-            if (store.get(activeTextExplanationIdAtom) === explanationId) {
-              store.set(activeTextExplanationIdAtom, null);
-            }
-            updateTextExplanationIconContainer();
-            if (newMap.size === 0) {
-              removeTextExplanationIconContainer();
-            }
-          } else {
-            updateExplanationInMap(explanationId, (state) => {
-              state.abortController = null;
-              state.firstChunkReceived = false;
-              state.isSpinning = false;
-              state.isSimplifyRequest = undefined;
-              return state;
-            });
-            updateTextExplanationPanel();
-            updateTextExplanationIconContainer();
-          }
-
-          store.set(showLoginModalAtom, true);
-        },
-        onSubscriptionRequired: () => {
-          console.log('[Content Script] Subscription required for text Ask AI action');
-
-          // Clean up explanation (same as onLoginRequired above)
-          const currentState = store.get(textExplanationsAtom).get(explanationId);
-          const panelWasOpened = store.get(textExplanationPanelOpenAtom);
-
-          if (!panelWasOpened) {
-            const newMap = new Map(store.get(textExplanationsAtom));
-            if (currentState?.underlineState) {
-              removeTextUnderline(currentState.underlineState);
-            }
-            newMap.delete(explanationId);
-            store.set(textExplanationsAtom, newMap);
-            textExplanationChatHistory.delete(explanationId);
-            textExplanationMessageQuestions.delete(explanationId);
-            if (store.get(activeTextExplanationIdAtom) === explanationId) {
-              store.set(activeTextExplanationIdAtom, null);
-            }
-            updateTextExplanationIconContainer();
-            if (newMap.size === 0) {
-              removeTextExplanationIconContainer();
-            }
-          } else {
-            updateExplanationInMap(explanationId, (state) => {
-              state.abortController = null;
-              state.firstChunkReceived = false;
-              state.isSpinning = false;
-              state.isSimplifyRequest = undefined;
-              return state;
-            });
-            updateTextExplanationPanel();
-            updateTextExplanationIconContainer();
-          }
-
-          store.set(showSubscriptionModalAtom, true);
-        },
-      },
-      newAbortController
-    );
-    } catch (error) {
-      console.error('[Content Script] Text Ask AI action exception:', error);
-      showToast('An error occurred', 'error');
-
-      // Clean up explanation on exception
-      const currentState = store.get(textExplanationsAtom).get(explanationId);
-      const panelWasOpened = store.get(textExplanationPanelOpenAtom);
-
-      if (!panelWasOpened) {
-        const newMap = new Map(store.get(textExplanationsAtom));
-        if (currentState?.underlineState) {
-          removeTextUnderline(currentState.underlineState);
-        }
-        newMap.delete(explanationId);
-        store.set(textExplanationsAtom, newMap);
-        textExplanationChatHistory.delete(explanationId);
-        textExplanationMessageQuestions.delete(explanationId);
-        if (store.get(activeTextExplanationIdAtom) === explanationId) {
-          store.set(activeTextExplanationIdAtom, null);
-        }
-        updateTextExplanationIconContainer();
-        if (newMap.size === 0) {
-          removeTextExplanationIconContainer();
-        }
-      } else {
-        updateExplanationInMap(explanationId, (state) => {
-          state.abortController = null;
-          state.firstChunkReceived = false;
-          state.isSpinning = false;
-          state.isSimplifyRequest = undefined;
-          return state;
-        });
-        updateTextExplanationPanel();
-        updateTextExplanationIconContainer();
-      }
-    }
-  } catch (error) {
-    console.error('[Content Script] Text Ask AI action exception:', error);
-    showToast('An error occurred', 'error');
-  }
+  _range?: Range,
+  _iconPosition?: { x: number; y: number }
+): void {
+  console.log('[Content Script] Text action → WebpageChat annotation:', {
+    selectedText: selectedText.substring(0, 50),
+    question,
+  });
+  dispatchAnnotatedChat(selectedText, question);
 }
 
 /**
  * Handle Ask AI button click from ContentActions 3-dot menu for TEXT selection.
- * Opens Text Explanation side panel empty and focuses the input (no API call).
+ * Redirects to the WebpageChat panel with the selected text as an annotation.
+ * No pre-populated question — user types their own.
  */
-async function handleTextAskAIOpen(
+function handleTextAskAIOpen(
   selectedText: string,
-  range?: Range,
-  iconPosition?: { x: number; y: number }
-): Promise<void> {
-  console.log('[Content Script] Text Ask AI open:', selectedText.substring(0, 50));
-
-  try {
-    // Open panel immediately - no API call, just focus input
-    const explanationId = await openTextExplanationPanelForAskAI(selectedText, range, iconPosition, true);
-    if (!explanationId) return;
-
-    // Focus the input after a short delay to let the panel mount
-    setTimeout(() => {
-      const panelHost = document.getElementById('xplaino-text-explanation-panel-host');
-      if (panelHost?.shadowRoot) {
-        const input = panelHost.shadowRoot.querySelector('input[type="text"], textarea, [contenteditable]') as HTMLElement;
-        if (input) {
-          input.focus();
-        }
-      }
-    }, 400);
-  } catch (error) {
-    console.error('[Content Script] Text Ask AI open exception:', error);
-    showToast('An error occurred', 'error');
-  }
+  _range?: Range,
+  _iconPosition?: { x: number; y: number }
+): void {
+  console.log('[Content Script] Text Ask AI → WebpageChat annotation:', selectedText.substring(0, 50));
+  dispatchAnnotatedChat(selectedText, undefined, true);
 }
 
 /**
@@ -9830,6 +9113,898 @@ async function handleModalDontShowAgain(): Promise<void> {
 }
 
 // =============================================================================
+// WEB HIGHLIGHT FEATURE
+// =============================================================================
+
+/**
+ * Handle the "Highlight" button click from ContentActionsTrigger.
+ * Builds a multi-strategy anchor from the current Range, sends it to the
+ * backend, and immediately applies the visual highlight on success.
+ */
+async function handleHighlightClick(selectedText: string, range?: Range, hexcode?: string): Promise<void> {
+  console.log('[Content Script] ===== Highlight clicked =====');
+
+  const text = selectedText.trim();
+  if (!text) {
+    showToast('Please select text to highlight', 'error');
+    return;
+  }
+
+  if (!range) {
+    showToast('Could not capture text selection', 'error');
+    return;
+  }
+
+  // Resolve effective hexcode from atom when not explicitly provided
+  const colours = store.get(highlightColoursAtom);
+  const selectedId = store.get(selectedHighlightColourIdAtom);
+  const effectiveHexcode = hexcode ?? colours.find((c) => c.id === selectedId)?.hexcode;
+
+  // Persist the newly chosen colour
+  if (hexcode) {
+    const colour = colours.find((c) => c.hexcode === hexcode);
+    if (colour) {
+      store.set(selectedHighlightColourIdAtom, colour.id);
+      ChromeStorage.setSelectedHighlightColourId(colour.id);
+    }
+  }
+
+  const anchor = buildAnchor(range);
+
+  WebHighlightService.createHighlight(
+    {
+      pageUrl: window.location.href,
+      selectedText: text,
+      anchor,
+      ...(effectiveHexcode ? { color: effectiveHexcode } : {}),
+    },
+    {
+      onSuccess: async (response) => {
+        const highlight = response.highlight;
+        console.log('[Content Script] Highlight saved with id:', highlight.id);
+
+        const markElements = await applyHighlight(range, highlight.id, highlight.color);
+        if (markElements.length === 0) {
+          console.warn('[Content Script] Highlight saved but could not apply to DOM');
+        }
+
+        const newHighlights = new Map(store.get(webHighlightsAtom));
+        newHighlights.set(highlight.id, {
+          id: highlight.id,
+          selectedText: highlight.selectedText,
+          anchor: highlight.anchor,
+          color: highlight.color,
+          wrapperElements: markElements,
+        } satisfies WebHighlightState);
+        store.set(webHighlightsAtom, newHighlights);
+
+        showToast('Highlight saved!', 'success');
+        window.getSelection()?.removeAllRanges();
+      },
+      onError: (errorCode, errorMessage) => {
+        console.error('[Content Script] Highlight save failed:', errorCode, errorMessage);
+        showToast('Failed to save highlight', 'error');
+      },
+      onLoginRequired: () => {
+        ApiErrorHandler.triggerLoginRequired();
+      },
+    }
+  );
+}
+
+/**
+ * Fetch and re-apply all saved highlights for the current page URL.
+ * Runs non-blocking after the rest of the UI is initialised.
+ */
+async function loadWebHighlights(): Promise<void> {
+  console.log('[Content Script] Loading web highlights for:', window.location.href);
+
+  WebHighlightService.getHighlights(
+    window.location.href,
+    {
+      onSuccess: async (response) => {
+        console.log('[Content Script] Loaded', response.highlights.length, 'highlights');
+        const newHighlights = new Map<string, WebHighlightState>();
+
+        for (const highlight of response.highlights) {
+          try {
+            const range = resolveAnchor(highlight.anchor);
+            if (!range) {
+              console.warn('[Content Script] Could not locate highlight in DOM, skipping:', highlight.id);
+              continue;
+            }
+
+            const markElements = await applyHighlight(range, highlight.id, highlight.color);
+            if (markElements.length === 0) {
+              console.warn('[Content Script] Highlight resolved but apply produced no marks:', highlight.id);
+              continue;
+            }
+
+            newHighlights.set(highlight.id, {
+              id: highlight.id,
+              selectedText: highlight.selectedText,
+              anchor: highlight.anchor,
+              color: highlight.color,
+              wrapperElements: markElements,
+            } satisfies WebHighlightState);
+          } catch (err) {
+            console.warn('[Content Script] Error applying highlight, skipping:', highlight.id, err);
+          }
+        }
+
+        store.set(webHighlightsAtom, newHighlights);
+      },
+      onError: (errorCode, errorMessage) => {
+        // Non-critical — log and continue without highlights
+        console.warn('[Content Script] Could not load highlights:', errorCode, errorMessage);
+      },
+    }
+  );
+}
+
+/**
+ * Fetch available highlight colours and restore the user's previous choice.
+ * Runs concurrently with other init tasks — failures are non-fatal.
+ */
+async function loadHighlightColours(): Promise<void> {
+  try {
+    const colours = await HighlightColourService.getColours();
+    store.set(highlightColoursAtom, colours);
+
+    // Restore previously chosen colour, falling back to the first available
+    const savedId = await ChromeStorage.getSelectedHighlightColourId();
+    const idToUse =
+      savedId && colours.find((c) => c.id === savedId)
+        ? savedId
+        : (colours[0]?.id ?? null);
+
+    if (idToUse) {
+      store.set(selectedHighlightColourIdAtom, idToUse);
+    }
+  } catch {
+    console.warn('[Content Script] Could not load highlight colours');
+  }
+}
+
+/**
+ * Delete a saved highlight: remove from backend then from DOM and atom state.
+ */
+async function handleHighlightRemove(highlightId: string): Promise<void> {
+  console.log('[Content Script] Removing highlight:', highlightId);
+  // Close the dot menu and clear hover state
+  menuOpenHighlightId = null;
+  hoveredHighlightId = null;
+  updateHighlightDot();
+
+  WebHighlightService.deleteHighlight(highlightId, {
+    onSuccess: () => {
+      removeHighlight(highlightId);
+
+      const newHighlights = new Map(store.get(webHighlightsAtom));
+      newHighlights.delete(highlightId);
+      store.set(webHighlightsAtom, newHighlights);
+
+      showToast('Highlight removed', 'success');
+    },
+    onError: (errorCode, errorMessage) => {
+      console.error('[Content Script] Highlight delete failed:', errorCode, errorMessage);
+      showToast('Failed to remove highlight', 'error');
+    },
+    onLoginRequired: () => {
+      ApiErrorHandler.triggerLoginRequired();
+    },
+  });
+}
+
+// =============================================================================
+// WEB NOTES
+// =============================================================================
+
+/**
+ * Fetch and restore all saved notes for the current page.
+ * Runs non-blocking after the rest of the UI is initialised.
+ */
+async function loadWebNotes(): Promise<void> {
+  console.log('[Content Script] Loading web notes for:', window.location.href);
+
+  WebNoteService.getWebNotes(
+    window.location.href,
+    {
+      onSuccess: async (response) => {
+        console.log('[Content Script] Loaded', response.notes.length, 'notes');
+        const newNotes = new Map<string, WebNoteState>();
+
+        for (const note of response.notes) {
+          try {
+            const range = resolveAnchor(note.anchor);
+            if (!range) {
+              console.warn('[Content Script] Could not locate note anchor in DOM, skipping:', note.id);
+              continue;
+            }
+
+            noteResolvedRanges.set(note.id, range);
+            const anchorSpan = injectNoteAnchorSpan(range, note.id);
+
+            newNotes.set(note.id, {
+              id: note.id,
+              selectedText: note.selectedText,
+              anchor: note.anchor,
+              content: note.content,
+              anchorSpan,
+            } satisfies WebNoteState);
+          } catch (err) {
+            console.warn('[Content Script] Error restoring note, skipping:', note.id, err);
+          }
+        }
+
+        store.set(webNotesAtom, newNotes);
+        updateNoteIconLayer();
+      },
+      onError: (errorCode, errorMessage) => {
+        console.warn('[Content Script] Could not load notes:', errorCode, errorMessage);
+      },
+    }
+  );
+}
+
+/**
+ * Inject the note icon layer shadow host (once).
+ */
+async function injectNoteIconLayer(): Promise<void> {
+  if (shadowHostExists(NOTE_ICON_HOST_ID)) return;
+
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: NOTE_ICON_HOST_ID,
+    zIndex: 2147483645,
+  });
+
+  const colorVariables = await getAllColorVariables();
+  injectStyles(shadow, colorVariables, true);
+  injectStyles(shadow, noteIconLayerStyles);
+
+  document.documentElement.appendChild(host);
+  noteIconRoot = ReactDOM.createRoot(mountPoint);
+}
+
+/**
+ * Inject the note editor shadow host (once).
+ */
+async function injectNoteEditor(): Promise<void> {
+  if (shadowHostExists(NOTE_EDITOR_HOST_ID)) return;
+
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: NOTE_EDITOR_HOST_ID,
+    zIndex: 2147483647,
+  });
+
+  const colorVariables = await getAllColorVariables();
+  injectStyles(shadow, colorVariables, true);
+  injectStyles(shadow, noteEditorStyles);
+
+  document.documentElement.appendChild(host);
+  noteEditorRoot = ReactDOM.createRoot(mountPoint);
+}
+
+/**
+ * Re-render the note icon layer with the current set of notes.
+ */
+function updateNoteIconLayer(): void {
+  if (!noteIconRoot) return;
+
+  const notesMap = store.get(webNotesAtom);
+  const notes = Array.from(notesMap.values()).filter((n) => n.anchorSpan);
+
+  // Compute the rightmost fixed-viewport position for each note from the
+  // stored resolved Range (re-evaluated on every call, so scroll/resize stays correct).
+  const noteIconPositions: Record<string, { left: number; top: number }> = {};
+  for (const [noteId, range] of noteResolvedRanges) {
+    try {
+      const rects = Array.from(range.getClientRects());
+      if (rects.length > 0) {
+        const maxRight = Math.max(...rects.map((r) => r.right));
+        const topY = rects[0].top;
+        noteIconPositions[noteId] = { left: maxRight + 4, top: topY };
+      }
+    } catch {
+      // Range may be detached after DOM mutations; skip and fall back to anchorSpan.
+    }
+  }
+
+  noteIconRoot.render(
+    React.createElement(
+      Provider,
+      { store },
+      React.createElement(NoteIconLayer, {
+        notes,
+        noteIconPositions,
+        pinnedNoteId: notePinnedId,
+        onHover: (noteId, _anchorRect) =>
+          handleNoteHover(noteId, noteIconPositions[noteId]),
+        onLeave: () => handleNoteLeave(),
+        onClick: (noteId, anchorRect) => handleNoteIconClick(noteId, anchorRect),
+      })
+    )
+  );
+}
+
+/**
+ * Re-render the note editor, or clear it if no editor should be shown.
+ */
+function updateNoteEditor(): void {
+  if (!noteEditorRoot) return;
+
+  if (!noteEditorOpenState) {
+    noteEditorRoot.render(React.createElement(React.Fragment));
+    return;
+  }
+
+  noteEditorRoot.render(
+    React.createElement(
+      Provider,
+      { store },
+      React.createElement(NoteEditor, {
+        mode: noteEditorOpenState.mode,
+        noteId: noteEditorOpenState.noteId,
+        initialContent: noteEditorOpenState.initialContent ?? '',
+        position: noteEditorOpenState.position,
+        onSave: (content) => handleNoteSave(content),
+        onUpdate: (noteId, content) => handleNoteUpdate(noteId, content),
+        onDelete: (noteId) => handleNoteDelete(noteId),
+        onClose: () => closeNoteEditor(),
+        onMouseEnter: () => cancelNoteLeaveTimer(),
+        onMouseLeave: () => scheduleNoteEditorHide(),
+      })
+    )
+  );
+}
+
+/**
+ * Open the note editor in create mode for a new selection.
+ */
+function handleNoteCreate(selectedText: string, range?: Range): void {
+  if (!range) {
+    showToast('Could not capture text selection for note', 'error');
+    return;
+  }
+  // Position the editor near the end of the selection
+  const rect = range.getBoundingClientRect();
+  const position = {
+    left: Math.min(rect.right + 8, window.innerWidth - 246),
+    top: rect.bottom + 8,
+  };
+
+  notePinnedId = null;
+  noteEditorOpenState = {
+    mode: 'create',
+    position,
+    pendingRange: range,
+    pendingSelectedText: selectedText,
+  };
+
+  injectNoteEditor().then(() => updateNoteEditor());
+}
+
+/**
+ * Called by NoteEditor when the user saves a new note.
+ */
+function handleNoteSave(content: string): void {
+  const state = noteEditorOpenState;
+  if (!state || state.mode !== 'create' || !state.pendingRange || !state.pendingSelectedText) return;
+
+  const range = state.pendingRange;
+  const selectedText = state.pendingSelectedText;
+  const anchor = buildAnchor(range);
+
+  WebNoteService.createNote(
+    {
+      pageUrl: window.location.href,
+      selectedText,
+      anchor,
+      content,
+    },
+    {
+      onSuccess: (response) => {
+        const note = response.note;
+        if (!note) {
+          // Unauthenticated — soft failure
+          showToast('Please log in to save notes', 'error');
+          closeNoteEditor();
+          return;
+        }
+
+        const anchorSpan = injectNoteAnchorSpan(range, note.id);
+        noteResolvedRanges.set(note.id, range);
+
+        const newNotes = new Map(store.get(webNotesAtom));
+        newNotes.set(note.id, {
+          id: note.id,
+          selectedText: note.selectedText,
+          anchor: note.anchor,
+          content: note.content,
+          anchorSpan,
+        } satisfies WebNoteState);
+        store.set(webNotesAtom, newNotes);
+
+        showToast('Note saved!', 'success');
+        window.getSelection()?.removeAllRanges();
+        closeNoteEditor();
+        updateNoteIconLayer();
+      },
+      onError: (errorCode, errorMessage) => {
+        console.error('[Content Script] Note save failed:', errorCode, errorMessage);
+        showToast('Failed to save note', 'error');
+      },
+      onLoginRequired: () => {
+        ApiErrorHandler.triggerLoginRequired();
+      },
+    }
+  );
+}
+
+/**
+ * Called by NoteEditor when the user updates an existing note.
+ */
+function handleNoteUpdate(noteId: string, content: string): void {
+  WebNoteService.updateNote(
+    noteId,
+    content,
+    {
+      onSuccess: (response) => {
+        const note = response.note;
+        if (!note) {
+          showToast('Note not found', 'error');
+          return;
+        }
+
+        const newNotes = new Map(store.get(webNotesAtom));
+        const existing = newNotes.get(noteId);
+        if (existing) {
+          newNotes.set(noteId, { ...existing, content: note.content });
+          store.set(webNotesAtom, newNotes);
+        }
+
+        showToast('Note updated!', 'success');
+        closeNoteEditor();
+        updateNoteIconLayer();
+      },
+      onError: (errorCode, errorMessage) => {
+        console.error('[Content Script] Note update failed:', errorCode, errorMessage);
+        if (errorCode === 'HTTP_404') {
+          showToast('Note no longer exists', 'error');
+          // Clean up locally
+          const newNotes = new Map(store.get(webNotesAtom));
+          newNotes.delete(noteId);
+          store.set(webNotesAtom, newNotes);
+          removeNoteAnchorSpan(noteId);
+          noteResolvedRanges.delete(noteId);
+          closeNoteEditor();
+          updateNoteIconLayer();
+        } else {
+          showToast('Failed to update note', 'error');
+        }
+      },
+      onLoginRequired: () => {
+        ApiErrorHandler.triggerLoginRequired();
+      },
+    }
+  );
+}
+
+/**
+ * Called by NoteEditor when the user deletes a note.
+ */
+function handleNoteDelete(noteId: string): void {
+  WebNoteService.deleteNote(
+    noteId,
+    {
+      onSuccess: () => {
+        removeNoteAnchorSpan(noteId);
+        noteResolvedRanges.delete(noteId);
+
+        const tempId = noteTempHighlightIds.get(noteId);
+        if (tempId) {
+          removeHighlight(tempId);
+          noteTempHighlightIds.delete(noteId);
+        }
+
+        const newNotes = new Map(store.get(webNotesAtom));
+        newNotes.delete(noteId);
+        store.set(webNotesAtom, newNotes);
+
+        showToast('Note deleted', 'success');
+        closeNoteEditor();
+        updateNoteIconLayer();
+      },
+      onError: (errorCode, errorMessage) => {
+        console.error('[Content Script] Note delete failed:', errorCode, errorMessage);
+        showToast('Failed to delete note', 'error');
+      },
+      onLoginRequired: () => {
+        ApiErrorHandler.triggerLoginRequired();
+      },
+    }
+  );
+}
+
+/**
+ * Show a temporary teal highlight on the noted text when hovering the note icon.
+ * Also opens the editor in edit mode if no editor is currently open.
+ */
+function handleNoteHover(noteId: string, iconPosition?: { left: number; top: number }): void {
+  cancelNoteLeaveTimer();
+
+  // Apply temp highlight if not already applied.
+  // Always re-resolve the anchor so the range reflects the current DOM (highlight
+  // marks may have been injected after the range was first stored, making the
+  // stored range stale and unable to produce new marks).
+  if (!noteTempHighlightIds.has(noteId)) {
+    const notesMap = store.get(webNotesAtom);
+    const note = notesMap.get(noteId);
+    if (note) {
+      const freshRange = resolveAnchor(note.anchor);
+      if (freshRange) {
+        const tempId = `temp-note-${noteId}`;
+        applyHighlight(freshRange, tempId, 'rgba(13,128,112,0.22)');
+        noteTempHighlightIds.set(noteId, tempId);
+
+        // If the note text is already highlighted by an existing highlight mark, that mark
+        // becomes the parent of the temp teal mark. Make it transparent so the teal shows
+        // through cleanly instead of blending with the highlight color.
+        const overrides: Array<{ el: HTMLElement; originalBg: string }> = [];
+        document
+          .querySelectorAll(`[data-xplaino-highlight-id="${CSS.escape(tempId)}"]`)
+          .forEach((mark) => {
+            let anc = mark.parentElement;
+            while (anc && anc !== document.body) {
+              const attrId = anc.getAttribute('data-xplaino-highlight-id');
+              if (attrId && !attrId.startsWith('temp-note-')) {
+                overrides.push({
+                  el: anc as HTMLElement,
+                  originalBg: (anc as HTMLElement).style.backgroundColor,
+                });
+                (anc as HTMLElement).style.backgroundColor = 'transparent';
+              }
+              anc = anc.parentElement;
+            }
+          });
+        if (overrides.length > 0) {
+          noteTempBgOverrides.set(noteId, overrides);
+        }
+      }
+    }
+  }
+
+  // Open editor in edit mode if not already open for this note.
+  // Position just below the note icon when possible; fall back to anchorSpan.
+  if (!noteEditorOpenState || noteEditorOpenState.noteId !== noteId) {
+    const notesMap = store.get(webNotesAtom);
+    const note = notesMap.get(noteId);
+    if (note) {
+      let left: number;
+      let top: number;
+
+      if (iconPosition) {
+        // Place the editor directly below the note icon
+        left = Math.min(iconPosition.left - 230, window.innerWidth - 246);
+        top = iconPosition.top + 24 + 4;
+      } else if (note.anchorSpan) {
+        const rect = note.anchorSpan.getBoundingClientRect();
+        left = Math.min(rect.right + 12, window.innerWidth - 246);
+        top = rect.top;
+      } else {
+        return;
+      }
+
+      noteEditorOpenState = {
+        mode: 'edit',
+        noteId,
+        initialContent: note.content,
+        position: { left, top },
+      };
+      injectNoteEditor().then(() => updateNoteEditor());
+    }
+  }
+}
+
+/**
+ * Remove the temp highlight and schedule the editor to close.
+ */
+function handleNoteLeave(): void {
+  scheduleNoteEditorHide();
+}
+
+/**
+ * Called when user clicks a note icon — pin the editor open.
+ */
+function handleNoteIconClick(noteId: string, _anchorRect: DOMRect): void {
+  if (notePinnedId === noteId) {
+    // Unpin: close editor
+    notePinnedId = null;
+    closeNoteEditor();
+  } else {
+    notePinnedId = noteId;
+    // Ensure edit mode editor is open, passing icon position so it appears below the icon
+    if (!noteEditorOpenState || noteEditorOpenState.noteId !== noteId) {
+      const notesMap = store.get(webNotesAtom);
+      const note = notesMap.get(noteId);
+      if (note) {
+        const iconPos = noteResolvedRanges.has(noteId)
+          ? (() => {
+              try {
+                const rects = Array.from(noteResolvedRanges.get(noteId)!.getClientRects());
+                if (rects.length > 0) {
+                  return { left: Math.max(...rects.map((r) => r.right)) + 4, top: rects[0].top };
+                }
+              } catch { /* detached */ }
+              return undefined;
+            })()
+          : undefined;
+        handleNoteHover(noteId, iconPos);
+      }
+    }
+    updateNoteIconLayer();
+  }
+}
+
+/**
+ * Cancel any pending note-close timer (called when mouse re-enters icon or editor).
+ */
+function cancelNoteLeaveTimer(): void {
+  if (noteLeaveTimeoutId) {
+    clearTimeout(noteLeaveTimeoutId);
+    noteLeaveTimeoutId = null;
+  }
+}
+
+/**
+ * Schedule the editor to close after a short delay (allows mouse to travel between icon and editor).
+ */
+function scheduleNoteEditorHide(): void {
+  if (notePinnedId) return; // Don't hide pinned editors
+  cancelNoteLeaveTimer();
+  noteLeaveTimeoutId = setTimeout(() => {
+    noteLeaveTimeoutId = null;
+
+    // Capture which notes had temp highlights before clearing.
+    const affectedNoteIds = Array.from(noteTempHighlightIds.keys());
+
+    // Remove all temp highlights
+    noteTempHighlightIds.forEach((tempId) => removeHighlight(tempId));
+    noteTempHighlightIds.clear();
+
+    // Restore bg overrides for all notes
+    noteTempBgOverrides.forEach((overrides) =>
+      overrides.forEach(({ el, originalBg }) => { el.style.backgroundColor = originalBg; })
+    );
+    noteTempBgOverrides.clear();
+
+    // applyHighlight+removeHighlight mutates the DOM, invalidating any stored Range for
+    // those notes. Re-resolve now so updateNoteIconLayer uses correct positions.
+    const notesMap = store.get(webNotesAtom);
+    affectedNoteIds.forEach((nId) => {
+      const noteState = notesMap.get(nId);
+      if (noteState) {
+        const freshRange = resolveAnchor(noteState.anchor);
+        if (freshRange) noteResolvedRanges.set(nId, freshRange);
+      }
+    });
+
+    closeNoteEditor();
+  }, 250);
+}
+
+/**
+ * Close the note editor immediately.
+ */
+function closeNoteEditor(): void {
+  const noteId = noteEditorOpenState?.noteId;
+
+  if (noteId) {
+    // Remove the temp teal highlight for this specific note
+    const hadTempHighlight = noteTempHighlightIds.has(noteId);
+    const tempId = noteTempHighlightIds.get(noteId);
+    if (tempId) {
+      removeHighlight(tempId);
+      noteTempHighlightIds.delete(noteId);
+    }
+    // Restore any existing highlight marks that were made transparent
+    noteTempBgOverrides.get(noteId)?.forEach(({ el, originalBg }) => {
+      el.style.backgroundColor = originalBg;
+    });
+    noteTempBgOverrides.delete(noteId);
+    // Reset pin state if this was the pinned note
+    if (notePinnedId === noteId) notePinnedId = null;
+
+    // applyHighlight+removeHighlight mutates the DOM, invalidating the stored Range.
+    // Re-resolve so updateNoteIconLayer computes the correct icon position.
+    if (hadTempHighlight) {
+      const notesMap = store.get(webNotesAtom);
+      const noteState = notesMap.get(noteId);
+      if (noteState) {
+        const freshRange = resolveAnchor(noteState.anchor);
+        if (freshRange) noteResolvedRanges.set(noteId, freshRange);
+      }
+    }
+  } else {
+    // Create mode (no noteId): clear all temp highlights
+    noteTempHighlightIds.forEach((id) => removeHighlight(id));
+    noteTempHighlightIds.clear();
+    noteTempBgOverrides.forEach((overrides) =>
+      overrides.forEach(({ el, originalBg }) => { el.style.backgroundColor = originalBg; })
+    );
+    noteTempBgOverrides.clear();
+    notePinnedId = null;
+  }
+
+  noteEditorOpenState = null;
+  updateNoteEditor();
+  updateNoteIconLayer();
+}
+
+// ---------------------------------------------------------------------------
+// Highlight remove popover (inline shadow DOM, no separate React component file)
+// ---------------------------------------------------------------------------
+
+/**
+ * Inject the highlight dot shadow host (once).
+ */
+async function injectHighlightDot(): Promise<void> {
+  if (shadowHostExists(HIGHLIGHT_DOT_HOST_ID)) return;
+
+  const { host, shadow, mountPoint } = createShadowHost({
+    id: HIGHLIGHT_DOT_HOST_ID,
+    zIndex: 2147483646,
+  });
+
+  const colorVariables = await getAllColorVariables();
+  injectStyles(shadow, colorVariables, true);
+  injectStyles(shadow, highlightDotMenuStyles);
+
+  document.documentElement.appendChild(host);
+  highlightDotRoot = ReactDOM.createRoot(mountPoint);
+}
+
+/**
+ * Render or clear the highlight dot + dropdown menu.
+ * Uses the last <mark> element for the hovered / menu-open highlight to
+ * anchor the dot at the top-right corner of the highlight.
+ */
+function updateHighlightDot(): void {
+  if (!highlightDotRoot) return;
+
+  const id = hoveredHighlightId ?? menuOpenHighlightId;
+  if (!id) {
+    highlightDotRoot.render(React.createElement(React.Fragment));
+    return;
+  }
+
+  const lastMark = getLastMarkElement(id);
+  if (!lastMark) {
+    highlightDotRoot.render(React.createElement(React.Fragment));
+    return;
+  }
+
+  const rect = lastMark.getBoundingClientRect();
+  // Center the 13px dot at (rect.right, rect.top) — mirroring the PDF page pattern
+  const position = { left: rect.right, top: rect.top };
+
+  highlightDotRoot.render(
+    React.createElement(
+      Provider,
+      { store },
+      React.createElement(HighlightDotMenu, {
+        position,
+        isMenuOpen: menuOpenHighlightId === id,
+        onDotClick: () => {
+          menuOpenHighlightId = menuOpenHighlightId === id ? null : id;
+          updateHighlightDot();
+        },
+        onDelete: () => handleHighlightRemove(id),
+        onAddNote: () => {
+          // Resolve the highlight's anchor to get a range for note creation
+          menuOpenHighlightId = null;
+          hoveredHighlightId = null;
+          updateHighlightDot();
+          const highlights = store.get(webHighlightsAtom);
+          const hl = highlights.get(id);
+          if (hl) {
+            const range = resolveAnchor(hl.anchor);
+            if (range) {
+              handleNoteCreate(hl.selectedText, range);
+            } else {
+              showToast('Could not locate highlighted text', 'error');
+            }
+          }
+        },
+        onMouseEnter: () => showHighlightDot(id),
+        onMouseLeave: () => scheduleHighlightDotHide(),
+      })
+    )
+  );
+}
+
+/**
+ * Show the dot for a given highlight immediately, cancelling any pending hide.
+ */
+function showHighlightDot(id: string): void {
+  if (hoverHideTimeoutId) {
+    clearTimeout(hoverHideTimeoutId);
+    hoverHideTimeoutId = null;
+  }
+  hoveredHighlightId = id;
+  injectHighlightDot().then(() => updateHighlightDot());
+}
+
+/**
+ * Schedule hiding the dot after a short delay (allows mouse to travel to the dot).
+ * Does nothing if the dropdown menu is currently open.
+ */
+function scheduleHighlightDotHide(): void {
+  if (hoverHideTimeoutId) clearTimeout(hoverHideTimeoutId);
+  hoverHideTimeoutId = setTimeout(() => {
+    hoverHideTimeoutId = null;
+    if (!menuOpenHighlightId) {
+      hoveredHighlightId = null;
+      updateHighlightDot();
+    }
+  }, 300);
+}
+
+/**
+ * Set up document-level mouseover/mouseout listeners (capture phase) that show
+ * and hide the hover dot as the user moves over highlight marks.
+ * Also registers a click listener that closes the menu on click-outside.
+ */
+function setupHighlightHoverListener(): void {
+  // Show dot when hovering any highlight mark
+  document.addEventListener(
+    'mouseover',
+    (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (!target) return;
+      const id = getHighlightIdFromElement(target);
+      if (id) showHighlightDot(id);
+    },
+    true
+  );
+
+  // Schedule hide when leaving a highlight mark
+  // Unless the mouse moves to another element of the same highlight
+  document.addEventListener(
+    'mouseout',
+    (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (!target) return;
+      const leavingId = getHighlightIdFromElement(target);
+      if (!leavingId) return;
+      const relatedTarget = event.relatedTarget as Element | null;
+      const enteringId = relatedTarget ? getHighlightIdFromElement(relatedTarget) : null;
+      if (enteringId !== leavingId) scheduleHighlightDotHide();
+    },
+    true
+  );
+
+  // Close the dropdown on click-outside.
+  // Shadow DOM events are retargeted: clicks inside the dot-menu shadow host
+  // appear to document listeners with event.target === the host element.
+  // Guard against that so button handlers inside the shadow can fire first.
+  document.addEventListener(
+    'click',
+    (event: MouseEvent) => {
+      if (!menuOpenHighlightId) return;
+      const dotHost = document.getElementById(HIGHLIGHT_DOT_HOST_ID);
+      if (dotHost && (event.target === dotHost || dotHost.contains(event.target as Node))) {
+        // Click is inside the dot-menu — let the shadow DOM button handler run
+        return;
+      }
+      menuOpenHighlightId = null;
+      updateHighlightDot();
+    },
+    true
+  );
+}
+
+// =============================================================================
 // TOAST INJECTION
 // =============================================================================
 
@@ -12042,6 +12217,31 @@ async function initContentScript(): Promise<void> {
       runPageRead(),
     ]);
     setupImageHoverDetection();
+
+    // Load highlight colours and saved highlights asynchronously (non-blocking)
+    loadHighlightColours();
+    loadWebHighlights();
+    setupHighlightHoverListener();
+
+    // Load saved notes and inject the note icon layer (non-blocking)
+    injectNoteIconLayer().then(() => {
+      loadWebNotes();
+    });
+    injectNoteEditor();
+
+    // Keep note icon positions in sync with scroll and resize.
+    // Use rAF-throttling so icon positions update in the same frame as the scroll paint,
+    // preventing the brief displacement caused by async React re-renders.
+    let noteIconLayerRAF: number | null = null;
+    function scheduleNoteIconLayerUpdate(): void {
+      if (noteIconLayerRAF !== null) cancelAnimationFrame(noteIconLayerRAF);
+      noteIconLayerRAF = requestAnimationFrame(() => {
+        noteIconLayerRAF = null;
+        updateNoteIconLayer();
+      });
+    }
+    window.addEventListener('scroll', scheduleNoteIconLayerUpdate, { passive: true, capture: true });
+    window.addEventListener('resize', scheduleNoteIconLayerUpdate, { passive: true });
     
     // Check if welcome modal should be shown
     // Only show if domain is not BANNED or DISABLED
@@ -12462,6 +12662,42 @@ store.sub(activePanelWidthAtom, () => {
     marginUpdateScheduled = false;
     updatePageMarginForPanels();
   });
+});
+
+// =============================================================================
+// PAGE REFRESH GUARD — intercept keyboard shortcuts to show a custom dialog
+// =============================================================================
+// We intentionally do NOT use window.beforeunload because:
+//   • The browser's native "Changes you made may not be saved" message is misleading
+//     (highlights and notes ARE saved permanently — only chat sessions are transient).
+//   • We show a custom dialog instead that accurately describes what will be lost.
+// Keyboard shortcut interception covers F5, Ctrl/Cmd+R, and Ctrl/Cmd+Shift+R.
+// Toolbar refresh-button clicks cannot be intercepted in a content script without
+// beforeunload — those will simply reload without a warning (acceptable trade-off).
+
+function handleChatRefreshKeydown(e: KeyboardEvent): void {
+  const isF5 = e.key === 'F5';
+  const isCtrlR = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r';
+  if (!isF5 && !isCtrlR) return;
+
+  if (!store.get(webpageChatHasConversationAtom)) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  store.set(webpageChatShowRefreshWarningAtom, true);
+}
+
+let refreshKeydownAttached = false;
+
+store.sub(webpageChatHasConversationAtom, () => {
+  const hasConversation = store.get(webpageChatHasConversationAtom);
+  if (hasConversation && !refreshKeydownAttached) {
+    window.addEventListener('keydown', handleChatRefreshKeydown, true);
+    refreshKeydownAttached = true;
+  } else if (!hasConversation && refreshKeydownAttached) {
+    window.removeEventListener('keydown', handleChatRefreshKeydown, true);
+    refreshKeydownAttached = false;
+  }
 });
 
 // Debounce timer for theme refresh to prevent duplicate calls

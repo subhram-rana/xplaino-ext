@@ -1,0 +1,140 @@
+/* =============================================================================
+   HIGHLIGHT DOT MENU
+   Styles for the hover-triggered dot button and its dropdown that appears on
+   saved highlight marks. Mirrors the PdfHighlightLayer pattern from xplaino-web.
+   All rules use !important for Shadow DOM isolation.
+   ============================================================================= */
+
+/* Outer wrapper — fixed position, no pointer-events so it doesn't block page */
+.highlightDotWrapper {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 2147483646 !important;
+}
+
+/* The circular dot button */
+.highlightDotBtn {
+  position: relative !important;
+  width: 13px !important;
+  height: 13px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  border: 1.5px solid #0d8070 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  /* Hidden by default — shown on hover */
+  opacity: 0 !important;
+  transform: scale(0.6) !important;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
+  pointer-events: auto !important;
+  outline: none !important;
+}
+
+.highlightDotBtn.visible {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+.highlightDotBtn.visible:hover {
+  transform: scale(1.35) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Inner teal dot */
+.highlightDotInner {
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 50% !important;
+  background: #0d8070 !important;
+  flex-shrink: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Dropdown menu — anchored to top-right of the dot button */
+.highlightDotDropdown {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: 0 !important;
+  background: var(--color-bg-primary-theme, #ffffff) !important;
+  border: 1px solid var(--color-border-default-theme, #e5e7eb) !important;
+  border-radius: 10px !important;
+  padding: 4px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  min-width: 148px !important;
+  white-space: nowrap !important;
+  pointer-events: auto !important;
+  /* entrance animation */
+  animation: dotMenuEnter 0.15s ease forwards !important;
+  transform-origin: top right !important;
+}
+
+@keyframes dotMenuEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Individual menu option */
+.highlightDotOption {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 7px 12px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 7px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  color: var(--color-text-primary, #374151) !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  text-align: left !important;
+  transition: background 0.1s ease !important;
+  outline: none !important;
+}
+
+.highlightDotOption:hover {
+  background: var(--color-hover-bg-action-theme, rgba(0, 0, 0, 0.05)) !important;
+}
+
+/* Danger variant — "Clear highlight" */
+.highlightDotOptionDanger {
+  color: #ef4444 !important;
+}
+
+.highlightDotOptionDanger:hover {
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+/* Disabled variant — "Add a note" (dummy) */
+.highlightDotOptionDisabled {
+  opacity: 0.45 !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+/* Icon inside option buttons */
+.highlightDotOption svg {
+  width: 13px !important;
+  height: 13px !important;
+  flex-shrink: 0 !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+/* Thin separator between options */
+.highlightDotOptionSeparator {
+  height: 1px !important;
+  background: var(--color-border-default-theme, #e5e7eb) !important;
+  margin: 3px 8px !important;
+}

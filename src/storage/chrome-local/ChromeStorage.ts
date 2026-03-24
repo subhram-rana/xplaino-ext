@@ -52,6 +52,7 @@ export class ChromeStorage {
     SHOULD_SHOW_WORD_FEATURE: 'should-word-image-feature',
     SIDE_PANEL_WIDTH: 'side_panel_width',
     TOKEN_REFRESH_LOCK: 'xplaino_token_refresh_lock',
+    SELECTED_HIGHLIGHT_COLOUR_ID: 'selected_highlight_colour_id',
   } as const;
 
   /** Panel width min/max (px) - must match panel components. Max kept lower so panel doesn’t push page content too far left. */
@@ -376,6 +377,14 @@ export class ChromeStorage {
       return this.remove(this.KEYS.TOKEN_REFRESH_LOCK);
     }
     return this.set(this.KEYS.TOKEN_REFRESH_LOCK, data);
+  }
+
+  static async getSelectedHighlightColourId(): Promise<string | null> {
+    return this.get<string>(this.KEYS.SELECTED_HIGHLIGHT_COLOUR_ID);
+  }
+
+  static async setSelectedHighlightColourId(id: string): Promise<void> {
+    return this.set(this.KEYS.SELECTED_HIGHLIGHT_COLOUR_ID, id);
   }
 
   // ============================================

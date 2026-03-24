@@ -22,15 +22,19 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         youtubePageContext: resolve(__dirname, 'src/content/utils/youtubeTranscriptPageContext.ts'),
         chromeTranslatorBridge: resolve(__dirname, 'src/content/utils/chromeTranslatorBridge.js'),
+        embeddingWorker: resolve(__dirname, 'src/content/workers/embeddingWorker.ts'),
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          // Bundle page-context / bridge scripts separately without hash
+          // Bundle page-context / bridge / worker scripts separately without hash
           if (chunkInfo.name === 'youtubePageContext') {
             return 'src/content/utils/[name].js';
           }
           if (chunkInfo.name === 'chromeTranslatorBridge') {
             return 'src/content/utils/[name].js';
+          }
+          if (chunkInfo.name === 'embeddingWorker') {
+            return 'src/content/workers/[name].js';
           }
           return 'assets/[name]-[hash].js';
         },

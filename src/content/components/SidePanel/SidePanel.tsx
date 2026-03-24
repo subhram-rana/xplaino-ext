@@ -6,6 +6,8 @@ import { Header } from './Header';
 import { UpgradeFooter } from '../BaseSidePanel/UpgradeFooter';
 import { SummaryView } from './SummaryView';
 import { SettingsView } from './SettingsView';
+import { WebpageChatView } from '../WebpageChat/WebpageChatView';
+import { ChatRefreshWarningModal } from '../WebpageChat/ChatRefreshWarningModal';
 import { SaveLinkModal } from '../SaveLinkModal/SaveLinkModal';
 import { showLoginModalAtom, currentThemeAtom, isFreeTrialAtom, activePanelWidthAtom } from '@/store/uiAtoms';
 import { summaryAtom, summariseStateAtom } from '@/store/summaryAtoms';
@@ -33,7 +35,7 @@ export interface SidePanelProps {
   useShadowDom?: boolean;
   /** Callback when login is required (401 error) */
   onLoginRequired?: () => void;
-  /** Initial tab to show when panel opens */
+  /** Initial tab to show when panel opens ('summary' | 'chat' | 'settings') */
   initialTab?: TabType;
   /** Callback to show toast message */
   onShowToast?: (message: string, type?: 'success' | 'error') => void;
@@ -45,7 +47,7 @@ export interface SidePanelProps {
   initialSavedLinkId?: string | null;
 }
 
-type TabType = 'summary' | 'settings';
+type TabType = 'summary' | 'chat' | 'settings';
 
 const MIN_WIDTH = 300;
 const MAX_WIDTH = 800;
@@ -381,6 +383,12 @@ export const SidePanel: React.FC<SidePanelProps> = ({
             isOpen={isOpen}
           />
         )}
+        {activeTab === 'chat' && (
+          <WebpageChatView
+            useShadowDom={useShadowDom}
+            isOpen={isOpen}
+          />
+        )}
         {activeTab === 'settings' && (
           <SettingsView useShadowDom={useShadowDom} />
         )}
@@ -404,6 +412,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         useShadowDom={useShadowDom}
         isSaving={isSavingLink}
       />
+
+      {/* Chat refresh-warning modal — rendered unconditionally so it appears
+          even when the side panel is closed. Uses position:fixed so it covers
+          the full viewport regardless of panel width/position. */}
+      <ChatRefreshWarningModal useShadowDom={useShadowDom} />
     </div>
   );
 };

@@ -4,7 +4,7 @@
 /**
  * Tags to exclude when extracting text content
  */
-const EXCLUDED_TAGS = new Set([
+export const EXCLUDED_TAGS = new Set([
   'SCRIPT',
   'STYLE',
   'NOSCRIPT',
@@ -22,7 +22,7 @@ const EXCLUDED_TAGS = new Set([
 /**
  * Tags that typically contain navigation/UI elements to exclude
  */
-const EXCLUDED_CONTAINER_TAGS = new Set([
+export const EXCLUDED_CONTAINER_TAGS = new Set([
   'NAV',
   'HEADER',
   'FOOTER',
@@ -110,7 +110,7 @@ const EXCLUDED_PATTERNS = [
 /**
  * Check if an element should be excluded based on its ID/class
  */
-function shouldExcludeByPattern(element: Element): boolean {
+export function shouldExcludeByPattern(element: Element): boolean {
   const id = element.id || '';
   const className = typeof element.className === 'string' ? element.className : '';
   const combined = `${id} ${className}`.toLowerCase();
@@ -127,7 +127,7 @@ function shouldExcludeByPattern(element: Element): boolean {
 /**
  * Check if an element is visible
  */
-function isElementVisible(element: Element): boolean {
+export function isElementVisible(element: Element): boolean {
   // Check for hidden attributes
   for (const attr of HIDDEN_ATTRIBUTES) {
     if (element.hasAttribute(attr) && element.getAttribute(attr) !== 'false') {
@@ -225,7 +225,7 @@ function getSiteSpecificSelectors(hostname: string): string[] {
 /**
  * Try to find the main content container using various strategies
  */
-function findMainContentContainer(): Element | null {
+export function findMainContentContainer(): Element | null {
   const hostname = window.location.hostname;
   
   // Strategy 1: Try site-specific selectors
@@ -433,7 +433,7 @@ export interface TranslatableElement {
 /**
  * Check if an element is an extension element
  */
-function isExtensionElement(element: Element): boolean {
+export function isExtensionElement(element: Element): boolean {
   const id = element.id;
   const classes = element.className;
   

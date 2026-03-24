@@ -1,11 +1,11 @@
 // src/content/components/ContentActions/ContentActionButton.tsx
 import React, { useRef, useState, useEffect } from 'react';
-import { Sparkles, SpellCheck, Languages, Bookmark, Power, MoreVertical } from 'lucide-react';
+import { Sparkles, SpellCheck, Languages, Bookmark, Power, MoreVertical, Highlighter, MessageSquare } from 'lucide-react';
 import { OnHoverMessage } from '../OnHoverMessage';
 
 export interface ContentActionButtonProps {
   /** Icon type */
-  icon: 'explain' | 'grammar' | 'translate' | 'bookmark' | 'power' | 'options';
+  icon: 'explain' | 'grammar' | 'translate' | 'bookmark' | 'power' | 'options' | 'highlight' | 'note';
   /** Tooltip text */
   tooltip: string;
   /** Click handler */
@@ -31,6 +31,8 @@ const iconMap = {
   bookmark: Bookmark,
   power: Power,
   options: MoreVertical,
+  highlight: Highlighter,
+  note: MessageSquare,
 };
 
 export const ContentActionButton: React.FC<ContentActionButtonProps> = ({

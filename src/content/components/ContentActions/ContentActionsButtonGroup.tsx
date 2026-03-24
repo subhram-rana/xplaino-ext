@@ -2,6 +2,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ContentActionButton } from './ContentActionButton';
 import { ActionButtonOptionsPopover } from './ActionButtonOptionsPopover';
+import { OnHoverMessage } from '../OnHoverMessage';
+import type { HighlightColour } from '@/api-services/HighlightColourService';
 
 export interface ContentActionsButtonGroupProps {
   /** Whether the button group is visible */
@@ -14,7 +16,7 @@ export interface ContentActionsButtonGroupProps {
   onGrammar: () => void;
   /** Callback when Translate is clicked */
   onTranslate: () => void;
-  /** Callback when Bookmark is clicked */
+  /** Callback when Bookmark is clicked (kept for side-panel / other flows) */
   onBookmark: () => void;
   /** Callback when Synonym is clicked */
   onSynonym?: () => void;
@@ -81,7 +83,18 @@ export interface ContentActionsButtonGroupProps {
   onShowModal?: () => void;
   /** Callback when action is complete (clear selection) */
   onActionComplete?: () => void;
+  // --- Highlight color picker ---
+  /** Available highlight colours from GET /api/highlight/colours */
+  highlightColours?: HighlightColour[];
+  /** ID of the currently selected highlight colour */
+  selectedHighlightColourId?: string | null;
+  /** Called with the hexcode of the chosen colour to save the highlight */
+  onHighlightWithColor?: (hexcode: string) => void;
+  /** Callback when Add a note is clicked (text selection) */
+  onNote?: () => void;
 }
+
+const DEFAULT_HIGHLIGHT_HEXCODE = '#fbbf24'; // amber/yellow fallback
 
 export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps> = ({
   visible,
@@ -89,7 +102,7 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   onExplain,
   onGrammar: _onGrammar, // Keep for backward compatibility but don't use
   onTranslate,
-  onBookmark,
+  onBookmark: _onBookmark, // Kept for API compatibility but not shown in the button group
   onSynonym,
   onOpposite,
   onAskAI,
@@ -123,158 +136,143 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   onKeepActive,
   onShowModal: _onShowModal, // Keep for backward compatibility but don't use
   onActionComplete,
+  // Highlight color picker
+  highlightColours = [],
+  selectedHighlightColourId = null,
+  onHighlightWithColor,
+  onNote,
 }) => {
   const [showOptionsPopover, setShowOptionsPopover] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false); // Track when width animation completes
   const [isClosing, setIsClosing] = useState(false); // Track closing animation state
+  const [isHighlightButtonMounted, setIsHighlightButtonMounted] = useState(false);
   const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const buttonGroupRef = useRef<HTMLDivElement>(null);
+  const highlightButtonRef = useRef<HTMLButtonElement>(null);
   const lastMeasuredWidth = useRef<number>(0); // Store the last measured width for closing animation
-  const optionsHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Track 500ms close delay for options popover
   const isPopoverOpeningRef = useRef(false); // Track if popover is in opening phase to prevent premature close
   const openingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Track opening timeout
+  const colorPickerHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Resolve the active hexcode from the selected colour id
+  const activeHexcode =
+    highlightColours.find((c) => c.id === selectedHighlightColourId)?.hexcode ??
+    highlightColours[0]?.hexcode ??
+    DEFAULT_HIGHLIGHT_HEXCODE;
 
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-      }
-      if (closingTimeoutRef.current) {
-        clearTimeout(closingTimeoutRef.current);
-      }
-      if (optionsHoverTimeoutRef.current) {
-        clearTimeout(optionsHoverTimeoutRef.current);
-      }
-      if (openingTimeoutRef.current) {
-        clearTimeout(openingTimeoutRef.current);
-      }
+      if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
+      if (closingTimeoutRef.current) clearTimeout(closingTimeoutRef.current);
+      if (openingTimeoutRef.current) clearTimeout(openingTimeoutRef.current);
+      if (colorPickerHoverTimeoutRef.current) clearTimeout(colorPickerHoverTimeoutRef.current);
     };
   }, []);
 
-  // Handle mouse enter on options button - show popover
+  // Track when highlight button is mounted for OnHoverMessage
+  useEffect(() => {
+    if (highlightButtonRef.current) {
+      const timer = setTimeout(() => setIsHighlightButtonMounted(true), 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsHighlightButtonMounted(false);
+    }
+  }, [isWordSelection]);
+
+  // ---- Options popover hover handlers ----
+
   const handleOptionsMouseEnter = useCallback(() => {
-    // Clear any pending close timeout
-    if (optionsHoverTimeoutRef.current) {
-      clearTimeout(optionsHoverTimeoutRef.current);
-      optionsHoverTimeoutRef.current = null;
-    }
-    
-    // Clear any previous opening timeout
-    if (openingTimeoutRef.current) {
-      clearTimeout(openingTimeoutRef.current);
-    }
-    
-    // Mark as opening to prevent premature close during animation
+    if (openingTimeoutRef.current) clearTimeout(openingTimeoutRef.current);
     isPopoverOpeningRef.current = true;
     setShowOptionsPopover(true);
     onKeepActive?.();
-    
-    // Clear opening flag after animation completes (300ms animation + 50ms buffer)
     openingTimeoutRef.current = setTimeout(() => {
       isPopoverOpeningRef.current = false;
     }, 350);
   }, [onKeepActive]);
 
-  // Handle mouse leave from options button wrapper - start 500ms close timer
-  // Check if moving to a child element (like the popover) before starting timer
   const handleOptionsMouseLeave = useCallback((e: React.MouseEvent) => {
-    // Don't start close timer if popover is still in opening phase
-    if (isPopoverOpeningRef.current) {
-      return;
-    }
-    
+    if (isPopoverOpeningRef.current) return;
     const relatedTarget = e.relatedTarget;
     const wrapper = e.currentTarget as HTMLElement;
-    
-    // Check if moving to a child element (like the popover which is a DOM descendant)
-    // relatedTarget must be a valid Node for contains() to work
+    // If moving into the popover (a DOM child of this wrapper) don't close
     const isMovingToChild = relatedTarget instanceof Node && wrapper.contains(relatedTarget);
-    
-    // Don't start close timer if moving to a child element
-    if (isMovingToChild) {
-      return;
-    }
-    
-    optionsHoverTimeoutRef.current = setTimeout(() => {
-      setShowOptionsPopover(false);
-    }, 500);
+    if (isMovingToChild) return;
+    // Close immediately so the shrink animation starts without any extra delay
+    setShowOptionsPopover(false);
   }, []);
 
-  // Handle mouse leave from popover - start 500ms close timer
-  // Check if moving back to the wrapper before starting timer
   const handlePopoverMouseLeave = useCallback((e: React.MouseEvent) => {
-    // Don't start close timer if popover is still in opening phase
-    if (isPopoverOpeningRef.current) {
-      return;
-    }
-    
+    if (isPopoverOpeningRef.current) return;
     const relatedTarget = e.relatedTarget;
     const popover = e.currentTarget as HTMLElement;
-    
-    // Find the wrapper (parent of the popover's ancestor)
     const wrapper = popover.closest('.optionsButtonWrapper');
-    
-    // Check if moving back to the wrapper or any of its children
-    // relatedTarget must be a valid Node for contains() to work
+    // If moving back to the button wrapper don't close
     const isMovingToWrapper = relatedTarget instanceof Node && wrapper && wrapper.contains(relatedTarget);
-    
-    // Don't start close timer if moving back to the wrapper
-    if (isMovingToWrapper) {
-      return;
+    if (isMovingToWrapper) return;
+    // Close immediately so the shrink animation starts without any extra delay
+    setShowOptionsPopover(false);
+  }, []);
+
+  // ---- Highlight color picker hover handlers ----
+
+  const handleHighlightMouseEnter = useCallback(() => {
+    if (colorPickerHoverTimeoutRef.current) {
+      clearTimeout(colorPickerHoverTimeoutRef.current);
+      colorPickerHoverTimeoutRef.current = null;
     }
-    
-    optionsHoverTimeoutRef.current = setTimeout(() => {
-      setShowOptionsPopover(false);
-    }, 500);
+    if (highlightColours.length > 0) {
+      setShowColorPicker(true);
+      onKeepActive?.();
+    }
+  }, [highlightColours.length, onKeepActive]);
+
+  const handleHighlightMouseLeave = useCallback((e: React.MouseEvent) => {
+    const relatedTarget = e.relatedTarget;
+    const wrapper = e.currentTarget as HTMLElement;
+    const isMovingToChild = relatedTarget instanceof Node && wrapper.contains(relatedTarget);
+    if (isMovingToChild) return;
+    colorPickerHoverTimeoutRef.current = setTimeout(() => {
+      setShowColorPicker(false);
+    }, 300);
   }, []);
 
   const handleHideButtonGroup = useCallback(() => {
-    // Hide popover when an option is clicked
     setShowOptionsPopover(false);
-    // Trigger action complete to clear selection
+    setShowColorPicker(false);
     onActionComplete?.();
   }, [onActionComplete]);
 
   // Measure actual content width and set it dynamically for smooth expansion/collapse animation
   useEffect(() => {
-    if (!buttonGroupRef.current) {
-      return;
-    }
+    if (!buttonGroupRef.current) return;
 
     const element = buttonGroupRef.current;
     const widthAnimationDuration = 400; // ms
-    
+
     if (!visible) {
-      // CLOSING: Animate width from current size to 0
       setAnimationComplete(false);
-      setShowOptionsPopover(false); // Close any open popovers
-      
-      // Clear any pending animation timeout
+      setShowOptionsPopover(false);
+      setShowColorPicker(false);
+
       if (animationTimeoutRef.current) {
         clearTimeout(animationTimeoutRef.current);
         animationTimeoutRef.current = null;
       }
-      
-      // Start from the last measured width (or current width)
+
       const currentWidthValue = element.style.getPropertyValue('--button-group-width');
       const currentWidth = currentWidthValue ? parseFloat(currentWidthValue) : lastMeasuredWidth.current;
-      
+
       if (currentWidth > 0) {
-        // Set closing state to keep element visible during animation
         setIsClosing(true);
-        
-        // Set current width first to ensure smooth transition
         element.style.setProperty('--button-group-width', `${currentWidth}px`);
-        void element.offsetWidth; // Force reflow
-        
-        // Then animate to 0
+        void element.offsetWidth;
         requestAnimationFrame(() => {
           element.style.setProperty('--button-group-width', '0px');
         });
-        
-        // Clear closing state after animation completes
         closingTimeoutRef.current = setTimeout(() => {
           setIsClosing(false);
         }, widthAnimationDuration + 50);
@@ -282,53 +280,42 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
         element.style.setProperty('--button-group-width', '0px');
         setIsClosing(false);
       }
-      
       return;
     }
 
-    // OPENING: Animate width from 0 to natural size
     setAnimationComplete(false);
     setIsClosing(false);
 
-    // Wait for DOM to be ready
     const rafId1 = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (!element) return;
-        
-        // Get current width if it exists
+
         const currentWidthValue = element.style.getPropertyValue('--button-group-width');
         const currentWidth = currentWidthValue ? parseFloat(currentWidthValue) : 0;
-        
-        // Temporarily remove constraints to measure natural width
+
         const savedMaxWidth = element.style.maxWidth;
         element.style.maxWidth = 'none';
         element.style.width = 'auto';
         element.style.setProperty('--button-group-width', 'auto');
-        
-        // Force layout recalculation
+
         void element.offsetWidth;
-        
-        // Measure the natural width
+
         const naturalWidth = element.scrollWidth;
-        lastMeasuredWidth.current = naturalWidth; // Store for closing animation
-        
+        lastMeasuredWidth.current = naturalWidth;
+
         const firstButtonWidth = 38;
-        
-        // Restore max-width
+
         element.style.maxWidth = savedMaxWidth || '600px';
         element.style.width = '';
-        
-        // If initial appearance, start from first button width
+
         if (currentWidth === 0) {
           element.style.setProperty('--button-group-width', `${firstButtonWidth}px`);
           void element.offsetWidth;
         }
-        
-        // Trigger width animation to expand
+
         requestAnimationFrame(() => {
           if (!element) return;
           element.style.setProperty('--button-group-width', `${naturalWidth}px`);
-          
           animationTimeoutRef.current = setTimeout(() => {
             setAnimationComplete(true);
           }, widthAnimationDuration + 100);
@@ -348,7 +335,7 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   return (
     <div
       ref={buttonGroupRef}
-      className={`contentActionsButtonGroup ${visible ? 'visible' : ''} ${isClosing ? 'closing' : ''} ${animationComplete ? 'animationComplete' : ''} ${!isWordSelection ? 'hasBookmark' : ''}`}
+      className={`contentActionsButtonGroup ${visible ? 'visible' : ''} ${isClosing ? 'closing' : ''} ${animationComplete ? 'animationComplete' : ''} ${!isWordSelection ? 'hasHighlight' : ''}`}
       onMouseDown={(e) => e.stopPropagation()}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -356,26 +343,92 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
       {/* Explain button */}
       <ContentActionButton
         icon="explain"
-        tooltip="AI explanation"
+        tooltip="Simplify"
         onClick={onExplain}
         delay={0}
       />
-      
-      {/* Bookmark button - only show for text selections, hide for word selections */}
+
+      {/* Highlight button — colored circle + color-picker popover on hover (text selections only) */}
+      {!isWordSelection && (
+        <div
+          className="highlightColorButtonWrapper"
+          onMouseEnter={handleHighlightMouseEnter}
+          onMouseLeave={handleHighlightMouseLeave}
+        >
+          <button
+            ref={highlightButtonRef}
+            className="contentActionButton highlightColorButton"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onHighlightWithColor?.(activeHexcode);
+              handleHideButtonGroup();
+            }}
+            aria-label="Highlight selected text"
+            style={{ animationDelay: '120ms' }}
+          >
+            <span
+              className="highlightColorCircle"
+              style={{ background: activeHexcode }}
+            />
+          </button>
+
+          {/* Tooltip — positioned above the button like other action buttons */}
+          {isHighlightButtonMounted && highlightButtonRef.current && !showColorPicker && (
+            <OnHoverMessage
+              message="Highlight"
+              targetRef={highlightButtonRef as React.RefObject<HTMLElement>}
+              position="top"
+              offset={8}
+            />
+          )}
+
+          {/* Color picker popover — shown on hover */}
+          {showColorPicker && highlightColours.length > 0 && (
+            <div
+              className="highlightColorPickerPopover"
+              onMouseDown={(e) => e.preventDefault()}
+              onMouseEnter={handleHighlightMouseEnter}
+              onMouseLeave={handleHighlightMouseLeave}
+            >
+              {highlightColours.map((c) => (
+                <button
+                  key={c.id}
+                  className={`highlightColourDot${c.id === selectedHighlightColourId ? ' highlightColourDotSelected' : ''}`}
+                  style={{ background: c.hexcode }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onHighlightWithColor?.(c.hexcode);
+                    handleHideButtonGroup();
+                  }}
+                  aria-label={`Highlight with color ${c.hexcode}`}
+                >
+                  {c.id === selectedHighlightColourId && (
+                    <span className="highlightColourCheck" aria-hidden="true">✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Note button — only for text (non-word) selections */}
       {!isWordSelection && (
         <ContentActionButton
-          icon="bookmark"
-          tooltip="Bookmark"
+          icon="note"
+          tooltip="Add a note"
           onClick={() => {
-            onBookmark();
+            onNote?.();
             handleHideButtonGroup();
           }}
-          delay={1}
+          delay={2}
         />
       )}
-      
+
       {/* Options button (3 dots) with options popover - HOVER to show */}
-      <div 
+      <div
         className="optionsButtonWrapper"
         onMouseEnter={handleOptionsMouseEnter}
         onMouseLeave={handleOptionsMouseLeave}
@@ -383,7 +436,7 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
         <ContentActionButton
           icon="options"
           tooltip="More options"
-          delay={2}
+          delay={3}
           className="optionsButton"
           hideTooltip={showOptionsPopover}
         >
@@ -429,4 +482,3 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
 };
 
 ContentActionsButtonGroup.displayName = 'ContentActionsButtonGroup';
-

@@ -17,7 +17,7 @@ export enum Environment {
  *  2. Update value of oauth2.client_id in manifest.json wtih the appropriate GOOGLE_OAUTH_CLIENT_ID value
  *     based on theenvironment
  */
-export const env: Environment = Environment.PRODUCTION;
+export const env: Environment = Environment.LOCAL;
 
 /**
  * Local environment configuration

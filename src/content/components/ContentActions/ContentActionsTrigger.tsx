@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ContentActionsButtonGroup } from './ContentActionsButtonGroup';
 import { isRangeOverlappingUnderlinedText } from '../../utils/textSelectionUnderline';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { shouldShowTextFeatureAtom, shouldShowWordFeatureAtom } from '@/store/uiAtoms';
+import { highlightColoursAtom, selectedHighlightColourIdAtom } from '@/store/webHighlightAtoms';
 import { ChromeStorage } from '@/storage/chrome-local/ChromeStorage';
 
 export interface ContentActionsTriggerProps {
@@ -76,6 +77,10 @@ export interface ContentActionsTriggerProps {
   onShowModal?: () => void;
   /** Callback to show toast message */
   onShowToast?: (message: string, type: 'success' | 'error') => void;
+  /** Callback when Highlight is clicked — receives selected text, the live Range, and the chosen colour hexcode */
+  onHighlight?: (selectedText: string, range?: Range, hexcode?: string) => void;
+  /** Callback when Add a note is clicked — receives selected text and the live Range */
+  onNote?: (selectedText: string, range?: Range) => void;
 }
 
 interface SelectionState {
@@ -122,6 +127,8 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   onConvertPresentation,
   onShowModal,
   onShowToast,
+  onHighlight,
+  onNote,
 }) => {
   const [selection, setSelection] = useState<SelectionState | null>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -139,6 +146,10 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   const setShouldShowTextFeature = useSetAtom(shouldShowTextFeatureAtom);
   const shouldShowWordFeature = useAtomValue(shouldShowWordFeatureAtom);
   const setShouldShowWordFeature = useSetAtom(shouldShowWordFeatureAtom);
+
+  // Highlight colour atoms
+  const [highlightColours] = useAtom(highlightColoursAtom);
+  const [selectedHighlightColourId] = useAtom(selectedHighlightColourIdAtom);
 
   // Track mouse position for text selection
   useEffect(() => {
@@ -540,6 +551,20 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     }
   }, [selection, onBookmark]);
 
+  const handleHighlight = useCallback((hexcode: string) => {
+    if (selection) {
+      console.log('[ContentActions] Highlight with color:', hexcode);
+      onHighlight?.(selection.text, selection.range, hexcode);
+    }
+  }, [selection, onHighlight]);
+
+  const handleNote = useCallback(() => {
+    if (selection) {
+      console.log('[ContentActions] Add note:', selection.text.substring(0, 50));
+      onNote?.(selection.text, selection.range);
+    }
+  }, [selection, onNote]);
+
   const handleSynonym = useCallback(() => {
     if (selection) {
       console.log('[ContentActions] Synonym:', selection.text);
@@ -903,6 +928,10 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
         onKeepActive={handleKeepActive}
         onShowModal={onShowModal}
         onActionComplete={handleActionComplete}
+        highlightColours={highlightColours}
+        selectedHighlightColourId={selectedHighlightColourId}
+        onHighlightWithColor={handleHighlight}
+        onNote={handleNote}
       />
     </div>
   );

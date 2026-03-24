@@ -17,7 +17,7 @@ export interface HeaderProps {
   /** Whether component is rendered in Shadow DOM (uses plain class names) */
   useShadowDom?: boolean;
   /** Active tab type */
-  activeTab?: 'summary' | 'settings';
+  activeTab?: 'summary' | 'chat' | 'settings';
   /** Bookmark handler */
   onBookmark?: () => void;
   /** Whether to show bookmark icon */
@@ -84,6 +84,10 @@ export const Header: React.FC<HeaderProps> = ({
         {activeTab === 'summary' ? (
           <div className={getClassName('headerTitle')}>
             Ask anything about the page
+          </div>
+        ) : activeTab === 'chat' ? (
+          <div className={getClassName('headerTitle')}>
+            Chat with this page
           </div>
         ) : (
           <>
