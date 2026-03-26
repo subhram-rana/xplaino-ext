@@ -12017,21 +12017,27 @@ function handleXplainoImageSearch(): void {
 const USER_SELECT_STYLE_ID = 'xplaino-user-select-override';
 
 /**
- * Inject a global stylesheet that forces page content to be selectable.
- * Many sites (e.g. paddle.com) apply `user-select: none` broadly, which
- * prevents window.getSelection() from returning any text and breaks our
- * text/word selection features. The selector intentionally excludes
- * interactive elements (buttons, inputs, draggables) to minimise side-effects.
+ * Inject a global stylesheet that forces common text-bearing elements to be
+ * selectable.  Many sites (e.g. paddle.com) apply `user-select: none`
+ * broadly, which prevents window.getSelection() from returning any text and
+ * breaks our text/word selection features.
+ *
+ * The selector targets only known text containers to avoid interfering with
+ * custom UI controls (drag handles, sliders, canvases, code editors, etc.)
+ * that rely on user-select: none for correct behaviour.
  */
 function injectUserSelectOverride(): void {
-  // Only inject once
   if (document.getElementById(USER_SELECT_STYLE_ID)) return;
 
   const style = document.createElement('style');
   style.id = USER_SELECT_STYLE_ID;
   style.textContent = `
-    /* Xplaino: ensure page text is selectable for word/text explanation features */
-    body *:not(button):not(input):not(textarea):not(select):not(a):not([role="button"]):not([draggable="true"]) {
+    /* Xplaino: ensure common text elements are selectable */
+    p, span, h1, h2, h3, h4, h5, h6,
+    li, td, th, dt, dd, label, figcaption, caption,
+    blockquote, pre, code, em, strong, b, i, u, small,
+    mark, del, ins, sub, sup, abbr, cite, q, legend,
+    article, section, main, aside {
       -webkit-user-select: text !important;
       user-select: text !important;
     }

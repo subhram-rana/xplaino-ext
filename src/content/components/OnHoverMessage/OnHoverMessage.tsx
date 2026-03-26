@@ -5,7 +5,7 @@ import { useAtomValue } from 'jotai';
 import { currentThemeAtom } from '@/store/uiAtoms';
 import onHoverMessageStyles from '../../styles/onHoverMessage.shadow.css?inline';
 import { FAB_COLOR_VARIABLES } from '../../../constants/colors.css';
-import { getOrCreatePortalContainer, PORTAL_ROOT_ID } from '../../utils/portalRoot';
+import { getOrCreatePortalContainer, getPortalShadowRoot } from '../../utils/portalRoot';
 
 export interface OnHoverMessageProps {
   /** The message text to display */
@@ -42,35 +42,28 @@ export const OnHoverMessage: React.FC<OnHoverMessageProps> = ({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const styleInjectedRef = useRef(false);
 
-  // Inject styles into document.head on first mount
+  // Inject styles into the portal's shadow root (not document.head)
   useEffect(() => {
     if (styleInjectedRef.current) return;
-    
-    // Check if styles already injected
-    const existingStyle = document.getElementById('onhovermessage-styles');
-    if (existingStyle) {
+
+    const shadow = getPortalShadowRoot();
+
+    if (shadow.querySelector('[data-xplaino-onhover-styles]')) {
       styleInjectedRef.current = true;
       return;
     }
 
-    // Inject CSS variables scoped to portal container so we don't override page :root theme
     const colorStyle = document.createElement('style');
-    colorStyle.id = 'onhovermessage-color-variables';
-    colorStyle.textContent = FAB_COLOR_VARIABLES.replace(/:host/g, `#${PORTAL_ROOT_ID}`);
-    document.head.appendChild(colorStyle);
+    colorStyle.setAttribute('data-xplaino-onhover-vars', '');
+    colorStyle.textContent = FAB_COLOR_VARIABLES;
+    shadow.appendChild(colorStyle);
 
-    // Inject component styles
     const componentStyle = document.createElement('style');
-    componentStyle.id = 'onhovermessage-styles';
+    componentStyle.setAttribute('data-xplaino-onhover-styles', '');
     componentStyle.textContent = onHoverMessageStyles;
-    document.head.appendChild(componentStyle);
+    shadow.appendChild(componentStyle);
 
     styleInjectedRef.current = true;
-
-    return () => {
-      // Cleanup on unmount (only if this is the last instance)
-      // Note: In a real app, you might want to track instances
-    };
   }, []);
 
   // Calculate tooltip position

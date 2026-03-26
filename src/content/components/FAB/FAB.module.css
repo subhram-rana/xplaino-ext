@@ -275,6 +275,8 @@
   animation: spinSpinner 0.8s linear infinite !important;
   color: var(--color-primary) !important;
   stroke: var(--color-primary) !important;
+  flex-shrink: 0 !important;
+  will-change: transform !important;
 }
 
 /* Corner button border-radius for vertical single-column layout */
@@ -317,14 +319,6 @@
   transform: scale(1) !important;
   opacity: 1 !important;
   transition: none !important;
-}
-
-:global(.loadingSpinner) {
-  animation: spinSpinner 0.8s linear infinite !important;
-  color: var(--color-primary) !important;
-  stroke: var(--color-primary) !important;
-  flex-shrink: 0 !important;
-  will-change: transform !important;
 }
 
 @keyframes spinSpinner {

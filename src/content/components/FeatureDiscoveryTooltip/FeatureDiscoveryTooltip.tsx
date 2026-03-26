@@ -5,7 +5,7 @@ import { useAtomValue } from 'jotai';
 import { shouldShowTextFeatureAtom, shouldShowWordFeatureAtom, currentThemeAtom } from '@/store/uiAtoms';
 import onHoverMessageStyles from '../../styles/onHoverMessage.shadow.css?inline';
 import { FAB_COLOR_VARIABLES } from '../../../constants/colors.css';
-import { getOrCreatePortalContainer, PORTAL_ROOT_ID } from '../../utils/portalRoot';
+import { getOrCreatePortalContainer, getPortalShadowRoot } from '../../utils/portalRoot';
 
 /**
  * Known text-centric HTML tags that inherently contain readable text.
@@ -53,30 +53,28 @@ export const FeatureDiscoveryTooltip: React.FC = () => {
 
   const isDark = currentTheme === 'dark';
 
-  // Inject onHoverMessage styles into document.head (reuses the same styles as OnHoverMessage)
+  // Inject onHoverMessage styles into portal's shadow root (not document.head)
   useEffect(() => {
     if (styleInjectedRef.current) return;
 
-    const existingStyle = document.getElementById('onhovermessage-styles');
-    if (existingStyle) {
+    const shadow = getPortalShadowRoot();
+
+    if (shadow.querySelector('[data-xplaino-onhover-styles]')) {
       styleInjectedRef.current = true;
       return;
     }
 
-    // Inject CSS variables scoped to portal container so we don't override page :root theme
-    const existingColorStyle = document.getElementById('onhovermessage-color-variables');
-    if (!existingColorStyle) {
+    if (!shadow.querySelector('[data-xplaino-onhover-vars]')) {
       const colorStyle = document.createElement('style');
-      colorStyle.id = 'onhovermessage-color-variables';
-      colorStyle.textContent = FAB_COLOR_VARIABLES.replace(/:host/g, `#${PORTAL_ROOT_ID}`);
-      document.head.appendChild(colorStyle);
+      colorStyle.setAttribute('data-xplaino-onhover-vars', '');
+      colorStyle.textContent = FAB_COLOR_VARIABLES;
+      shadow.appendChild(colorStyle);
     }
 
-    // Inject component styles (same as OnHoverMessage)
     const componentStyle = document.createElement('style');
-    componentStyle.id = 'onhovermessage-styles';
+    componentStyle.setAttribute('data-xplaino-onhover-styles', '');
     componentStyle.textContent = onHoverMessageStyles;
-    document.head.appendChild(componentStyle);
+    shadow.appendChild(componentStyle);
 
     styleInjectedRef.current = true;
   }, []);
