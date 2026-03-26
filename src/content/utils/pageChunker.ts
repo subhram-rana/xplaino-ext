@@ -136,15 +136,6 @@ interface Block {
   text: string;
 }
 
-function shouldSkipElement(el: Element, skipContainers: boolean): boolean {
-  if (EXCLUDED_TAGS.has(el.tagName)) return true;
-  if (skipContainers && EXCLUDED_CONTAINER_TAGS.has(el.tagName)) return true;
-  if (!isElementVisible(el)) return true;
-  if (skipContainers && shouldExcludeByPattern(el)) return true;
-  if (isExtensionElement(el)) return true;
-  return false;
-}
-
 const BLOCK_TAGS = new Set([
   'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
   'P', 'LI', 'TR', 'BLOCKQUOTE', 'FIGCAPTION', 'TD', 'TH',
@@ -166,7 +157,19 @@ function collectBlocks(root: Element): Block[] {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
     acceptNode: (node) => {
       const el = node as Element;
-      if (shouldSkipElement(el, skipContainers)) return NodeFilter.FILTER_REJECT;
+      // Hard reject: subtrees that can never contain readable content
+      if (EXCLUDED_TAGS.has(el.tagName)) return NodeFilter.FILTER_REJECT;
+      if (isExtensionElement(el)) return NodeFilter.FILTER_REJECT;
+      if (!isElementVisible(el)) return NodeFilter.FILTER_REJECT;
+      // Hard reject for semantic structural tags — their children are nav/boilerplate, not article content.
+      // Exception: HEADER inside a content root often wraps article titles/intros (e.g. WordPress themes),
+      // so soft-skip it to allow its block-level children to be collected.
+      if (skipContainers && EXCLUDED_CONTAINER_TAGS.has(el.tagName)) {
+        return el.tagName === 'HEADER' ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_REJECT;
+      }
+      // Soft skip for class/id patterns — a <div class="entry-header"> is not a nav element;
+      // its <p> children may be article content, so visit them
+      if (skipContainers && shouldExcludeByPattern(el)) return NodeFilter.FILTER_SKIP;
       return NodeFilter.FILTER_ACCEPT;
     },
   });

@@ -202,14 +202,45 @@ function wrapRangeInMark(range: Range, chunkId: string): HTMLElement | null {
     range.surroundContents(mark);
     return mark;
   } catch {
-    // surroundContents fails when the range partially crosses element boundaries.
-    // Extract and re-insert with the mark wrapping the fragment.
+    // surroundContents fails when the range crosses element boundaries (e.g. heading-group chunks
+    // that span an <h2> and several <p> siblings). Walk every text node that intersects the range
+    // and wrap each in its own <mark> with the same chunkId, so deactivateCitation removes them all.
     try {
-      const mark = createMarkElement(chunkId);
-      const fragment = range.extractContents();
-      mark.appendChild(fragment);
-      range.insertNode(mark);
-      return mark;
+      const ancestor = range.commonAncestorContainer;
+      const root =
+        ancestor.nodeType === Node.ELEMENT_NODE
+          ? (ancestor as Element)
+          : ancestor.parentElement;
+      if (!root) return null;
+
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const marks: HTMLElement[] = [];
+      let n: Node | null;
+
+      while ((n = walker.nextNode())) {
+        const text = n as Text;
+        const len = text.length ?? 0;
+        // Skip nodes that end before the range starts or begin after the range ends
+        if (range.comparePoint(text, 0) > 0) continue;
+        if (range.comparePoint(text, len) < 0) continue;
+
+        const startOffset = text === range.startContainer ? range.startOffset : 0;
+        const endOffset = text === range.endContainer ? range.endOffset : len;
+        if (startOffset >= endOffset) continue;
+
+        try {
+          const nodeRange = document.createRange();
+          nodeRange.setStart(text, startOffset);
+          nodeRange.setEnd(text, endOffset);
+          const m = createMarkElement(chunkId);
+          nodeRange.surroundContents(m);
+          marks.push(m);
+        } catch {
+          // Skip individual nodes that can't be wrapped
+        }
+      }
+
+      return marks.length > 0 ? marks[0] : null;
     } catch {
       return null;
     }

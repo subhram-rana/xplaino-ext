@@ -841,6 +841,28 @@ export const WebpageChatView: React.FC<WebpageChatViewProps> = ({
       }
 
       if (chunks.length === 0) {
+        // Last-resort fallback: use raw body text so structured pages that defeat
+        // the DOM chunker still get a useful response instead of an error
+        const fallbackText = (document.body.innerText || '').replace(/\s+/g, ' ').trim();
+        if (fallbackText.length > 50) {
+          const clipped = fallbackText.slice(0, 12000);
+          chunks = [{
+            chunkId: 'fallback_0',
+            text: clipped,
+            metadata: {
+              startXPath: '/html/body',
+              endXPath: '/html/body',
+              startOffset: 0,
+              endOffset: clipped.length,
+              cssSelector: 'body',
+              textSnippetStart: clipped.slice(0, 60),
+              textSnippetEnd: clipped.slice(-60),
+            },
+          }];
+        }
+      }
+
+      if (chunks.length === 0) {
         streamingSessionIdRef.current = null;
         setChatState('error');
         setSessions((prev) =>
@@ -1008,6 +1030,28 @@ export const WebpageChatView: React.FC<WebpageChatViewProps> = ({
         chunks = chunkPage();
       } finally {
         setIsIndexing(false);
+      }
+
+      if (chunks.length === 0) {
+        // Last-resort fallback: use raw body text so structured pages that defeat
+        // the DOM chunker still get a useful response instead of an error
+        const fallbackText = (document.body.innerText || '').replace(/\s+/g, ' ').trim();
+        if (fallbackText.length > 50) {
+          const clipped = fallbackText.slice(0, 12000);
+          chunks = [{
+            chunkId: 'fallback_0',
+            text: clipped,
+            metadata: {
+              startXPath: '/html/body',
+              endXPath: '/html/body',
+              startOffset: 0,
+              endOffset: clipped.length,
+              cssSelector: 'body',
+              textSnippetStart: clipped.slice(0, 60),
+              textSnippetEnd: clipped.slice(-60),
+            },
+          }];
+        }
       }
 
       if (chunks.length === 0) {

@@ -99,12 +99,27 @@ const HIDDEN_ATTRIBUTES = ['hidden', 'aria-hidden'];
 
 /**
  * ID/class patterns to exclude (navigation, headers, footers, etc.)
+ * Use word-boundary-anchored patterns to avoid false positives on legitimate
+ * content wrappers like "entry-header", "article-navigation", "post-share-bar".
  */
 const EXCLUDED_PATTERNS = [
-  /nav/i, /menu/i, /header/i, /footer/i, /sidebar/i, 
-  /cookie/i, /gdpr/i, /consent/i, /advertisement/i, /ad-/i,
-  /comment/i, /related/i, /recommend/i, /subscribe/i,
-  /newsletter/i, /social/i, /share/i, /follow/i,
+  /\bnav(igation)?\b/i,
+  /\bmenu\b/i,
+  /\bsite[-_]?header\b/i,
+  /\bsite[-_]?footer\b/i,
+  /\bsidebar\b/i,
+  /\bcookie/i,
+  /\bgdpr\b/i,
+  /\bconsent\b/i,
+  /\badvertisement\b/i,
+  /\bad[-_](unit|banner|slot|container|wrapper|block)\b/i,
+  /\bcomments?\b/i,
+  /\brelated[-_]?(posts?|articles?|content)\b/i,
+  /\brecommend(ed|ations?)?\b/i,
+  /\bsubscribe[-_]?(form|banner|popup|widget)?\b/i,
+  /\bnewsletter\b/i,
+  /\bsocial[-_]?(share|links?|icons?|bar|media)\b/i,
+  /\bshare[-_]?(buttons?|links?|bar|icons?|panel)\b/i,
 ];
 
 /**
@@ -359,11 +374,19 @@ export function extractPageContentWithIds(): ExtractPageContentWithIdsResult {
     {
       acceptNode: (node) => {
         const el = node as Element;
+        // Hard reject: subtrees that can never contain readable content
         if (EXCLUDED_TAGS.has(el.tagName)) return NodeFilter.FILTER_REJECT;
-        if (skipExcludedContainers && EXCLUDED_CONTAINER_TAGS.has(el.tagName)) return NodeFilter.FILTER_REJECT;
-        if (!isElementVisible(el)) return NodeFilter.FILTER_REJECT;
-        if (skipExcludedContainers && shouldExcludeByPattern(el)) return NodeFilter.FILTER_REJECT;
         if (isExtensionElement(el)) return NodeFilter.FILTER_REJECT;
+        if (!isElementVisible(el)) return NodeFilter.FILTER_REJECT;
+        // Hard reject for semantic structural tags — their children are nav/boilerplate, not article content.
+        // Exception: HEADER inside a content root often wraps article titles/intros (e.g. WordPress themes),
+        // so soft-skip it to allow its block-level children to be collected.
+        if (skipExcludedContainers && EXCLUDED_CONTAINER_TAGS.has(el.tagName)) {
+          return el.tagName === 'HEADER' ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_REJECT;
+        }
+        // Soft skip for class/id patterns — a <div class="entry-header"> is not a nav element;
+        // its <p> children may be article content, so visit them
+        if (skipExcludedContainers && shouldExcludeByPattern(el)) return NodeFilter.FILTER_SKIP;
         return NodeFilter.FILTER_ACCEPT;
       },
     }
