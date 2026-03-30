@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Xplaino AI – Chat with webpage, pdf, highlight text, add notes, bookmarks, Custom prompts",
+  "name": "Xplaino AI – Chat with webpage, pdf, highlight text, add notes, bookmarks",
   "version": "2.0.3",
   "description": "AI research assistant to summarize webpages, translate content, simplify text, and save organized insights.",
   "icons": {
@@ -15,7 +15,7 @@
       "48": "public/icons/chrome-extension-logo.png",
       "128": "public/icons/chrome-extension-logo.png"
     },
-    "default_title": "Xplaino AI – Chat with webpage, pdf, highlight text, add notes, bookmarks, Custom prompts"
+    "default_title": "Xplaino AI – Chat with webpage, pdf, highlight text, add notes, bookmarks"
   },
   "background": {
     "service_worker": "src/background/index.ts",
