@@ -14,8 +14,6 @@ export interface ContentActionsButtonGroupProps {
   onExplain: () => void;
   /** Callback when Grammar is clicked */
   onGrammar: () => void;
-  /** Callback when Translate is clicked */
-  onTranslate: () => void;
   /** Callback when Bookmark is clicked (kept for side-panel / other flows) */
   onBookmark: () => void;
   /** Callback when Synonym is clicked */
@@ -73,7 +71,6 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
   isWordSelection,
   onExplain,
   onGrammar: _onGrammar, // Keep for backward compatibility but don't use
-  onTranslate,
   onBookmark,
   onSynonym,
   onOpposite,
@@ -307,7 +304,6 @@ export const ContentActionsButtonGroup: React.FC<ContentActionsButtonGroupProps>
           <ActionButtonOptionsPopover
             visible={showOptionsPopover}
             isWordSelection={isWordSelection}
-            onTranslate={onTranslate}
             onSynonym={onSynonym}
             onOpposite={onOpposite}
             onAskAI={onAskAI}

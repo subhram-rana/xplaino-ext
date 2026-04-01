@@ -67,7 +67,7 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
   useShadowDom: _useShadowDom = false,
   onExplain,
   onGrammar,
-  onTranslate,
+  onTranslate: _onTranslate,
   onBookmark,
   onSynonym,
   onOpposite,
@@ -507,13 +507,6 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
     }
   }, [selection, onGrammar]);
 
-  const handleTranslate = useCallback(() => {
-    if (selection) {
-      console.log('[ContentActions] Translate:', selection.text);
-      onTranslate?.(selection.text);
-    }
-  }, [selection, onTranslate]);
-
   const handleBookmark = useCallback(() => {
     if (selection) {
       console.log('[ContentActions] Bookmark:', selection.text);
@@ -716,7 +709,6 @@ export const ContentActionsTrigger: React.FC<ContentActionsTriggerProps> = ({
         isWordSelection={selection.isWord}
         onExplain={handleExplain}
         onGrammar={handleGrammar}
-        onTranslate={handleTranslate}
         onBookmark={handleBookmark}
         onSynonym={handleSynonym}
         onOpposite={handleOpposite}

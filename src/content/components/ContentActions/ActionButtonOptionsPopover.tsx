@@ -1,7 +1,7 @@
 // src/content/components/ContentActions/ActionButtonOptionsPopover.tsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Languages, Replace, ArrowLeftRight, Sparkles,
+  Replace, ArrowLeftRight, Sparkles,
   // Custom prompt icons
   BookMarked, Plus, ExternalLink,
 } from 'lucide-react';
@@ -18,8 +18,6 @@ export interface ActionButtonOptionsPopoverProps {
   visible: boolean;
   /** Whether the current selection is a word (shows more options) */
   isWordSelection: boolean;
-  /** Callback when Translate is clicked */
-  onTranslate?: () => void;
   /** Callback when Synonym is clicked */
   onSynonym?: () => void;
   /** Callback when Opposite is clicked */
@@ -57,7 +55,6 @@ export interface ActionButtonOptionsPopoverProps {
 export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProps> = ({
   visible,
   isWordSelection,
-  onTranslate,
   onSynonym,
   onOpposite,
   onAskAI,
@@ -132,11 +129,6 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
     }
   }, [visible, emerge, shrink]);
 
-  const handleTranslateClick = useCallback(() => {
-    onTranslate?.();
-    onHideButtonGroup?.();
-  }, [onTranslate, onHideButtonGroup]);
-
   const handleSynonymClick = useCallback(() => {
     onSynonym?.();
     onHideButtonGroup?.();
@@ -198,19 +190,6 @@ export const ActionButtonOptionsPopover: React.FC<ActionButtonOptionsPopoverProp
       )}
 
       {isWordSelection && <div className="optionsPopoverSeparator" />}
-
-      {/* Translate - always visible */}
-      <button
-        className="actionButtonOption"
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleTranslateClick();
-        }}
-      >
-        <Languages size={18} strokeWidth={2.5} />
-        <span>Translate</span>
-      </button>
 
       {/* Synonym - only for word selection */}
       {isWordSelection && (
