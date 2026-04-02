@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Xplaino – Chat PDF & Webpage, Summarizer, Highlighter & Research Tool",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "AI webpage & PDF summarizer. Chat, highlight, bookmark, translate & research smarter. Your all-in-one AI research assistant.",
   "icons": {
     "16": "public/icons/chrome-extension-logo.png",
@@ -35,7 +35,7 @@
     "scripting"
   ],
   "oauth2": {
-    "client_id": "355884005048-4bn6e6rbq9mfdrb2q43sthsejc88sbcc.apps.googleusercontent.com",
+    "client_id": "355884005048-haqbeokpobimcafks356ovc371glnglo.apps.googleusercontent.com",
     "scopes": ["openid", "email", "profile"]
   },
   "host_permissions": [
