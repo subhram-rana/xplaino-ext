@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Xplaino – Chat PDF & Webpage, Highlight, Notes, Bookmark, Collaborate",
   "version": "2.0.7",
-  "description": "Chat any webpage or PDF. Highlight, add notes & collaborate. Bookmark images, text & words. Translate pages without leaving.",
+  "description": "Chat any webpage or PDF. Translate, highlight, add notes & collaborate. Bookmark images, text & words. Research tool",
   "icons": {
     "16": "public/icons/chrome-extension-logo.png",
     "48": "public/icons/chrome-extension-logo.png",
